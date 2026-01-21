@@ -2,9 +2,11 @@ import { useState } from 'react';
 import { Layout, Menu, theme, ConfigProvider } from 'antd';
 import {
   AppstoreOutlined,
-  ClockCircleOutlined
+  ClockCircleOutlined,
+  FileTextOutlined,
 } from '@ant-design/icons';
 import TimestampConverter from './components/TimestampConverter';
+import Base64Converter from './components/Base64Converter';
 
 const { Header, Content, Sider } = Layout;
 
@@ -26,6 +28,11 @@ const menuItems: MenuItem[] = [
         key: 'timestamp',
         icon: <ClockCircleOutlined />,
         label: '时间戳转换'
+      },
+      {
+        key: 'base64',
+        icon: <FileTextOutlined />,
+        label: 'Base64 转换'
       }
     ]
   }
@@ -43,6 +50,8 @@ function App() {
     switch (key) {
       case 'timestamp':
         return <TimestampConverter key="timestamp" />;
+      case 'base64':
+        return <Base64Converter key="base64" />;
       default:
         return (
           <div style={{
@@ -114,7 +123,7 @@ function App() {
             }}
           >
             <span style={{ fontSize: '16px', fontWeight: 500, color: colorText }}>
-              {selectedKey[0] === 'timestamp' ? '时间戳转换' : 'AI工具箱'}
+              {selectedKey[0] === 'timestamp' ? '时间戳转换' : selectedKey[0] === 'base64' ? 'Base64 转换' : 'AI工具箱'}
             </span>
           </Header>
           <Content style={{
