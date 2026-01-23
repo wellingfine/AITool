@@ -91,7 +91,7 @@ const Settings: React.FC = () => {
             </Form.Item>
             <Form.Item>
               <Paragraph type="secondary" style={{ fontSize: 12, marginBottom: 0 }}>
-                所有应用程序数据（包括工作跟进记录）都将存储在此目录下。请确保您有读写权限。
+                所有应用程序数据（包括任务跟进记录）都将存储在此目录下。请确保您有读写权限。
               </Paragraph>
             </Form.Item>
             <Form.Item>

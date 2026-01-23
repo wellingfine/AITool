@@ -72,7 +72,7 @@ const mainMenuItems: MenuItem[] = [
       {
         key: 'workTracker',
         icon: <ThunderboltOutlined />,
-        label: '工作跟进'
+        label: '任务跟进'
       }
     ]
   }
@@ -163,7 +163,7 @@ function App() {
             }}
           >
             <span style={{ fontSize: '16px', fontWeight: 500, color: colorText }}>
-              {selectedKey[0] === 'timestamp' ? '时间戳转换' : selectedKey[0] === 'base64' ? 'Base64 转换' : selectedKey[0] === 'hash' ? 'Hash 计算' : selectedKey[0] === 'imageBase64' ? '图片 Base64' : selectedKey[0] === 'workTracker' ? '工作跟进' : selectedKey[0] === 'settings' ? '设置' : 'AI工具箱'}
+              {selectedKey[0] === 'timestamp' ? '时间戳转换' : selectedKey[0] === 'base64' ? 'Base64 转换' : selectedKey[0] === 'hash' ? 'Hash 计算' : selectedKey[0] === 'imageBase64' ? '图片 Base64' : selectedKey[0] === 'workTracker' ? '任务跟进' : selectedKey[0] === 'settings' ? '设置' : 'AI工具箱'}
             </span>
           </Header>
           <Content style={{
@@ -199,7 +199,7 @@ function App() {
             <div style={{ display: currentKey === 'imageBase64' ? 'block' : 'none' }}>
               <ImageBase64 />
             </div>
-            {/* 工作跟进 - 通过 display 控制显示/隐藏 */}
+            {/* 任务跟进 - 通过 display 控制显示/隐藏 */}
             <div style={{ display: currentKey === 'workTracker' ? 'block' : 'none' }}>
               <WorkTracker />
             </div>

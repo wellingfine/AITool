@@ -1,6 +1,8 @@
 /**
- * 工作跟进数据存储服务
+ * 任务跟进数据存储服务
  */
+
+import { nativeAPI } from './nativeAPI';
 
 // 标签类型
 export interface Tag {
@@ -13,7 +15,6 @@ export interface Tag {
 export interface WorkProject {
   id: string;
   name: string;
-  tags: string[];
   createdAt: string;
   updatedAt: string;
 }
@@ -26,6 +27,7 @@ export interface WorkRecord {
   images: string[];
   isTodo: boolean;
   isDone: boolean;
+  tags: string[];
   createdAt: string;
 }
 
@@ -36,7 +38,6 @@ export interface WorkTrackerData {
   records: WorkRecord[];
 }
 
-const STORAGE_KEY = 'workTrackerData';
 const TAG_COLORS = [
   '#f5222d', // 红色
   '#fa8c16', // 橙色
@@ -52,56 +53,74 @@ const TAG_COLORS = [
 
 export const workTrackerStorage = {
   // 读取数据
-  getData(): WorkTrackerData {
+  async getData(): Promise<WorkTrackerData> {
     try {
-      const data = localStorage.getItem(STORAGE_KEY);
-      if (data) {
-        const parsed = JSON.parse(data);
-        // 兼容旧版本数据结构（从 items 迁移到 projects 和 records）
-        if (parsed.items && !parsed.projects) {
-          console.log('检测到旧版本数据结构，正在迁移...');
-          // 将旧的 items 转换为项目和记录
-          const projects: WorkProject[] = [];
-          const records: WorkRecord[] = [];
+      const data = await nativeAPI.worktracker.readData();
 
-          parsed.items.forEach((item: any) => {
-            // 为每个事项创建一个项目
-            const project: WorkProject = {
-              id: item.id,
-              name: item.title,
-              tags: item.tags || [],
-              createdAt: item.createdAt,
-              updatedAt: item.updatedAt
-            };
-            projects.push(project);
+      // 兼容旧版本数据结构（从 items 迁移到 projects 和 records）
+      if (data.items && !data.projects) {
+        console.log('检测到旧版本数据结构，正在迁移...');
+        // 将旧的 items 转换为项目和记录
+        const projects: WorkProject[] = [];
+        const records: WorkRecord[] = [];
 
-            // 将事项内容作为记录
-            const record: WorkRecord = {
-              id: `${item.id}_record`,
-              projectId: item.id,
-              content: item.content,
-              images: item.images || [],
-              isTodo: item.isTodo || false,
-              isDone: item.isDone || false,
-              createdAt: item.createdAt
-            };
-            records.push(record);
-          });
+        data.items.forEach((item: any) => {
+          // 为每个事项创建一个项目
+          const project: WorkProject = {
+            id: item.id,
+            name: item.title,
+            createdAt: item.createdAt,
+            updatedAt: item.updatedAt
+          };
+          projects.push(project);
 
-          // 更新数据结构
-          parsed.projects = projects;
-          parsed.records = records;
-          delete parsed.items;
+          // 将事项内容作为记录，tags 从 item 迁移到 record
+          const record: WorkRecord = {
+            id: `${item.id}_record`,
+            projectId: item.id,
+            content: item.content,
+            images: item.images || [],
+            isTodo: item.isTodo || false,
+            isDone: item.isDone || false,
+            tags: item.tags || [],
+            createdAt: item.createdAt
+          };
+          records.push(record);
+        });
 
-          // 保存迁移后的数据
-          this.saveData(parsed);
-          console.log('数据迁移完成');
-        }
+        // 更新数据结构
+        data.projects = projects;
+        data.records = records;
+        delete data.items;
 
-        return parsed;
+        // 保存迁移后的数据
+        await this.saveData(data);
+        console.log('数据迁移完成');
       }
+
+      // 迁移项目的 tags 到记录（从旧结构迁移到新结构）
+      if (data.projects && data.projects.length > 0 && data.projects[0].tags !== undefined) {
+        console.log('检测到任务标签，正在迁移到记录...');
+        data.projects.forEach((project: any) => {
+          if (project.tags && project.tags.length > 0) {
+            // 将任务的标签移到该任务的所有记录上
+            const projectRecords = data.records.filter((r: WorkRecord) => r.projectId === project.id);
+            projectRecords.forEach((record: WorkRecord) => {
+              if (!record.tags) record.tags = [];
+              // 合并标签，避免重复
+              record.tags = [...new Set([...record.tags, ...project.tags])];
+            });
+            // 清空项目的标签
+            delete project.tags;
+          }
+        });
+        await this.saveData(data);
+        console.log('任务标签迁移完成');
+      }
+
+      return data;
     } catch (error) {
-      console.error('读取工作跟进数据失败:', error);
+      console.error('读取任务跟进数据失败:', error);
     }
     return {
       tags: [],
@@ -111,17 +130,18 @@ export const workTrackerStorage = {
   },
 
   // 保存数据
-  saveData(data: WorkTrackerData): void {
+  async saveData(data: WorkTrackerData): Promise<void> {
     try {
-      localStorage.setItem(STORAGE_KEY, JSON.stringify(data));
+      await nativeAPI.worktracker.saveData(data);
     } catch (error) {
-      console.error('保存工作跟进数据失败:', error);
+      console.error('保存任务跟进数据失败:', error);
+      throw error;
     }
   },
 
   // 添加标签
-  addTag(name: string, color: string): Tag {
-    const data = this.getData();
+  async addTag(name: string, color: string): Promise<Tag> {
+    const data = await this.getData();
     if (data.tags.length >= 10) {
       throw new Error('最多只能添加10个标签');
     }
@@ -131,45 +151,46 @@ export const workTrackerStorage = {
       color
     };
     data.tags.push(tag);
-    this.saveData(data);
+    await this.saveData(data);
     return tag;
   },
 
   // 更新标签
-  updateTag(id: string, name: string, color: string): void {
-    const data = this.getData();
+  async updateTag(id: string, name: string, color: string): Promise<void> {
+    const data = await this.getData();
     const index = data.tags.findIndex(t => t.id === id);
     if (index !== -1) {
       data.tags[index] = { ...data.tags[index], name, color };
-      this.saveData(data);
+      await this.saveData(data);
     }
   },
 
   // 删除标签
-  deleteTag(id: string): void {
-    const data = this.getData();
+  async deleteTag(id: string): Promise<void> {
+    const data = await this.getData();
     data.tags = data.tags.filter(t => t.id !== id);
-    // 同时从项目中移除该标签
-    if (data.projects) {
-      data.projects.forEach(project => {
-        project.tags = project.tags.filter(t => t !== id);
+    // 同时从记录中移除该标签
+    if (data.records) {
+      data.records.forEach(record => {
+        if (record.tags) {
+          record.tags = record.tags.filter(t => t !== id);
+        }
       });
     }
-    this.saveData(data);
+    await this.saveData(data);
   },
 
   // 获取所有标签
-  getTags(): Tag[] {
-    return this.getData().tags;
+  async getTags(): Promise<Tag[]> {
+    return (await this.getData()).tags;
   },
 
   // 添加跟进任务
-  addProject(name: string, tags: string[]): WorkProject {
-    const data = this.getData();
+  async addProject(name: string): Promise<WorkProject> {
+    const data = await this.getData();
     const project: WorkProject = {
       id: Date.now().toString(),
       name,
-      tags,
       createdAt: new Date().toISOString(),
       updatedAt: new Date().toISOString()
     };
@@ -177,13 +198,13 @@ export const workTrackerStorage = {
       data.projects = [];
     }
     data.projects.unshift(project);
-    this.saveData(data);
+    await this.saveData(data);
     return project;
   },
 
   // 更新跟进任务
-  updateProject(id: string, updates: Partial<WorkProject>): void {
-    const data = this.getData();
+  async updateProject(id: string, updates: Partial<WorkProject>): Promise<void> {
+    const data = await this.getData();
     if (!data.projects) {
       data.projects = [];
     }
@@ -194,13 +215,13 @@ export const workTrackerStorage = {
         ...updates,
         updatedAt: new Date().toISOString()
       };
-      this.saveData(data);
+      await this.saveData(data);
     }
   },
 
   // 删除跟进任务
-  deleteProject(id: string): void {
-    const data = this.getData();
+  async deleteProject(id: string): Promise<void> {
+    const data = await this.getData();
     if (!data.projects) {
       data.projects = [];
     }
@@ -210,22 +231,22 @@ export const workTrackerStorage = {
     data.projects = data.projects.filter(p => p.id !== id);
     // 同时删除该项目的所有记录
     data.records = data.records.filter(r => r.projectId !== id);
-    this.saveData(data);
+    await this.saveData(data);
   },
 
   // 获取所有跟进任务
-  getProjects(): WorkProject[] {
-    return this.getData().projects || [];
+  async getProjects(): Promise<WorkProject[]> {
+    return (await this.getData()).projects || [];
   },
 
   // 获取跟进任务详情
-  getProject(id: string): WorkProject | undefined {
-    return (this.getData().projects || []).find(p => p.id === id);
+  async getProject(id: string): Promise<WorkProject | undefined> {
+    return ((await this.getData()).projects || []).find(p => p.id === id);
   },
 
   // 添加记录
-  addRecord(projectId: string, content: string, images: string[], isTodo: boolean): WorkRecord {
-    const data = this.getData();
+  async addRecord(projectId: string, content: string, images: string[], isTodo: boolean, tags: string[] = []): Promise<WorkRecord> {
+    const data = await this.getData();
     if (!data.records) {
       data.records = [];
     }
@@ -239,6 +260,7 @@ export const workTrackerStorage = {
       images,
       isTodo,
       isDone: false,
+      tags,
       createdAt: new Date().toISOString()
     };
     data.records.push(record);
@@ -247,13 +269,13 @@ export const workTrackerStorage = {
     if (projectIndex !== -1) {
       data.projects[projectIndex].updatedAt = new Date().toISOString();
     }
-    this.saveData(data);
+    await this.saveData(data);
     return record;
   },
 
   // 更新记录
-  updateRecord(id: string, updates: Partial<WorkRecord>): void {
-    const data = this.getData();
+  async updateRecord(id: string, updates: Partial<WorkRecord>): Promise<void> {
+    const data = await this.getData();
     if (!data.records) {
       data.records = [];
     }
@@ -263,44 +285,53 @@ export const workTrackerStorage = {
         ...data.records[index],
         ...updates
       };
-      this.saveData(data);
+      await this.saveData(data);
     }
   },
 
   // 删除记录
-  deleteRecord(id: string): void {
-    const data = this.getData();
+  async deleteRecord(id: string): Promise<void> {
+    const data = await this.getData();
     if (!data.records) {
       data.records = [];
     }
     data.records = data.records.filter(r => r.id !== id);
-    this.saveData(data);
+    await this.saveData(data);
   },
 
   // 获取项目的所有记录
-  getProjectRecords(projectId: string): WorkRecord[] {
-    const data = this.getData();
+  async getProjectRecords(projectId: string): Promise<WorkRecord[]> {
+    const data = await this.getData();
     return (data.records || []).filter(r => r.projectId === projectId);
   },
 
   // 获取所有记录
-  getRecords(): WorkRecord[] {
-    return this.getData().records || [];
+  async getRecords(): Promise<WorkRecord[]> {
+    return (await this.getData()).records || [];
   },
 
-  // 按标签筛选项目
-  getProjectsByTag(tagId: string): WorkProject[] {
-    return this.getProjects().filter(p => p.tags.includes(tagId));
+  // 按标签筛选记录
+  async getRecordsByTag(tagId: string): Promise<WorkRecord[]> {
+    const records = await this.getRecords();
+    return records.filter(r => r.tags && r.tags.includes(tagId));
+  },
+
+  // 按标签筛选项目（返回包含该标签记录的项目）
+  async getProjectsByTag(tagId: string): Promise<WorkProject[]> {
+    const records = await this.getRecordsByTag(tagId);
+    const projectIds = [...new Set(records.map(r => r.projectId))];
+    const projects = await this.getProjects();
+    return projects.filter(p => projectIds.includes(p.id));
   },
 
   // 获取项目的待办记录
-  getProjectTodoRecords(projectId: string): WorkRecord[] {
-    return this.getProjectRecords(projectId).filter(r => r.isTodo && !r.isDone);
+  async getProjectTodoRecords(projectId: string): Promise<WorkRecord[]> {
+    return (await this.getProjectRecords(projectId)).filter(r => r.isTodo && !r.isDone);
   },
 
   // 获取所有待办记录
-  getTodoRecords(): WorkRecord[] {
-    return this.getRecords().filter(r => r.isTodo && !r.isDone);
+  async getTodoRecords(): Promise<WorkRecord[]> {
+    return (await this.getRecords()).filter(r => r.isTodo && !r.isDone);
   },
 
   // 获取可用颜色
@@ -310,7 +341,7 @@ export const workTrackerStorage = {
 
   // 导出数据到文件
   async exportToFile(): Promise<void> {
-    const data = this.getData();
+    const data = await this.getData();
     const json = JSON.stringify(data, null, 2);
     const blob = new Blob([json], { type: 'application/json' });
     const url = URL.createObjectURL(blob);

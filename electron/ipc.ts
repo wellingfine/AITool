@@ -134,3 +134,47 @@ ipcMain.handle('select-folder', async () => {
 
   return result.filePaths[0];
 });
+
+// 读取 worktracker 数据文件
+ipcMain.handle('read-worktracker-data', async () => {
+  try {
+    // 确保 worktracker 目录存在
+    const worktrackerDir = path.join(dataPath, 'worktracker');
+    const dataFile = path.join(worktrackerDir, 'data.json');
+
+    // 创建目录（如果不存在）
+    try {
+      await fs.mkdir(worktrackerDir, { recursive: true });
+    } catch (error) {
+      // 目录已存在，忽略错误
+    }
+
+    // 读取数据文件
+    const data = await fs.readFile(dataFile, 'utf-8');
+    return JSON.parse(data);
+  } catch (error) {
+    // 文件不存在或其他错误，返回空数据
+    console.log('读取 worktracker 数据失败，使用空数据:', error);
+    return {
+      tags: [],
+      projects: [],
+      records: []
+    };
+  }
+});
+
+// 保存 worktracker 数据文件
+ipcMain.handle('save-worktracker-data', async (event, data: any) => {
+  try {
+    // 确保 worktracker 目录存在
+    const worktrackerDir = path.join(dataPath, 'worktracker');
+    await fs.mkdir(worktrackerDir, { recursive: true });
+
+    const dataFile = path.join(worktrackerDir, 'data.json');
+    await fs.writeFile(dataFile, JSON.stringify(data, null, 2), 'utf-8');
+    return true;
+  } catch (error) {
+    console.error('保存 worktracker 数据失败:', error);
+    throw error;
+  }
+});

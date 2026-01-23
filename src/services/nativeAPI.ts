@@ -18,6 +18,8 @@ declare global {
       showNotification: (title: string, body: string) => Promise<void>;
       getDataPath: () => Promise<string>;
       setDataPath: (path: string) => Promise<void>;
+      readWorktrackerData: () => Promise<any>;
+      saveWorktrackerData: (data: any) => Promise<void>;
     };
   }
 }
@@ -157,6 +159,42 @@ export const dialogAPI = {
   }
 };
 
+// worktracker 数据存储
+export const worktrackerAPI = {
+  readData: async (): Promise<any> => {
+    if (isElectron() && window.electronAPI) {
+      return window.electronAPI.readWorktrackerData();
+    }
+    // 浏览器环境降级 - 使用 localStorage
+    try {
+      const data = localStorage.getItem('workTrackerData');
+      if (data) {
+        return JSON.parse(data);
+      }
+    } catch (error) {
+      console.error('读取数据失败:', error);
+    }
+    return {
+      tags: [],
+      projects: [],
+      records: []
+    };
+  },
+
+  saveData: async (data: any): Promise<void> => {
+    if (isElectron() && window.electronAPI) {
+      return window.electronAPI.saveWorktrackerData(data);
+    }
+    // 浏览器环境降级 - 使用 localStorage
+    try {
+      localStorage.setItem('workTrackerData', JSON.stringify(data));
+    } catch (error) {
+      console.error('保存数据失败:', error);
+      throw error;
+    }
+  }
+};
+
 // 导出所有 API
 export const nativeAPI = {
   clipboard: clipboardAPI,
@@ -164,7 +202,8 @@ export const nativeAPI = {
   system: systemAPI,
   notification: notificationAPI,
   config: configAPI,
-  dialog: dialogAPI
+  dialog: dialogAPI,
+  worktracker: worktrackerAPI
 };
 
 export default nativeAPI;

@@ -41,7 +41,7 @@
 
 .project-card.active {
   background: #e6f7ff;
-  border-left: 3px solid #1890ff;
+  border-right: 3px solid #1890ff;
 }
 
 .project-title {

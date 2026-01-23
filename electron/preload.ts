@@ -20,7 +20,11 @@ contextBridge.exposeInMainWorld('electronAPI', {
 
   // 配置
   getDataPath: () => ipcRenderer.invoke('get-data-path'),
-  setDataPath: (path: string) => ipcRenderer.invoke('set-data-path', path)
+  setDataPath: (path: string) => ipcRenderer.invoke('set-data-path', path),
+
+  // worktracker 数据
+  readWorktrackerData: () => ipcRenderer.invoke('read-worktracker-data'),
+  saveWorktrackerData: (data: any) => ipcRenderer.invoke('save-worktracker-data', data)
 });
 
 // 导出类型定义供 TypeScript 使用
@@ -36,6 +40,8 @@ declare global {
       showNotification: (title: string, body: string) => Promise<void>;
       getDataPath: () => Promise<string>;
       setDataPath: (path: string) => Promise<void>;
+      readWorktrackerData: () => Promise<any>;
+      saveWorktrackerData: (data: any) => Promise<void>;
     };
   }
 }

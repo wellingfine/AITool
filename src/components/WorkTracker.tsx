@@ -33,17 +33,22 @@ const WorkTracker = () => {
   const [tagModalVisible, setTagModalVisible] = useState(false);
   const [newTagName, setNewTagName] = useState('');
   const [newTagColor, setNewTagColor] = useState('');
-  
+
   // 新建/编辑项目
   const [projectModalVisible, setProjectModalVisible] = useState(false);
   const [editingProject, setEditingProject] = useState<WorkProject | null>(null);
   const [projectName, setProjectName] = useState('');
-  const [projectTags, setProjectTags] = useState<string[]>([]);
-  
+
   // 发送记录
   const [inputText, setInputText] = useState('');
   const [inputImages, setInputImages] = useState<string[]>([]);
   const [isTodo, setIsTodo] = useState(false);
+  const [inputTags, setInputTags] = useState<string[]>([]);
+
+  // 编辑记录标签
+  const [editingRecordTags, setEditingRecordTags] = useState<{ [key: string]: string[] }>({});
+  const [editingRecordId, setEditingRecordId] = useState<string | null>(null);
+
   const fileInputRef = useRef<HTMLInputElement>(null);
   const messagesEndRef = useRef<HTMLDivElement>(null);
 
@@ -76,30 +81,39 @@ const WorkTracker = () => {
     messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' });
   };
 
-  const loadTags = () => {
-    setTags(workTrackerStorage.getTags());
+  const loadTags = async () => {
+    setTags(await workTrackerStorage.getTags());
   };
 
-  const loadProjects = () => {
-    let filteredProjects = workTrackerStorage.getProjects() || [];
+  const loadProjects = async () => {
+    let filteredProjects = await workTrackerStorage.getProjects();
     if (filter === 'todo') {
       // 筛选有待办记录的项目
       filteredProjects = filteredProjects.filter(p => {
         if (!p || !p.id) return false;
-        const projectRecords = workTrackerStorage.getProjectRecords(p.id) || [];
+        const projectRecords = workTrackerStorage.getProjectRecords(p.id);
+        return projectRecords.then(records => records.some(r => r && r.isTodo && !r.isDone));
+      });
+      // 等待异步操作完成
+      const promises = filteredProjects.map(async p => {
+        if (!p || !p.id) return false;
+        const projectRecords = await workTrackerStorage.getProjectRecords(p.id);
         return projectRecords.some(r => r && r.isTodo && !r.isDone);
       });
+      const results = await Promise.all(promises);
+      filteredProjects = filteredProjects.filter((_, i) => results[i]);
     } else if (filter !== 'all') {
-      filteredProjects = filteredProjects.filter(p => p && p.tags && p.tags.includes(filter));
+      // 按标签筛选项目（筛选包含该标签记录的项目）
+      filteredProjects = await workTrackerStorage.getProjectsByTag(filter);
     }
     setProjects(filteredProjects);
   };
 
-  const loadRecords = (projectId: string) => {
-    setRecords(workTrackerStorage.getProjectRecords(projectId));
+  const loadRecords = async (projectId: string) => {
+    setRecords(await workTrackerStorage.getProjectRecords(projectId));
   };
 
-  const handleSendRecord = () => {
+  const handleSendRecord = async () => {
     if (!inputText.trim() && inputImages.length === 0) {
       message.warning('请输入内容或添加图片');
       return;
@@ -110,36 +124,37 @@ const WorkTracker = () => {
       return;
     }
 
-    workTrackerStorage.addRecord(selectedProjectId, inputText, inputImages, isTodo);
+    await workTrackerStorage.addRecord(selectedProjectId, inputText, inputImages, isTodo, inputTags);
     message.success('已发送');
-    
-    loadRecords(selectedProjectId);
-    loadProjects();
-    
+
+    await loadRecords(selectedProjectId);
+    await loadProjects();
+
     setInputText('');
     setInputImages([]);
     setIsTodo(false);
+    setInputTags([]);
   };
 
-  const handleDeleteRecord = (id: string) => {
-    workTrackerStorage.deleteRecord(id);
+  const handleDeleteRecord = async (id: string) => {
+    await workTrackerStorage.deleteRecord(id);
     if (selectedProjectId) {
-      loadRecords(selectedProjectId);
+      await loadRecords(selectedProjectId);
     }
-    loadProjects();
+    await loadProjects();
     message.success('已删除');
   };
 
-  const handleToggleTodo = (id: string) => {
+  const handleToggleTodo = async (id: string) => {
     const record = records.find(r => r.id === id);
     if (record) {
-      workTrackerStorage.updateRecord(id, { isDone: !record.isDone });
-      loadRecords(selectedProjectId!);
-      loadProjects();
+      await workTrackerStorage.updateRecord(id, { isDone: !record.isDone });
+      await loadRecords(selectedProjectId!);
+      await loadProjects();
     }
   };
 
-  const handleAddTag = () => {
+  const handleAddTag = async () => {
     if (!newTagName.trim()) {
       message.warning('请输入标签名称');
       return;
@@ -149,20 +164,20 @@ const WorkTracker = () => {
       return;
     }
     try {
-      workTrackerStorage.addTag(newTagName, newTagColor);
+      await workTrackerStorage.addTag(newTagName, newTagColor);
       setNewTagName('');
       setNewTagColor('');
-      loadTags();
+      await loadTags();
       message.success('标签已添加');
     } catch (error: any) {
       message.error(error.message);
     }
   };
 
-  const handleDeleteTag = (id: string) => {
-    workTrackerStorage.deleteTag(id);
-    loadTags();
-    loadProjects();
+  const handleDeleteTag = async (id: string) => {
+    await workTrackerStorage.deleteTag(id);
+    await loadTags();
+    await loadProjects();
     // 如果删除的标签是当前筛选条件，重置为全部
     if (filter === id) {
       setFilter('all');
@@ -170,18 +185,17 @@ const WorkTracker = () => {
     message.success('标签已删除');
   };
 
-  const handleCreateProject = () => {
+  const handleCreateProject = async () => {
     if (!projectName.trim()) {
       message.warning('请输入跟进任务名称');
       return;
     }
     try {
-      const newProject = workTrackerStorage.addProject(projectName, projectTags);
+      const newProject = await workTrackerStorage.addProject(projectName);
       setProjectModalVisible(false);
       setProjectName('');
-      setProjectTags([]);
       setEditingProject(null);
-      loadProjects();
+      await loadProjects();
       setSelectedProjectId(newProject.id);
       message.success('创建成功');
     } catch (error: any) {
@@ -189,44 +203,62 @@ const WorkTracker = () => {
     }
   };
 
-  const handleUpdateProject = () => {
+  const handleUpdateProject = async () => {
     if (!editingProject || !projectName.trim()) {
       return;
     }
-    workTrackerStorage.updateProject(editingProject.id, {
-      name: projectName,
-      tags: projectTags
+    await workTrackerStorage.updateProject(editingProject.id, {
+      name: projectName
     });
     setProjectModalVisible(false);
     setProjectName('');
-    setProjectTags([]);
     setEditingProject(null);
-    loadProjects();
+    await loadProjects();
     message.success('更新成功');
   };
 
-  const handleDeleteProject = (id: string) => {
-    workTrackerStorage.deleteProject(id);
+  const handleDeleteProject = async (id: string) => {
+    await workTrackerStorage.deleteProject(id);
     if (selectedProjectId === id) {
       setSelectedProjectId(null);
       setRecords([]);
     }
-    loadProjects();
+    await loadProjects();
     message.success('已删除');
   };
 
   const handleOpenCreateProject = () => {
     setEditingProject(null);
     setProjectName('');
-    setProjectTags([]);
     setProjectModalVisible(true);
   };
 
   const handleOpenEditProject = (project: WorkProject) => {
     setEditingProject(project);
     setProjectName(project.name);
-    setProjectTags(project.tags);
     setProjectModalVisible(true);
+  };
+
+  // 保存记录标签
+  const handleSaveRecordTags = async (recordId: string) => {
+    const tagIds = editingRecordTags[recordId] || [];
+    await workTrackerStorage.updateRecord(recordId, { tags: tagIds });
+    setEditingRecordTags(prev => {
+      const { [recordId]: _, ...rest } = prev;
+      return rest;
+    });
+    setEditingRecordId(null);
+    await loadRecords(selectedProjectId!);
+    message.success('标签已更新');
+  };
+
+  // 取消编辑记录标签
+  const handleCancelRecordTags = (recordId: string) => {
+    setEditingRecordTags(prev => {
+      const { [recordId]: _, ...rest } = prev;
+      return rest;
+    });
+    setEditingRecordId(null);
   };
 
   const handlePaste = async (e: React.ClipboardEvent) => {
@@ -345,28 +377,6 @@ const WorkTracker = () => {
             onChange={(e) => setProjectName(e.target.value)}
           />
         </div>
-
-        <div>
-          <label style={{ display: 'block', marginBottom: 8 }}>选择标签</label>
-          <Space wrap>
-            {tags.map(tag => (
-              <Tag
-                key={tag.id}
-                color={projectTags.includes(tag.id) ? tag.color : 'default'}
-                style={{ cursor: 'pointer' }}
-                onClick={() => {
-                  if (projectTags.includes(tag.id)) {
-                    setProjectTags(prev => prev.filter(id => id !== tag.id));
-                  } else {
-                    setProjectTags(prev => [...prev, tag.id]);
-                  }
-                }}
-              >
-                {tag.name}
-              </Tag>
-            ))}
-          </Space>
-        </div>
       </Space>
     </div>
   );
@@ -439,16 +449,6 @@ const WorkTracker = () => {
                       <FolderOutlined style={{ color: '#1890ff' }} />
                       <div style={{ flex: 1, overflow: 'hidden' }}>
                         <div className="project-title">{project.name}</div>
-                        <Space size={4} wrap style={{ marginTop: 4 }}>
-                          {project.tags.map(tagId => {
-                            const tag = tags.find(t => t.id === tagId);
-                            return tag ? (
-                              <Tag key={tag.id} color={tag.color} style={{ fontSize: 10, margin: 0 }}>
-                                {tag.name}
-                              </Tag>
-                            ) : null;
-                          })}
-                        </Space>
                       </div>
                       <Tooltip title="编辑">
                         <Button
