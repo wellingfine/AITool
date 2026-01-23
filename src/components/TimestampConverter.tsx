@@ -13,6 +13,7 @@ import {
   theme,
   DatePicker,
 } from "antd";
+import type { Dayjs } from "dayjs";
 import {
   CopyOutlined,
   ReloadOutlined,
@@ -20,10 +21,8 @@ import {
   CalendarOutlined,
 } from "@ant-design/icons";
 import { nativeAPI } from "../services/nativeAPI";
-import type { Dayjs } from "dayjs";
-import dayjs from "dayjs";
 
-const { Title, Text } = Typography;
+const { Text } = Typography;
 
 const TimestampConverter: React.FC = () => {
   const [timestamp, setTimestamp] = useState<string>("");
@@ -79,7 +78,7 @@ const TimestampConverter: React.FC = () => {
     setMillisecondTimestamp(date.getTime().toString());
   };
 
-  const convertDateToTimestamp = (date: Dayjs | null) => {
+  const convertDateToTimestamp = (date: any) => {
     if (!date) {
       setTimestamp("");
       setDatetime("");
@@ -102,11 +101,6 @@ const TimestampConverter: React.FC = () => {
 
     await nativeAPI.clipboard.write(text);
     message.success(label);
-  };
-
-  const clear = () => {
-    setTimestamp("");
-    setDatetime("");
   };
 
   const now = new Date();
@@ -348,12 +342,12 @@ const TimestampConverter: React.FC = () => {
           }
         >
           <Space orientation="vertical" size="middle" style={{ width: "100%" }}>
-            <DatePicker
-              showTime
-              format="YYYY-MM-DD HH:mm:ss"
-              size="large"
-              value={selectedDate}
-              onChange={(date) => {
+              <DatePicker
+                showTime
+                format="YYYY-MM-DD HH:mm:ss"
+                size="large"
+                value={selectedDate as any}
+                onChange={(date) => {
                 setSelectedDate(date);
                 if (date) convertDateToTimestamp(date);
                 else {

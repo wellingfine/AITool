@@ -9,12 +9,14 @@ import {
   PictureOutlined,
   TeamOutlined,
   ThunderboltOutlined,
+  SettingOutlined,
 } from '@ant-design/icons';
 import TimestampConverter from './components/TimestampConverter';
 import Base64Converter from './components/Base64Converter';
 import HashCalculator from './components/HashCalculator';
 import ImageBase64 from './components/ImageBase64';
 import WorkTracker from './components/WorkTracker';
+import Settings from './components/Settings';
 
 const { Header, Content, Sider } = Layout;
 
@@ -26,7 +28,8 @@ type MenuItem = {
   children?: MenuItem[];
 };
 
-const menuItems: MenuItem[] = [
+// 主菜单项（不包括设置）
+const mainMenuItems: MenuItem[] = [
   {
     key: 'daily',
     icon: <AppstoreOutlined />,
@@ -78,7 +81,7 @@ const menuItems: MenuItem[] = [
 function App() {
   const [selectedKey, setSelectedKey] = useState<string[]>([]);
   const {
-    token: { borderRadiusLG, colorBgLayout, colorBgElevated, colorBorder, colorText, colorTextSecondary },
+    token: { colorBgLayout, colorBgElevated, colorBorder, colorText, colorTextSecondary },
   } = theme.useToken();
 
   const currentKey = selectedKey[0];
@@ -112,14 +115,36 @@ function App() {
           }}>
             AITool
           </div>
-          <Menu
-            mode="inline"
-            theme="dark"
-            style={{ height: 'calc(100vh - 64px)', borderRight: 0 }}
-            selectedKeys={selectedKey}
-            onSelect={(e) => setSelectedKey(e.selectedKeys)}
-            items={menuItems}
-          />
+          <div style={{ height: 'calc(100vh - 64px - 60px)', overflowY: 'auto' }}>
+            <Menu
+              mode="inline"
+              theme="dark"
+              style={{ borderRight: 0 }}
+              selectedKeys={selectedKey}
+              onSelect={(e) => setSelectedKey(e.selectedKeys)}
+              items={mainMenuItems}
+            />
+          </div>
+          <div style={{
+            height: 60,
+            borderTop: '1px solid #1f394c',
+            display: 'flex',
+            alignItems: 'center',
+            padding: '0 16px'
+          }}>
+            <Menu
+              mode="inline"
+              theme="dark"
+              style={{ borderRight: 0, flex: 1 }}
+              selectedKeys={selectedKey}
+              onSelect={(e) => setSelectedKey(e.selectedKeys)}
+              items={[{
+                key: 'settings',
+                icon: <SettingOutlined />,
+                label: '设置'
+              }]}
+            />
+          </div>
         </Sider>
         <Layout style={{ marginLeft: 200 }}>
           <Header
@@ -138,7 +163,7 @@ function App() {
             }}
           >
             <span style={{ fontSize: '16px', fontWeight: 500, color: colorText }}>
-              {selectedKey[0] === 'timestamp' ? '时间戳转换' : selectedKey[0] === 'base64' ? 'Base64 转换' : selectedKey[0] === 'hash' ? 'Hash 计算' : selectedKey[0] === 'imageBase64' ? '图片 Base64' : selectedKey[0] === 'workTracker' ? '工作跟进' : 'AI工具箱'}
+              {selectedKey[0] === 'timestamp' ? '时间戳转换' : selectedKey[0] === 'base64' ? 'Base64 转换' : selectedKey[0] === 'hash' ? 'Hash 计算' : selectedKey[0] === 'imageBase64' ? '图片 Base64' : selectedKey[0] === 'workTracker' ? '工作跟进' : selectedKey[0] === 'settings' ? '设置' : 'AI工具箱'}
             </span>
           </Header>
           <Content style={{
@@ -177,6 +202,10 @@ function App() {
             {/* 工作跟进 - 通过 display 控制显示/隐藏 */}
             <div style={{ display: currentKey === 'workTracker' ? 'block' : 'none' }}>
               <WorkTracker />
+            </div>
+            {/* 设置 - 通过 display 控制显示/隐藏 */}
+            <div style={{ display: currentKey === 'settings' ? 'block' : 'none' }}>
+              <Settings />
             </div>
           </Content>
         </Layout>

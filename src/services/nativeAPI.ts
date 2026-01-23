@@ -1,9 +1,26 @@
 /**
  * 本地能力封装接口
- * 
+ *
  * 注意：此模块为本地能力提供统一接口
  * 在浏览器环境中会自动降级处理，确保应用可以在浏览器中独立运行
  */
+
+// 类型声明
+declare global {
+  interface Window {
+    electronAPI?: {
+      getPlatform: () => Promise<string>;
+      selectFile: () => Promise<string | null>;
+      saveFile: (content: string) => Promise<boolean>;
+      selectFolder: () => Promise<string | null>;
+      readClipboard: () => Promise<string>;
+      writeClipboard: (text: string) => Promise<void>;
+      showNotification: (title: string, body: string) => Promise<void>;
+      getDataPath: () => Promise<string>;
+      setDataPath: (path: string) => Promise<void>;
+    };
+  }
+}
 
 // 检测运行环境
 const isElectron = () => {
@@ -13,7 +30,7 @@ const isElectron = () => {
 // 剪贴板操作
 export const clipboardAPI = {
   read: async (): Promise<string> => {
-    if (isElectron()) {
+    if (isElectron() && window.electronAPI) {
       return window.electronAPI.readClipboard();
     }
     // 浏览器环境降级
@@ -24,9 +41,9 @@ export const clipboardAPI = {
       return '';
     }
   },
-  
+
   write: async (text: string): Promise<void> => {
-    if (isElectron()) {
+    if (isElectron() && window.electronAPI) {
       return window.electronAPI.writeClipboard(text);
     }
     // 浏览器环境降级
@@ -41,7 +58,7 @@ export const clipboardAPI = {
 // 文件操作
 export const fileAPI = {
   selectFile: async (): Promise<string | null> => {
-    if (isElectron()) {
+    if (isElectron() && window.electronAPI) {
       return window.electronAPI.selectFile();
     }
     // 浏览器环境降级
@@ -57,9 +74,9 @@ export const fileAPI = {
       input.click();
     });
   },
-  
+
   saveFile: async (content: string, filename: string = 'download.txt'): Promise<boolean> => {
-    if (isElectron()) {
+    if (isElectron() && window.electronAPI) {
       return window.electronAPI.saveFile(content);
     }
     // 浏览器环境降级
@@ -82,7 +99,7 @@ export const fileAPI = {
 // 系统信息
 export const systemAPI = {
   getPlatform: async (): Promise<string> => {
-    if (isElectron()) {
+    if (isElectron() && window.electronAPI) {
       return window.electronAPI.getPlatform();
     }
     // 浏览器环境降级
@@ -93,7 +110,7 @@ export const systemAPI = {
 // 通知
 export const notificationAPI = {
   show: async (title: string, body: string): Promise<void> => {
-    if (isElectron()) {
+    if (isElectron() && window.electronAPI) {
       return window.electronAPI.showNotification(title, body);
     }
     // 浏览器环境降级
@@ -109,12 +126,45 @@ export const notificationAPI = {
   }
 };
 
+// 配置管理
+export const configAPI = {
+  getDataPath: async (): Promise<string> => {
+    if (isElectron() && window.electronAPI) {
+      return window.electronAPI.getDataPath();
+    }
+    // 浏览器环境降级 - 使用 localStorage
+    const path = localStorage.getItem('dataPath');
+    return path || '';
+  },
+
+  setDataPath: async (path: string): Promise<void> => {
+    if (isElectron() && window.electronAPI) {
+      return window.electronAPI.setDataPath(path);
+    }
+    // 浏览器环境降级 - 使用 localStorage
+    localStorage.setItem('dataPath', path);
+  }
+};
+
+// 对话框
+export const dialogAPI = {
+  selectFolder: async (): Promise<string | null> => {
+    if (isElectron() && window.electronAPI) {
+      return window.electronAPI.selectFolder();
+    }
+    // 浏览器环境降级
+    return null;
+  }
+};
+
 // 导出所有 API
 export const nativeAPI = {
   clipboard: clipboardAPI,
   file: fileAPI,
   system: systemAPI,
-  notification: notificationAPI
+  notification: notificationAPI,
+  config: configAPI,
+  dialog: dialogAPI
 };
 
 export default nativeAPI;
