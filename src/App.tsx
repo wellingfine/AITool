@@ -6,10 +6,12 @@ import {
   FileTextOutlined,
   LockOutlined,
   NumberOutlined,
+  PictureOutlined,
 } from '@ant-design/icons';
 import TimestampConverter from './components/TimestampConverter';
 import Base64Converter from './components/Base64Converter';
 import HashCalculator from './components/HashCalculator';
+import ImageBase64 from './components/ImageBase64';
 
 const { Header, Content, Sider } = Layout;
 
@@ -48,6 +50,11 @@ const menuItems: MenuItem[] = [
         key: 'hash',
         icon: <NumberOutlined />,
         label: 'Hash 计算'
+      },
+      {
+        key: 'imageBase64',
+        icon: <PictureOutlined />,
+        label: '图片 Base64'
       }
     ]
   }
@@ -116,7 +123,7 @@ function App() {
             }}
           >
             <span style={{ fontSize: '16px', fontWeight: 500, color: colorText }}>
-              {selectedKey[0] === 'timestamp' ? '时间戳转换' : selectedKey[0] === 'base64' ? 'Base64 转换' : selectedKey[0] === 'hash' ? 'Hash 计算' : 'AI工具箱'}
+              {selectedKey[0] === 'timestamp' ? '时间戳转换' : selectedKey[0] === 'base64' ? 'Base64 转换' : selectedKey[0] === 'hash' ? 'Hash 计算' : selectedKey[0] === 'imageBase64' ? '图片 Base64' : 'AI工具箱'}
             </span>
           </Header>
           <Content style={{
@@ -155,6 +162,10 @@ function App() {
               {/* Hash 计算 - 通过 display 控制显示/隐藏 */}
               <div style={{ display: currentKey === 'hash' ? 'block' : 'none' }}>
                 <HashCalculator />
+              </div>
+              {/* 图片 Base64 - 通过 display 控制显示/隐藏 */}
+              <div style={{ display: currentKey === 'imageBase64' ? 'block' : 'none' }}>
+                <ImageBase64 />
               </div>
             </div>
           </Content>
