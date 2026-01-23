@@ -4,9 +4,12 @@ import {
   AppstoreOutlined,
   ClockCircleOutlined,
   FileTextOutlined,
+  LockOutlined,
+  NumberOutlined,
 } from '@ant-design/icons';
 import TimestampConverter from './components/TimestampConverter';
 import Base64Converter from './components/Base64Converter';
+import HashCalculator from './components/HashCalculator';
 
 const { Header, Content, Sider } = Layout;
 
@@ -35,6 +38,18 @@ const menuItems: MenuItem[] = [
         label: 'Base64 转换'
       }
     ]
+  },
+  {
+    key: 'encrypt',
+    icon: <LockOutlined />,
+    label: '加密',
+    children: [
+      {
+        key: 'hash',
+        icon: <NumberOutlined />,
+        label: 'Hash 计算'
+      }
+    ]
   }
 ];
 
@@ -44,29 +59,7 @@ function App() {
     token: { colorBgContainer, borderRadiusLG, colorBgLayout, colorBgElevated, colorBorder, colorText, colorTextSecondary },
   } = theme.useToken();
 
-  const renderContent = () => {
-    const key = selectedKey[0];
-
-    switch (key) {
-      case 'timestamp':
-        return <TimestampConverter key="timestamp" />;
-      case 'base64':
-        return <Base64Converter key="base64" />;
-      default:
-        return (
-          <div style={{
-            display: 'flex',
-            alignItems: 'center',
-            justifyContent: 'center',
-            height: '100%',
-            fontSize: '24px',
-            color: colorTextSecondary
-          }}>
-            欢迎使用
-          </div>
-        );
-    }
-  };
+  const currentKey = selectedKey[0];
 
   return (
     <ConfigProvider
@@ -123,7 +116,7 @@ function App() {
             }}
           >
             <span style={{ fontSize: '16px', fontWeight: 500, color: colorText }}>
-              {selectedKey[0] === 'timestamp' ? '时间戳转换' : selectedKey[0] === 'base64' ? 'Base64 转换' : 'AI工具箱'}
+              {selectedKey[0] === 'timestamp' ? '时间戳转换' : selectedKey[0] === 'base64' ? 'Base64 转换' : selectedKey[0] === 'hash' ? 'Hash 计算' : 'AI工具箱'}
             </span>
           </Header>
           <Content style={{
@@ -140,7 +133,29 @@ function App() {
                 borderRadius: borderRadiusLG,
               }}
             >
-              {renderContent()}
+              {/* 欢迎页面 - 无选中时显示 */}
+              <div style={{
+                display: !currentKey ? 'flex' : 'none',
+                alignItems: 'center',
+                justifyContent: 'center',
+                height: '100%',
+                fontSize: '24px',
+                color: colorTextSecondary
+              }}>
+                欢迎使用
+              </div>
+              {/* 时间戳转换 - 通过 display 控制显示/隐藏 */}
+              <div style={{ display: currentKey === 'timestamp' ? 'block' : 'none' }}>
+                <TimestampConverter />
+              </div>
+              {/* Base64 转换 - 通过 display 控制显示/隐藏 */}
+              <div style={{ display: currentKey === 'base64' ? 'block' : 'none' }}>
+                <Base64Converter />
+              </div>
+              {/* Hash 计算 - 通过 display 控制显示/隐藏 */}
+              <div style={{ display: currentKey === 'hash' ? 'block' : 'none' }}>
+                <HashCalculator />
+              </div>
             </div>
           </Content>
         </Layout>
