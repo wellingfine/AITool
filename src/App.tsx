@@ -142,50 +142,41 @@ function App() {
             </span>
           </Header>
           <Content style={{
-            padding: '24px',
+            padding: '0',
             marginTop: 64,
             minHeight: 'calc(100vh - 64px)',
             background: colorBgLayout
           }}>
-            <div
-              style={{
-                padding: 24,
-                minHeight: 360,
-                background: colorBgElevated,
-                borderRadius: borderRadiusLG,
-              }}
-            >
-              {/* 欢迎页面 - 无选中时显示 */}
-              <div style={{
-                display: !currentKey ? 'flex' : 'none',
-                alignItems: 'center',
-                justifyContent: 'center',
-                height: '100%',
-                fontSize: '24px',
-                color: colorTextSecondary
-              }}>
-                欢迎使用
-              </div>
-              {/* 时间戳转换 - 通过 display 控制显示/隐藏 */}
-              <div style={{ display: currentKey === 'timestamp' ? 'block' : 'none' }}>
-                <TimestampConverter />
-              </div>
-              {/* Base64 转换 - 通过 display 控制显示/隐藏 */}
-              <div style={{ display: currentKey === 'base64' ? 'block' : 'none' }}>
-                <Base64Converter />
-              </div>
-              {/* Hash 计算 - 通过 display 控制显示/隐藏 */}
-              <div style={{ display: currentKey === 'hash' ? 'block' : 'none' }}>
-                <HashCalculator />
-              </div>
-              {/* 图片 Base64 - 通过 display 控制显示/隐藏 */}
-              <div style={{ display: currentKey === 'imageBase64' ? 'block' : 'none' }}>
-                <ImageBase64 />
-              </div>
-              {/* 工作跟进 - 通过 display 控制显示/隐藏 */}
-              <div style={{ display: currentKey === 'workTracker' ? 'block' : 'none' }}>
-                <WorkTracker />
-              </div>
+            {/* 欢迎页面 - 无选中时显示 */}
+            <div style={{
+              display: !currentKey ? 'flex' : 'none',
+              alignItems: 'center',
+              justifyContent: 'center',
+              height: '100%',
+              fontSize: '24px',
+              color: colorTextSecondary
+            }}>
+              欢迎使用
+            </div>
+            {/* 时间戳转换 - 通过 display 控制显示/隐藏 */}
+            <div style={{ display: currentKey === 'timestamp' ? 'block' : 'none' }}>
+              <TimestampConverter />
+            </div>
+            {/* Base64 转换 - 通过 display 控制显示/隐藏 */}
+            <div style={{ display: currentKey === 'base64' ? 'block' : 'none' }}>
+              <Base64Converter />
+            </div>
+            {/* Hash 计算 - 通过 display 控制显示/隐藏 */}
+            <div style={{ display: currentKey === 'hash' ? 'block' : 'none' }}>
+              <HashCalculator />
+            </div>
+            {/* 图片 Base64 - 通过 display 控制显示/隐藏 */}
+            <div style={{ display: currentKey === 'imageBase64' ? 'block' : 'none' }}>
+              <ImageBase64 />
+            </div>
+            {/* 工作跟进 - 通过 display 控制显示/隐藏 */}
+            <div style={{ display: currentKey === 'workTracker' ? 'block' : 'none' }}>
+              <WorkTracker />
             </div>
           </Content>
         </Layout>

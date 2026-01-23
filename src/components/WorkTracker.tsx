@@ -373,7 +373,7 @@ const WorkTracker = () => {
 
   return (
     <div className="work-tracker">
-      <Layout style={{ height: 'calc(100vh - 120px)' }}>
+      <Layout style={{ height: 'calc(100vh - 64px)' }}>
         {/* 左侧项目列表 */}
         <Sider width={300} theme="light" style={{ borderRight: '1px solid #f0f0f0', display: 'flex', flexDirection: 'column' }}>
           <div className="tracker-sidebar">

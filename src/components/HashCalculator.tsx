@@ -239,7 +239,7 @@ const HashCalculator: React.FC = () => {
   );
 
   return (
-    <div style={{ padding: "0 20px" }}>
+    <div style={{ padding: "16px" }}>
       {AlgoCheckboxes}
       <Space orientation="vertical" size="middle" style={{ width: "100%" }}>
         {/* 字符串 Hash 计算 */}

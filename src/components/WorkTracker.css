@@ -57,18 +57,18 @@
   display: flex;
   justify-content: space-between;
   align-items: center;
-  padding: 16px 24px;
+  padding: 12px 16px;
   background: #fff;
   border-bottom: 1px solid #f0f0f0;
 }
 
 .chat-messages {
   flex: 1;
-  padding: 20px;
+  padding: 12px;
   overflow-y: auto;
   display: flex;
   flex-direction: column;
-  gap: 16px;
+  gap: 12px;
 }
 
 .message-item {
@@ -85,8 +85,8 @@
 
 .message-text {
   background: #fff;
-  padding: 12px 16px;
-  border-radius: 8px;
+  padding: 10px 12px;
+  border-radius: 6px;
   box-shadow: 0 1px 2px rgba(0, 0, 0, 0.1);
   position: relative;
 }
@@ -125,15 +125,15 @@
 .chat-input {
   background: #fff;
   border-top: 1px solid #f0f0f0;
-  padding: 12px 24px;
+  padding: 8px 16px;
 }
 
 .input-image-preview {
   display: flex;
   flex-wrap: wrap;
   gap: 8px;
-  margin-bottom: 12px;
-  max-height: 150px;
+  margin-bottom: 8px;
+  max-height: 120px;
   overflow-y: auto;
 }
 

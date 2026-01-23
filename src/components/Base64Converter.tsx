@@ -90,7 +90,7 @@ const Base64Converter: React.FC = () => {
   };
 
   return (
-    <div style={{ padding: "0 20px" }}>
+    <div style={{ padding: "16px" }}>
       <Space orientation="vertical" size="middle" style={{ width: "100%" }}>
         {/* 编码区域 */}
         <Card
