@@ -180,7 +180,7 @@ const ImageBase64: React.FC = () => {
 
   return (
     <div style={{ padding: "0 20px" }}>
-      <Space direction="vertical" size="middle" style={{ width: "100%" }}>
+      <Space orientation="vertical" size="middle" style={{ width: "100%" }}>
         {/* Base64 输入区域 */}
         <div>
           <Text type="secondary" style={{ display: "block", marginBottom: 8 }}>

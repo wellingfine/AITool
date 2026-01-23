@@ -5,7 +5,7 @@ import { fileURLToPath } from "url";
 import "./ipc.js";
 
 /** @type {BrowserWindow | null} */
-let mainWindow = null;
+let mainWindow: BrowserWindow | null = null;
 
 // Get __dirname equivalent in ES modules
 const __filename = fileURLToPath(import.meta.url);

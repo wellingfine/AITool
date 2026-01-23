@@ -123,7 +123,7 @@ const TimestampConverter: React.FC = () => {
 
   return (
     <div style={{ padding: "0 20px" }}>
-      <Space direction="vertical" size="middle" style={{ width: "100%" }}>
+      <Space orientation="vertical" size="middle" style={{ width: "100%" }}>
         {/* 当前时间卡片 */}
         <Card
           styles={{
@@ -222,7 +222,7 @@ const TimestampConverter: React.FC = () => {
             </Button>
           }
         >
-          <Space direction="vertical" size="middle" style={{ width: "100%" }}>
+          <Space orientation="vertical" size="middle" style={{ width: "100%" }}>
             <Input
               placeholder="请输入时间戳（秒或毫秒）"
               size="large"
@@ -267,7 +267,7 @@ const TimestampConverter: React.FC = () => {
                 >
                   转换结果
                 </Text>
-                <Space direction="vertical" size={12} style={{ width: "100%" }}>
+                <Space orientation="vertical" size={12} style={{ width: "100%" }}>
                   <Space size={12}>
                     <Text
                       strong
@@ -347,7 +347,7 @@ const TimestampConverter: React.FC = () => {
             </Space>
           }
         >
-          <Space direction="vertical" size="middle" style={{ width: "100%" }}>
+          <Space orientation="vertical" size="middle" style={{ width: "100%" }}>
             <DatePicker
               showTime
               format="YYYY-MM-DD HH:mm:ss"
@@ -379,7 +379,7 @@ const TimestampConverter: React.FC = () => {
                 >
                   转换结果
                 </Text>
-                <Space direction="vertical" size={8} style={{ width: "100%" }}>
+                <Space orientation="vertical" size={8} style={{ width: "100%" }}>
                   <div
                     style={{
                       display: "flex",

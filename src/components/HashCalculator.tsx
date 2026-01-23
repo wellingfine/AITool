@@ -241,10 +241,10 @@ const HashCalculator: React.FC = () => {
   return (
     <div style={{ padding: "0 20px" }}>
       {AlgoCheckboxes}
-      <Space direction="vertical" size="middle" style={{ width: "100%" }}>
+      <Space orientation="vertical" size="middle" style={{ width: "100%" }}>
         {/* 字符串 Hash 计算 */}
         <Card title="字符串 Hash 计算">
-          <Space direction="vertical" style={{ width: "100%" }}>
+          <Space orientation="vertical" style={{ width: "100%" }}>
             <Text type="secondary">输入文本</Text>
             <TextArea
               value={textInput}
@@ -262,7 +262,7 @@ const HashCalculator: React.FC = () => {
 
         {/* 文件 Hash 计算 */}
         <Card title="文件 Hash 计算">
-          <Space direction="vertical" style={{ width: "100%" }}>
+          <Space orientation="vertical" style={{ width: "100%" }}>
             <div
               onDrop={handleDrop}
               onDragOver={handleDragOver}

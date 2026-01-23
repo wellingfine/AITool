@@ -7,11 +7,14 @@ import {
   LockOutlined,
   NumberOutlined,
   PictureOutlined,
+  TeamOutlined,
+  ThunderboltOutlined,
 } from '@ant-design/icons';
 import TimestampConverter from './components/TimestampConverter';
 import Base64Converter from './components/Base64Converter';
 import HashCalculator from './components/HashCalculator';
 import ImageBase64 from './components/ImageBase64';
+import WorkTracker from './components/WorkTracker';
 
 const { Header, Content, Sider } = Layout;
 
@@ -57,13 +60,25 @@ const menuItems: MenuItem[] = [
         label: '图片 Base64'
       }
     ]
+  },
+  {
+    key: 'work',
+    icon: <TeamOutlined />,
+    label: '工作',
+    children: [
+      {
+        key: 'workTracker',
+        icon: <ThunderboltOutlined />,
+        label: '工作跟进'
+      }
+    ]
   }
 ];
 
 function App() {
   const [selectedKey, setSelectedKey] = useState<string[]>([]);
   const {
-    token: { colorBgContainer, borderRadiusLG, colorBgLayout, colorBgElevated, colorBorder, colorText, colorTextSecondary },
+    token: { borderRadiusLG, colorBgLayout, colorBgElevated, colorBorder, colorText, colorTextSecondary },
   } = theme.useToken();
 
   const currentKey = selectedKey[0];
@@ -123,7 +138,7 @@ function App() {
             }}
           >
             <span style={{ fontSize: '16px', fontWeight: 500, color: colorText }}>
-              {selectedKey[0] === 'timestamp' ? '时间戳转换' : selectedKey[0] === 'base64' ? 'Base64 转换' : selectedKey[0] === 'hash' ? 'Hash 计算' : selectedKey[0] === 'imageBase64' ? '图片 Base64' : 'AI工具箱'}
+              {selectedKey[0] === 'timestamp' ? '时间戳转换' : selectedKey[0] === 'base64' ? 'Base64 转换' : selectedKey[0] === 'hash' ? 'Hash 计算' : selectedKey[0] === 'imageBase64' ? '图片 Base64' : selectedKey[0] === 'workTracker' ? '工作跟进' : 'AI工具箱'}
             </span>
           </Header>
           <Content style={{
@@ -166,6 +181,10 @@ function App() {
               {/* 图片 Base64 - 通过 display 控制显示/隐藏 */}
               <div style={{ display: currentKey === 'imageBase64' ? 'block' : 'none' }}>
                 <ImageBase64 />
+              </div>
+              {/* 工作跟进 - 通过 display 控制显示/隐藏 */}
+              <div style={{ display: currentKey === 'workTracker' ? 'block' : 'none' }}>
+                <WorkTracker />
               </div>
             </div>
           </Content>
