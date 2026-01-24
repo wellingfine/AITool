@@ -13,11 +13,14 @@
   border-bottom: 1px solid #f0f0f0;
 }
 
+/* 固定高度防止 hover 跳动 */
 .project-card {
   padding: 10px 12px;
   border-bottom: 1px solid #f0f0f0;
   cursor: pointer;
-  transition: all 0.2s;
+  transition: background 0.2s;
+  height: 40px;
+  box-sizing: border-box;
 }
 
 .project-card:hover {
@@ -32,23 +35,39 @@
 .project-card.creating {
   background: #fafafa;
   cursor: default;
+  height: auto;
+}
+
+.project-card-inner {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  width: 100%;
+  height: 100%;
 }
 
 .project-title {
+  flex: 1;
   font-weight: 500;
   overflow: hidden;
   text-overflow: ellipsis;
   white-space: nowrap;
 }
 
-/* 项目操作按钮 - 默认隐藏 */
+/* 项目操作按钮 - 默认隐藏但占位 */
 .project-actions {
-  display: none;
-  gap: 4px;
+  display: flex;
+  gap: 2px;
+  visibility: hidden;
 }
 
 .project-card:hover .project-actions {
-  display: flex;
+  visibility: visible;
+}
+
+.project-actions .ant-btn {
+  padding: 0 4px;
+  height: 20px;
 }
 
 /* 聊天相关样式 */
@@ -57,6 +76,26 @@
   justify-content: space-between;
   align-items: center;
   padding: 12px 16px;
+  background: #fff;
+  border-bottom: 1px solid #f0f0f0;
+  transition: background 0.2s;
+}
+
+.chat-header:hover {
+  background: #fafafa;
+}
+
+/* 有筛选条件时高亮 */
+.chat-header.has-filter {
+  background: #e6f7ff;
+  border-bottom-color: #91d5ff;
+}
+
+/* 消息搜索栏 */
+.message-search-bar {
+  display: flex;
+  gap: 8px;
+  padding: 8px 16px;
   background: #fff;
   border-bottom: 1px solid #f0f0f0;
 }
@@ -89,16 +128,47 @@
   border-radius: 6px;
   box-shadow: 0 1px 2px rgba(0, 0, 0, 0.1);
   position: relative;
+  min-width: 200px;
 }
 
-.message-text.done {
-  opacity: 0.6;
-  text-decoration: line-through;
+
+
+/* 消息底部区域 */
+.message-footer {
+  position: relative;
+  margin-top: 8px;
+  min-height: 20px;
 }
 
 .message-text .message-time {
   font-size: 12px;
   color: #999;
+}
+
+/* 消息操作按钮 - 放在消息内部底部，横排，通过JS控制显示 */
+.message-actions {
+  position: absolute;
+  left: 0;
+  top: 0;
+  right: 0;
+  bottom: 0;
+  display: flex;
+  flex-direction: row;
+  align-items: center;
+  gap: 4px;
+  background: #fff;
+}
+
+.message-actions .ant-btn {
+  padding: 0 4px;
+  height: 20px;
+}
+
+.message-tags {
+  display: inline-flex;
+  flex-wrap: wrap;
+  gap: 4px;
+  margin-left: 8px;
   margin-top: 8px;
 }
 
@@ -130,22 +200,10 @@
   border-radius: 50%;
 }
 
-/* 消息操作按钮 - 默认隐藏 */
-.message-actions {
-  display: none;
-  flex-direction: column;
-  gap: 4px;
-  padding-top: 4px;
-}
-
-.message-item:hover .message-actions {
-  display: flex;
-}
-
 .chat-input {
   background: #fff;
   border-top: 1px solid #f0f0f0;
-  padding: 8px 16px;
+  padding: 12px 16px;
 }
 
 .input-image-preview {
@@ -159,9 +217,9 @@
 
 .preview-image-item {
   position: relative;
-  width: 100px;
-  height: 100px;
-  border-radius: 8px;
+  width: 80px;
+  height: 80px;
+  border-radius: 6px;
   overflow: hidden;
   box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
 }
@@ -174,13 +232,13 @@
 
 .preview-image-item .remove-btn {
   position: absolute;
-  top: 4px;
-  right: 4px;
+  top: 2px;
+  right: 2px;
   background: rgba(0, 0, 0, 0.6);
   color: #fff;
   border-radius: 50%;
-  width: 24px;
-  height: 24px;
+  width: 20px;
+  height: 20px;
   display: flex;
   align-items: center;
   justify-content: center;
@@ -191,24 +249,43 @@
   background: rgba(255, 77, 79, 0.8);
 }
 
+/* 工具栏 */
 .input-toolbar {
+  display: flex;
+  align-items: center;
+  gap: 8px;
   margin-bottom: 8px;
+  padding: 6px 0;
 }
 
-.input-area {
-  margin-bottom: 12px;
-}
-
-.input-area textarea {
-  font-family: inherit;
+/* 输入框容器 */
+.input-area-wrapper {
+  position: relative;
+  display: flex;
+  align-items: flex-end;
   background: #f5f5f5;
   border-radius: 8px;
-  padding: 12px;
+  padding: 8px;
+  padding-right: 48px;
 }
 
-.input-footer {
-  display: flex;
-  justify-content: flex-end;
+.input-textarea {
+  flex: 1;
+  border: none !important;
+  background: transparent !important;
+  resize: none;
+  font-size: 14px;
+  box-shadow: none !important;
+}
+
+.input-textarea:focus {
+  box-shadow: none !important;
+}
+
+.send-btn {
+  position: absolute;
+  right: 8px;
+  bottom: 8px;
 }
 
 .empty-state {
