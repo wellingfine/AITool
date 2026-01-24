@@ -10,6 +10,7 @@ import {
   TeamOutlined,
   ThunderboltOutlined,
   SettingOutlined,
+  SwapOutlined,
 } from '@ant-design/icons';
 import TimestampConverter from './components/TimestampConverter';
 import Base64Converter from './components/Base64Converter';
@@ -17,6 +18,7 @@ import HashCalculator from './components/HashCalculator';
 import ImageBase64 from './components/ImageBase64';
 import WorkTracker from './components/WorkTracker';
 import Settings from './components/Settings';
+import TextCompare from './components/TextCompare';
 
 const { Header, Content, Sider } = Layout;
 
@@ -44,6 +46,11 @@ const mainMenuItems: MenuItem[] = [
         key: 'base64',
         icon: <FileTextOutlined />,
         label: 'Base64 转换'
+      },
+      {
+        key: 'textCompare',
+        icon: <SwapOutlined />,
+        label: '文本对比'
       }
     ]
   },
@@ -163,7 +170,7 @@ function App() {
             }}
           >
             <span style={{ fontSize: '16px', fontWeight: 500, color: colorText }}>
-              {selectedKey[0] === 'timestamp' ? '时间戳转换' : selectedKey[0] === 'base64' ? 'Base64 转换' : selectedKey[0] === 'hash' ? 'Hash 计算' : selectedKey[0] === 'imageBase64' ? '图片 Base64' : selectedKey[0] === 'workTracker' ? '任务跟进' : selectedKey[0] === 'settings' ? '设置' : 'AI工具箱'}
+              {selectedKey[0] === 'timestamp' ? '时间戳转换' : selectedKey[0] === 'base64' ? 'Base64 转换' : selectedKey[0] === 'textCompare' ? '文本对比' : selectedKey[0] === 'hash' ? 'Hash 计算' : selectedKey[0] === 'imageBase64' ? '图片 Base64' : selectedKey[0] === 'workTracker' ? '任务跟进' : selectedKey[0] === 'settings' ? '设置' : 'AI工具箱'}
             </span>
           </Header>
           <Content style={{
@@ -190,6 +197,10 @@ function App() {
             {/* Base64 转换 - 通过 display 控制显示/隐藏 */}
             <div style={{ display: currentKey === 'base64' ? 'block' : 'none' }}>
               <Base64Converter />
+            </div>
+            {/* 文本对比 - 通过 display 控制显示/隐藏 */}
+            <div style={{ display: currentKey === 'textCompare' ? 'block' : 'none' }}>
+              <TextCompare />
             </div>
             {/* Hash 计算 - 通过 display 控制显示/隐藏 */}
             <div style={{ display: currentKey === 'hash' ? 'block' : 'none' }}>
