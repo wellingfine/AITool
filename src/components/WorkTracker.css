@@ -9,30 +9,15 @@
 }
 
 .sidebar-header {
-  padding: 16px 12px;
-  border-bottom: 1px solid #f0f0f0;
-}
-
-.filter-buttons {
-  display: flex;
-  gap: 8px;
-  padding: 8px 12px;
-  border-bottom: 1px solid #f0f0f0;
-}
-
-.filter-buttons button {
-  flex: 1;
-}
-
-.tag-filter {
+  padding: 12px;
   border-bottom: 1px solid #f0f0f0;
 }
 
 .project-card {
-  padding: 12px;
+  padding: 10px 12px;
   border-bottom: 1px solid #f0f0f0;
   cursor: pointer;
-  transition: all 0.3s;
+  transition: all 0.2s;
 }
 
 .project-card:hover {
@@ -44,12 +29,26 @@
   border-right: 3px solid #1890ff;
 }
 
+.project-card.creating {
+  background: #fafafa;
+  cursor: default;
+}
+
 .project-title {
   font-weight: 500;
-  margin-bottom: 4px;
   overflow: hidden;
   text-overflow: ellipsis;
   white-space: nowrap;
+}
+
+/* 项目操作按钮 - 默认隐藏 */
+.project-actions {
+  display: none;
+  gap: 4px;
+}
+
+.project-card:hover .project-actions {
+  display: flex;
 }
 
 /* 聊天相关样式 */
@@ -71,15 +70,16 @@
   gap: 12px;
 }
 
+/* 消息靠左显示 */
 .message-item {
   display: flex;
-  justify-content: flex-end;
+  justify-content: flex-start;
 }
 
 .message-content {
-  max-width: 70%;
+  max-width: 80%;
   display: flex;
-  align-items: flex-end;
+  align-items: flex-start;
   gap: 8px;
 }
 
@@ -100,7 +100,6 @@
   font-size: 12px;
   color: #999;
   margin-top: 8px;
-  text-align: right;
 }
 
 .message-images {
@@ -119,7 +118,28 @@
 }
 
 .message-todo {
-  margin-bottom: auto;
+  padding-top: 8px;
+}
+
+/* 待办圆圈样式 */
+.todo-circle {
+  display: inline-block;
+  width: 14px;
+  height: 14px;
+  border: 2px solid #d9d9d9;
+  border-radius: 50%;
+}
+
+/* 消息操作按钮 - 默认隐藏 */
+.message-actions {
+  display: none;
+  flex-direction: column;
+  gap: 4px;
+  padding-top: 4px;
+}
+
+.message-item:hover .message-actions {
+  display: flex;
 }
 
 .chat-input {

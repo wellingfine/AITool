@@ -1,5 +1,5 @@
 import { useState, useEffect, useRef } from 'react';
-import { Layout, Input, Button, Tag, Space, Tooltip, Popover, message, Modal, Popconfirm } from 'antd';
+import { Layout, Input, Button, Tag, Space, Tooltip, Popover, message, Popconfirm } from 'antd';
 import {
   TagOutlined,
   CheckOutlined,
@@ -7,13 +7,12 @@ import {
   PictureOutlined,
   SendOutlined,
   DeleteOutlined,
-  FilterOutlined,
   StarOutlined,
   StarFilled,
-  ThunderboltOutlined,
   PlusOutlined,
   FolderOutlined,
-  EditOutlined
+  EditOutlined,
+  SearchOutlined
 } from '@ant-design/icons';
 import workTrackerStorage, {
   type WorkProject,
@@ -24,20 +23,36 @@ import './WorkTracker.css';
 
 const { Sider, Content } = Layout;
 
+// 格式化日期为 yyyy-mm-dd HH:MM:SS
+const formatDate = (dateStr: string) => {
+  const date = new Date(dateStr);
+  const year = date.getFullYear();
+  const month = String(date.getMonth() + 1).padStart(2, '0');
+  const day = String(date.getDate()).padStart(2, '0');
+  const hours = String(date.getHours()).padStart(2, '0');
+  const minutes = String(date.getMinutes()).padStart(2, '0');
+  const seconds = String(date.getSeconds()).padStart(2, '0');
+  return `${year}-${month}-${day} ${hours}:${minutes}:${seconds}`;
+};
+
 const WorkTracker = () => {
   const [projects, setProjects] = useState<WorkProject[]>([]);
+  const [allProjects, setAllProjects] = useState<WorkProject[]>([]);
   const [tags, setTags] = useState<TagType[]>([]);
   const [records, setRecords] = useState<WorkRecord[]>([]);
   const [selectedProjectId, setSelectedProjectId] = useState<string | null>(null);
-  const [filter, setFilter] = useState<'all' | 'todo' | string>('all');
   const [tagModalVisible, setTagModalVisible] = useState(false);
   const [newTagName, setNewTagName] = useState('');
   const [newTagColor, setNewTagColor] = useState('');
 
-  // 新建/编辑项目
-  const [projectModalVisible, setProjectModalVisible] = useState(false);
-  const [editingProject, setEditingProject] = useState<WorkProject | null>(null);
-  const [projectName, setProjectName] = useState('');
+  // 搜索
+  const [searchText, setSearchText] = useState('');
+
+  // 新建/编辑项目（原地编辑）
+  const [isCreatingProject, setIsCreatingProject] = useState(false);
+  const [newProjectName, setNewProjectName] = useState('');
+  const [editingProjectId, setEditingProjectId] = useState<string | null>(null);
+  const [editingProjectName, setEditingProjectName] = useState('');
 
   // 发送记录
   const [inputText, setInputText] = useState('');
@@ -45,23 +60,19 @@ const WorkTracker = () => {
   const [isTodo, setIsTodo] = useState(false);
   const [inputTags, setInputTags] = useState<string[]>([]);
 
-  // 编辑记录标签
-  const [editingRecordTags, setEditingRecordTags] = useState<{ [key: string]: string[] }>({});
+  // 编辑记录
   const [editingRecordId, setEditingRecordId] = useState<string | null>(null);
+  const [editingRecordContent, setEditingRecordContent] = useState('');
 
   const fileInputRef = useRef<HTMLInputElement>(null);
   const messagesEndRef = useRef<HTMLDivElement>(null);
+  const newProjectInputRef = useRef<HTMLInputElement>(null);
 
   // 加载数据
   useEffect(() => {
     loadTags();
     loadProjects();
   }, []);
-
-  // 监听筛选变化
-  useEffect(() => {
-    loadProjects();
-  }, [filter]);
 
   // 监听选中项目变化
   useEffect(() => {
@@ -77,6 +88,13 @@ const WorkTracker = () => {
     scrollToBottom();
   }, [records]);
 
+  // 创建项目时聚焦输入框
+  useEffect(() => {
+    if (isCreatingProject && newProjectInputRef.current) {
+      newProjectInputRef.current.focus();
+    }
+  }, [isCreatingProject]);
+
   const scrollToBottom = () => {
     messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' });
   };
@@ -86,27 +104,21 @@ const WorkTracker = () => {
   };
 
   const loadProjects = async () => {
-    let filteredProjects = await workTrackerStorage.getProjects();
-    if (filter === 'todo') {
-      // 筛选有待办记录的项目
-      filteredProjects = filteredProjects.filter(p => {
-        if (!p || !p.id) return false;
-        const projectRecords = workTrackerStorage.getProjectRecords(p.id);
-        return projectRecords.then(records => records.some(r => r && r.isTodo && !r.isDone));
-      });
-      // 等待异步操作完成
-      const promises = filteredProjects.map(async p => {
-        if (!p || !p.id) return false;
-        const projectRecords = await workTrackerStorage.getProjectRecords(p.id);
-        return projectRecords.some(r => r && r.isTodo && !r.isDone);
-      });
-      const results = await Promise.all(promises);
-      filteredProjects = filteredProjects.filter((_, i) => results[i]);
-    } else if (filter !== 'all') {
-      // 按标签筛选项目（筛选包含该标签记录的项目）
-      filteredProjects = await workTrackerStorage.getProjectsByTag(filter);
+    const projectList = await workTrackerStorage.getProjects();
+    setAllProjects(projectList);
+    setProjects(projectList);
+  };
+
+  // 搜索过滤
+  const handleSearch = () => {
+    if (!searchText.trim()) {
+      setProjects(allProjects);
+    } else {
+      const filtered = allProjects.filter(p => 
+        p.name.toLowerCase().includes(searchText.toLowerCase())
+      );
+      setProjects(filtered);
     }
-    setProjects(filteredProjects);
   };
 
   const loadRecords = async (projectId: string) => {
@@ -178,23 +190,19 @@ const WorkTracker = () => {
     await workTrackerStorage.deleteTag(id);
     await loadTags();
     await loadProjects();
-    // 如果删除的标签是当前筛选条件，重置为全部
-    if (filter === id) {
-      setFilter('all');
-    }
     message.success('标签已删除');
   };
 
+  // 创建项目（原地编辑）
   const handleCreateProject = async () => {
-    if (!projectName.trim()) {
-      message.warning('请输入跟进任务名称');
+    if (!newProjectName.trim()) {
+      setIsCreatingProject(false);
       return;
     }
     try {
-      const newProject = await workTrackerStorage.addProject(projectName);
-      setProjectModalVisible(false);
-      setProjectName('');
-      setEditingProject(null);
+      const newProject = await workTrackerStorage.addProject(newProjectName);
+      setIsCreatingProject(false);
+      setNewProjectName('');
       await loadProjects();
       setSelectedProjectId(newProject.id);
       message.success('创建成功');
@@ -203,16 +211,15 @@ const WorkTracker = () => {
     }
   };
 
-  const handleUpdateProject = async () => {
-    if (!editingProject || !projectName.trim()) {
+  // 更新项目名称（原地编辑）
+  const handleUpdateProject = async (projectId: string) => {
+    if (!editingProjectName.trim()) {
+      setEditingProjectId(null);
       return;
     }
-    await workTrackerStorage.updateProject(editingProject.id, {
-      name: projectName
-    });
-    setProjectModalVisible(false);
-    setProjectName('');
-    setEditingProject(null);
+    await workTrackerStorage.updateProject(projectId, { name: editingProjectName });
+    setEditingProjectId(null);
+    setEditingProjectName('');
     await loadProjects();
     message.success('更新成功');
   };
@@ -227,38 +234,24 @@ const WorkTracker = () => {
     message.success('已删除');
   };
 
-  const handleOpenCreateProject = () => {
-    setEditingProject(null);
-    setProjectName('');
-    setProjectModalVisible(true);
+  // 编辑记录
+  const handleStartEditRecord = (record: WorkRecord) => {
+    setEditingRecordId(record.id);
+    setEditingRecordContent(record.content);
   };
 
-  const handleOpenEditProject = (project: WorkProject) => {
-    setEditingProject(project);
-    setProjectName(project.name);
-    setProjectModalVisible(true);
-  };
-
-  // 保存记录标签
-  const handleSaveRecordTags = async (recordId: string) => {
-    const tagIds = editingRecordTags[recordId] || [];
-    await workTrackerStorage.updateRecord(recordId, { tags: tagIds });
-    setEditingRecordTags(prev => {
-      const { [recordId]: _, ...rest } = prev;
-      return rest;
-    });
+  const handleSaveEditRecord = async () => {
+    if (!editingRecordId) return;
+    await workTrackerStorage.updateRecord(editingRecordId, { content: editingRecordContent });
     setEditingRecordId(null);
+    setEditingRecordContent('');
     await loadRecords(selectedProjectId!);
-    message.success('标签已更新');
+    message.success('已更新');
   };
 
-  // 取消编辑记录标签
-  const handleCancelRecordTags = (recordId: string) => {
-    setEditingRecordTags(prev => {
-      const { [recordId]: _, ...rest } = prev;
-      return rest;
-    });
+  const handleCancelEditRecord = () => {
     setEditingRecordId(null);
+    setEditingRecordContent('');
   };
 
   const handlePaste = async (e: React.ClipboardEvent) => {
@@ -301,7 +294,6 @@ const WorkTracker = () => {
   };
 
   const selectedProject = projects.find(p => p.id === selectedProjectId);
-  const selectedProjectTags = selectedProject?.tags.map(tagId => tags.find(t => t.id === tagId)).filter(Boolean) as TagType[];
 
   const tagModalContent = (
     <div style={{ width: 400 }}>
@@ -366,114 +358,114 @@ const WorkTracker = () => {
     </div>
   );
 
-  const projectModalContent = (
-    <div style={{ width: 400 }}>
-      <Space style={{ width: '100%', flexDirection: 'column' }} size="middle">
-        <div>
-          <label style={{ display: 'block', marginBottom: 8 }}>任务名称</label>
-          <Input
-            placeholder="输入跟进任务名称"
-            value={projectName}
-            onChange={(e) => setProjectName(e.target.value)}
-          />
-        </div>
-      </Space>
-    </div>
-  );
-
   return (
     <div className="work-tracker">
       <Layout style={{ height: 'calc(100vh - 64px)' }}>
         {/* 左侧项目列表 */}
         <Sider width={300} theme="light" style={{ borderRight: '1px solid #f0f0f0', display: 'flex', flexDirection: 'column' }}>
           <div className="tracker-sidebar">
+            {/* 搜索栏 + 创建按钮 */}
             <div className="sidebar-header">
-              <Space style={{ width: '100%', justifyContent: 'space-between' }}>
-                <span style={{ fontWeight: 600 }}>跟进任务</span>
+              <div style={{ display: 'flex', gap: 8 }}>
+                <Input
+                  placeholder="搜索任务..."
+                  prefix={<SearchOutlined style={{ color: '#999' }} />}
+                  value={searchText}
+                  onChange={(e) => setSearchText(e.target.value)}
+                  onPressEnter={handleSearch}
+                  allowClear
+                  onClear={() => {
+                    setSearchText('');
+                    setProjects(allProjects);
+                  }}
+                />
                 <Tooltip title="新建任务">
                   <Button
-                    type="text"
+                    type="primary"
                     icon={<PlusOutlined />}
-                    onClick={handleOpenCreateProject}
+                    onClick={() => setIsCreatingProject(true)}
                   />
                 </Tooltip>
-              </Space>
-            </div>
-
-            <div className="filter-buttons">
-              <Button
-                type={filter === 'all' ? 'primary' : 'text'}
-                icon={<FilterOutlined />}
-                onClick={() => setFilter('all')}
-                size="small"
-              >
-                全部
-              </Button>
-              <Button
-                type={filter === 'todo' ? 'primary' : 'text'}
-                icon={<ThunderboltOutlined />}
-                onClick={() => setFilter('todo')}
-                size="small"
-              >
-                待办
-              </Button>
-            </div>
-
-            {tags.length > 0 && (
-              <div className="tag-filter">
-                <div style={{ padding: '8px 12px', fontSize: 12, color: '#999' }}>标签筛选</div>
-                <Space wrap style={{ padding: '0 12px', paddingBottom: 8 }}>
-                  {tags.map(tag => (
-                    <Tag
-                      key={tag.id}
-                      color={filter === tag.id ? tag.color : 'default'}
-                      style={{ cursor: 'pointer', marginBottom: 4 }}
-                      onClick={() => setFilter(filter === tag.id ? 'all' : tag.id)}
-                    >
-                      {tag.name}
-                    </Tag>
-                  ))}
-                </Space>
               </div>
-            )}
+            </div>
 
+            {/* 项目列表 */}
             <div style={{ flex: 1, overflowY: 'auto' }}>
+              {/* 新建项目输入框 */}
+              {isCreatingProject && (
+                <div className="project-card creating">
+                  <Input
+                    ref={newProjectInputRef}
+                    placeholder="输入任务名称，回车创建"
+                    value={newProjectName}
+                    onChange={(e) => setNewProjectName(e.target.value)}
+                    onPressEnter={handleCreateProject}
+                    onBlur={handleCreateProject}
+                    size="small"
+                  />
+                </div>
+              )}
+              
               {projects.map((project) => (
                 <div
                   key={project.id}
                   className={`project-card ${selectedProjectId === project.id ? 'active' : ''}`}
-                  onClick={() => setSelectedProjectId(project.id)}
+                  onClick={() => {
+                    if (editingProjectId !== project.id) {
+                      setSelectedProjectId(project.id);
+                    }
+                  }}
                 >
                   <div style={{ width: '100%' }}>
                     <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
-                      <FolderOutlined style={{ color: '#1890ff' }} />
-                      <div style={{ flex: 1, overflow: 'hidden' }}>
-                        <div className="project-title">{project.name}</div>
-                      </div>
-                      <Tooltip title="编辑">
-                        <Button
-                          type="text"
-                          icon={<EditOutlined />}
+                      <FolderOutlined style={{ color: '#1890ff', flexShrink: 0 }} />
+                      {editingProjectId === project.id ? (
+                        <Input
+                          value={editingProjectName}
+                          onChange={(e) => setEditingProjectName(e.target.value)}
+                          onPressEnter={() => handleUpdateProject(project.id)}
+                          onBlur={() => handleUpdateProject(project.id)}
                           size="small"
-                          onClick={(e) => {
-                            e.stopPropagation();
-                            handleOpenEditProject(project);
-                          }}
+                          autoFocus
+                          onClick={(e) => e.stopPropagation()}
                         />
-                      </Tooltip>
-                      <Popconfirm
-                        title="确定删除这个跟进任务吗？"
-                        onConfirm={() => {
-                          handleDeleteProject(project.id);
-                        }}
-                      >
-                        <Button
-                          type="text"
-                          icon={<DeleteOutlined />}
-                          danger
-                          size="small"
-                        />
-                      </Popconfirm>
+                      ) : (
+                        <>
+                          <div style={{ flex: 1, overflow: 'hidden' }}>
+                            <div className="project-title">{project.name}</div>
+                          </div>
+                          <div className="project-actions">
+                            <Tooltip title="编辑">
+                              <Button
+                                type="text"
+                                icon={<EditOutlined />}
+                                size="small"
+                                onClick={(e) => {
+                                  e.stopPropagation();
+                                  setEditingProjectId(project.id);
+                                  setEditingProjectName(project.name);
+                                }}
+                              />
+                            </Tooltip>
+                            <Popconfirm
+                              title="确定删除这个跟进任务吗？"
+                              onConfirm={(e) => {
+                                e?.stopPropagation();
+                                handleDeleteProject(project.id);
+                              }}
+                              onCancel={(e) => e?.stopPropagation()}
+                            >
+                              <Button
+                                type="text"
+                                icon={<DeleteOutlined />}
+                                danger
+                                size="small"
+                                onClick={(e) => e.stopPropagation()}
+                              />
+                            </Popconfirm>
+                          </div>
+                        </>
+                      )}
                     </div>
                   </div>
                 </div>
@@ -491,11 +483,6 @@ const WorkTracker = () => {
                 <Space>
                   <FolderOutlined style={{ color: '#1890ff' }} />
                   <span style={{ fontWeight: 600 }}>{selectedProject.name}</span>
-                  {selectedProjectTags.map(tag => (
-                    <Tag key={tag.id} color={tag.color}>
-                      {tag.name}
-                    </Tag>
-                  ))}
                 </Space>
                 <Space>
                   <Tooltip title="标签管理">
@@ -522,7 +509,7 @@ const WorkTracker = () => {
                           <Tooltip title={record.isDone ? '标记为未完成' : '标记为完成'}>
                             <Button
                               type="text"
-                              icon={record.isDone ? <CheckOutlined /> : <CloseOutlined />}
+                              icon={record.isDone ? <CheckOutlined style={{ color: '#52c41a' }} /> : <span className="todo-circle" />}
                               style={{ padding: 0 }}
                               onClick={() => handleToggleTodo(record.id)}
                             />
@@ -530,27 +517,60 @@ const WorkTracker = () => {
                         </div>
                       )}
                       <div className={`message-text ${record.isTodo && record.isDone ? 'done' : ''}`}>
-                        <div style={{ whiteSpace: 'pre-wrap' }}>{record.content}</div>
-                        {record.images && record.images.length > 0 && (
-                          <div className="message-images">
-                            {record.images.map((img, index) => (
-                              <img key={index} src={img} alt="" />
-                            ))}
+                        {editingRecordId === record.id ? (
+                          <div>
+                            <Input.TextArea
+                              value={editingRecordContent}
+                              onChange={(e) => setEditingRecordContent(e.target.value)}
+                              autoSize={{ minRows: 2, maxRows: 6 }}
+                              autoFocus
+                            />
+                            <div style={{ marginTop: 8, display: 'flex', gap: 8, justifyContent: 'flex-end' }}>
+                              <Button size="small" onClick={handleCancelEditRecord}>取消</Button>
+                              <Button size="small" type="primary" onClick={handleSaveEditRecord}>保存</Button>
+                            </div>
                           </div>
+                        ) : (
+                          <>
+                            <div style={{ whiteSpace: 'pre-wrap' }}>{record.content}</div>
+                            {record.images && record.images.length > 0 && (
+                              <div className="message-images">
+                                {record.images.map((img, index) => (
+                                  <img key={index} src={img} alt="" />
+                                ))}
+                              </div>
+                            )}
+                            <div className="message-time">
+                              {formatDate(record.createdAt)}
+                            </div>
+                          </>
                         )}
-                        <div className="message-time">
-                          {new Date(record.createdAt).toLocaleString('zh-CN')}
-                        </div>
                       </div>
-                      <Tooltip title="删除">
-                        <Button
-                          type="text"
-                          icon={<DeleteOutlined />}
-                          danger
-                          size="small"
-                          onClick={() => handleDeleteRecord(record.id)}
-                        />
-                      </Tooltip>
+                      {editingRecordId !== record.id && (
+                        <div className="message-actions">
+                          <Tooltip title="编辑">
+                            <Button
+                              type="text"
+                              icon={<EditOutlined />}
+                              size="small"
+                              onClick={() => handleStartEditRecord(record)}
+                            />
+                          </Tooltip>
+                          <Popconfirm
+                            title="确定删除这条记录吗？"
+                            onConfirm={() => handleDeleteRecord(record.id)}
+                          >
+                            <Tooltip title="删除">
+                              <Button
+                                type="text"
+                                icon={<DeleteOutlined />}
+                                danger
+                                size="small"
+                              />
+                            </Tooltip>
+                          </Popconfirm>
+                        </div>
+                      )}
                     </div>
                   </div>
                 ))}
@@ -641,22 +661,6 @@ const WorkTracker = () => {
           )}
         </Content>
       </Layout>
-
-      {/* 新建/编辑项目弹窗 */}
-      <Modal
-        title={editingProject ? '编辑跟进任务' : '新建跟进任务'}
-        open={projectModalVisible}
-        onOk={editingProject ? handleUpdateProject : handleCreateProject}
-        onCancel={() => {
-          setProjectModalVisible(false);
-          setProjectName('');
-          setProjectTags([]);
-          setEditingProject(null);
-        }}
-        okText={editingProject ? '更新' : '创建'}
-      >
-        {projectModalContent}
-      </Modal>
     </div>
   );
 };
