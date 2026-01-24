@@ -11,6 +11,8 @@ import {
   ThunderboltOutlined,
   SettingOutlined,
   SwapOutlined,
+  ToolOutlined,
+  HeartOutlined,
 } from '@ant-design/icons';
 import TimestampConverter from './components/TimestampConverter';
 import Base64Converter from './components/Base64Converter';
@@ -19,6 +21,7 @@ import ImageBase64 from './components/ImageBase64';
 import WorkTracker from './components/WorkTracker';
 import Settings from './components/Settings';
 import TextCompare from './components/TextCompare';
+import BMICalculator from './components/BMICalculator';
 
 const { Header, Content, Sider } = Layout;
 
@@ -80,6 +83,18 @@ const mainMenuItems: MenuItem[] = [
         key: 'workTracker',
         icon: <ThunderboltOutlined />,
         label: '任务跟进'
+      }
+    ]
+  },
+  {
+    key: 'other',
+    icon: <ToolOutlined />,
+    label: '其它',
+    children: [
+      {
+        key: 'bmi',
+        icon: <HeartOutlined />,
+        label: 'BMI 计算'
       }
     ]
   }
@@ -170,7 +185,7 @@ function App() {
             }}
           >
             <span style={{ fontSize: '16px', fontWeight: 500, color: colorText }}>
-              {selectedKey[0] === 'timestamp' ? '时间戳转换' : selectedKey[0] === 'base64' ? 'Base64 转换' : selectedKey[0] === 'textCompare' ? '文本对比' : selectedKey[0] === 'hash' ? 'Hash 计算' : selectedKey[0] === 'imageBase64' ? '图片 Base64' : selectedKey[0] === 'workTracker' ? '任务跟进' : selectedKey[0] === 'settings' ? '设置' : 'AI工具箱'}
+              {selectedKey[0] === 'timestamp' ? '时间戳转换' : selectedKey[0] === 'base64' ? 'Base64 转换' : selectedKey[0] === 'textCompare' ? '文本对比' : selectedKey[0] === 'hash' ? 'Hash 计算' : selectedKey[0] === 'imageBase64' ? '图片 Base64' : selectedKey[0] === 'workTracker' ? '任务跟进' : selectedKey[0] === 'bmi' ? 'BMI 计算' : selectedKey[0] === 'settings' ? '设置' : 'AI工具箱'}
             </span>
           </Header>
           <Content style={{
@@ -217,6 +232,10 @@ function App() {
             {/* 设置 - 通过 display 控制显示/隐藏 */}
             <div style={{ display: currentKey === 'settings' ? 'block' : 'none' }}>
               <Settings />
+            </div>
+            {/* BMI 计算 - 通过 display 控制显示/隐藏 */}
+            <div style={{ display: currentKey === 'bmi' ? 'block' : 'none' }}>
+              <BMICalculator />
             </div>
           </Content>
         </Layout>
