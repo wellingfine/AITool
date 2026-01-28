@@ -15,6 +15,7 @@ import {
   HeartOutlined,
   DeleteOutlined,
   CalendarOutlined,
+  CalculatorOutlined,
 } from '@ant-design/icons';
 import TimestampConverter from './components/TimestampConverter';
 import Base64Converter from './components/Base64Converter';
@@ -26,6 +27,7 @@ import TextCompare from './components/TextCompare';
 import LineDedupe from './components/LineDedupe';
 import BMICalculator from './components/BMICalculator';
 import Calendar from './components/Calendar';
+import Calculator from './components/Calculator';
 
 const { Header, Content, Sider } = Layout;
 
@@ -68,6 +70,11 @@ const mainMenuItems: MenuItem[] = [
         key: 'calendar',
         icon: <CalendarOutlined />,
         label: '日历'
+      },
+      {
+        key: 'calculator',
+        icon: <CalculatorOutlined />,
+        label: '计算器'
       }
     ]
   },
@@ -199,7 +206,7 @@ function App() {
             }}
           >
             <span style={{ fontSize: '16px', fontWeight: 500, color: colorText }}>
-              {selectedKey[0] === 'timestamp' ? '时间戳转换' : selectedKey[0] === 'base64' ? 'Base64 转换' : selectedKey[0] === 'textCompare' ? '文本对比' : selectedKey[0] === 'lineDedupe' ? '行去重' : selectedKey[0] === 'calendar' ? '日历' : selectedKey[0] === 'hash' ? 'Hash 计算' : selectedKey[0] === 'imageBase64' ? '图片 Base64' : selectedKey[0] === 'workTracker' ? '任务跟进' : selectedKey[0] === 'bmi' ? 'BMI 计算' : selectedKey[0] === 'settings' ? '设置' : 'AI工具箱'}
+              {selectedKey[0] === 'timestamp' ? '时间戳转换' : selectedKey[0] === 'base64' ? 'Base64 转换' : selectedKey[0] === 'textCompare' ? '文本对比' : selectedKey[0] === 'lineDedupe' ? '行去重' : selectedKey[0] === 'calendar' ? '日历' : selectedKey[0] === 'calculator' ? '计算器' : selectedKey[0] === 'hash' ? 'Hash 计算' : selectedKey[0] === 'imageBase64' ? '图片 Base64' : selectedKey[0] === 'workTracker' ? '任务跟进' : selectedKey[0] === 'bmi' ? 'BMI 计算' : selectedKey[0] === 'settings' ? '设置' : 'AI工具箱'}
             </span>
           </Header>
           <Content style={{
@@ -258,6 +265,10 @@ function App() {
             {/* BMI 计算 - 通过 display 控制显示/隐藏 */}
             <div style={{ display: currentKey === 'bmi' ? 'block' : 'none' }}>
               <BMICalculator />
+            </div>
+            {/* 计算器 - 通过 display 控制显示/隐藏 */}
+            <div style={{ display: currentKey === 'calculator' ? 'block' : 'none' }}>
+              <Calculator isActive={currentKey === 'calculator'} />
             </div>
           </Content>
         </Layout>
