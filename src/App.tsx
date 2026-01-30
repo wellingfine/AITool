@@ -1,5 +1,5 @@
-import { useState } from 'react';
-import { Layout, Menu, theme, ConfigProvider } from 'antd';
+import { useState, lazy, Suspense, useCallback } from 'react';
+import { Layout, Menu, theme, ConfigProvider, Spin } from 'antd';
 import {
   AppstoreOutlined,
   ClockCircleOutlined,
@@ -17,17 +17,21 @@ import {
   CalendarOutlined,
   CalculatorOutlined,
 } from '@ant-design/icons';
-import TimestampConverter from './components/TimestampConverter';
-import Base64Converter from './components/Base64Converter';
-import HashCalculator from './components/HashCalculator';
-import ImageBase64 from './components/ImageBase64';
-import WorkTracker from './components/WorkTracker';
+
+// 设置页保持同步加载
 import Settings from './components/Settings';
-import TextCompare from './components/TextCompare';
-import LineDedupe from './components/LineDedupe';
-import BMICalculator from './components/BMICalculator';
-import Calendar from './components/Calendar';
-import Calculator from './components/Calculator';
+
+// 其他组件使用懒加载
+const TimestampConverter = lazy(() => import('./components/TimestampConverter'));
+const Base64Converter = lazy(() => import('./components/Base64Converter'));
+const HashCalculator = lazy(() => import('./components/HashCalculator'));
+const ImageBase64 = lazy(() => import('./components/ImageBase64'));
+const WorkTracker = lazy(() => import('./components/WorkTracker'));
+const TextCompare = lazy(() => import('./components/TextCompare'));
+const LineDedupe = lazy(() => import('./components/LineDedupe'));
+const BMICalculator = lazy(() => import('./components/BMICalculator'));
+const Calendar = lazy(() => import('./components/Calendar'));
+const Calculator = lazy(() => import('./components/Calculator'));
 
 const { Header, Content, Sider } = Layout;
 
@@ -121,13 +125,41 @@ const mainMenuItems: MenuItem[] = [
   }
 ];
 
+// 加载中组件
+const LoadingFallback = () => (
+  <div style={{ display: 'flex', justifyContent: 'center', alignItems: 'center', height: '200px' }}>
+    <Spin size="large" />
+  </div>
+);
+
 function App() {
   const [selectedKey, setSelectedKey] = useState<string[]>([]);
+  // 记录已经加载过的组件，用于懒加载
+  const [loadedKeys, setLoadedKeys] = useState<Set<string>>(new Set());
   const {
     token: { colorBgLayout, colorBgElevated, colorBorder, colorText, colorTextSecondary },
   } = theme.useToken();
 
   const currentKey = selectedKey[0];
+
+  // 处理菜单选择，记录已加载的组件
+  const handleSelect = useCallback((e: { selectedKeys: string[] }) => {
+    const key = e.selectedKeys[0];
+    setSelectedKey(e.selectedKeys);
+    if (key && key !== 'settings') {
+      setLoadedKeys(prev => {
+        if (prev.has(key)) return prev;
+        const newSet = new Set(prev);
+        newSet.add(key);
+        return newSet;
+      });
+    }
+  }, []);
+
+  // 判断组件是否应该被渲染（已加载过或当前选中）
+  const shouldRender = useCallback((key: string) => {
+    return loadedKeys.has(key);
+  }, [loadedKeys]);
 
   return (
     <ConfigProvider
@@ -164,7 +196,7 @@ function App() {
               theme="dark"
               style={{ borderRight: 0 }}
               selectedKeys={selectedKey}
-              onSelect={(e) => setSelectedKey(e.selectedKeys)}
+              onSelect={handleSelect}
               items={mainMenuItems}
             />
           </div>
@@ -180,7 +212,7 @@ function App() {
               theme="dark"
               style={{ borderRight: 0, flex: 1 }}
               selectedKeys={selectedKey}
-              onSelect={(e) => setSelectedKey(e.selectedKeys)}
+              onSelect={handleSelect}
               items={[{
                 key: 'settings',
                 icon: <SettingOutlined />,
@@ -226,50 +258,90 @@ function App() {
             }}>
               欢迎使用
             </div>
-            {/* 时间戳转换 - 通过 display 控制显示/隐藏 */}
-            <div style={{ display: currentKey === 'timestamp' ? 'block' : 'none' }}>
-              <TimestampConverter />
-            </div>
-            {/* Base64 转换 - 通过 display 控制显示/隐藏 */}
-            <div style={{ display: currentKey === 'base64' ? 'block' : 'none' }}>
-              <Base64Converter />
-            </div>
-            {/* 文本对比 - 通过 display 控制显示/隐藏 */}
-            <div style={{ display: currentKey === 'textCompare' ? 'block' : 'none' }}>
-              <TextCompare />
-            </div>
-            {/* 行去重 - 通过 display 控制显示/隐藏 */}
-            <div style={{ display: currentKey === 'lineDedupe' ? 'block' : 'none' }}>
-              <LineDedupe />
-            </div>
-            {/* 日历 - 通过 display 控制显示/隐藏 */}
-            <div style={{ display: currentKey === 'calendar' ? 'block' : 'none' }}>
-              <Calendar />
-            </div>
-            {/* Hash 计算 - 通过 display 控制显示/隐藏 */}
-            <div style={{ display: currentKey === 'hash' ? 'block' : 'none' }}>
-              <HashCalculator />
-            </div>
-            {/* 图片 Base64 - 通过 display 控制显示/隐藏 */}
-            <div style={{ display: currentKey === 'imageBase64' ? 'block' : 'none' }}>
-              <ImageBase64 />
-            </div>
-            {/* 任务跟进 - 通过 display 控制显示/隐藏 */}
-            <div style={{ display: currentKey === 'workTracker' ? 'block' : 'none' }}>
-              <WorkTracker />
-            </div>
-            {/* 设置 - 通过 display 控制显示/隐藏 */}
+            {/* 时间戳转换 - 懒加载 */}
+            {shouldRender('timestamp') && (
+              <div style={{ display: currentKey === 'timestamp' ? 'block' : 'none' }}>
+                <Suspense fallback={<LoadingFallback />}>
+                  <TimestampConverter />
+                </Suspense>
+              </div>
+            )}
+            {/* Base64 转换 - 懒加载 */}
+            {shouldRender('base64') && (
+              <div style={{ display: currentKey === 'base64' ? 'block' : 'none' }}>
+                <Suspense fallback={<LoadingFallback />}>
+                  <Base64Converter />
+                </Suspense>
+              </div>
+            )}
+            {/* 文本对比 - 懒加载 */}
+            {shouldRender('textCompare') && (
+              <div style={{ display: currentKey === 'textCompare' ? 'block' : 'none' }}>
+                <Suspense fallback={<LoadingFallback />}>
+                  <TextCompare />
+                </Suspense>
+              </div>
+            )}
+            {/* 行去重 - 懒加载 */}
+            {shouldRender('lineDedupe') && (
+              <div style={{ display: currentKey === 'lineDedupe' ? 'block' : 'none' }}>
+                <Suspense fallback={<LoadingFallback />}>
+                  <LineDedupe />
+                </Suspense>
+              </div>
+            )}
+            {/* 日历 - 懒加载 */}
+            {shouldRender('calendar') && (
+              <div style={{ display: currentKey === 'calendar' ? 'block' : 'none' }}>
+                <Suspense fallback={<LoadingFallback />}>
+                  <Calendar />
+                </Suspense>
+              </div>
+            )}
+            {/* Hash 计算 - 懒加载 */}
+            {shouldRender('hash') && (
+              <div style={{ display: currentKey === 'hash' ? 'block' : 'none' }}>
+                <Suspense fallback={<LoadingFallback />}>
+                  <HashCalculator />
+                </Suspense>
+              </div>
+            )}
+            {/* 图片 Base64 - 懒加载 */}
+            {shouldRender('imageBase64') && (
+              <div style={{ display: currentKey === 'imageBase64' ? 'block' : 'none' }}>
+                <Suspense fallback={<LoadingFallback />}>
+                  <ImageBase64 />
+                </Suspense>
+              </div>
+            )}
+            {/* 任务跟进 - 懒加载 */}
+            {shouldRender('workTracker') && (
+              <div style={{ display: currentKey === 'workTracker' ? 'block' : 'none' }}>
+                <Suspense fallback={<LoadingFallback />}>
+                  <WorkTracker />
+                </Suspense>
+              </div>
+            )}
+            {/* 设置 - 保持同步加载 */}
             <div style={{ display: currentKey === 'settings' ? 'block' : 'none' }}>
               <Settings />
             </div>
-            {/* BMI 计算 - 通过 display 控制显示/隐藏 */}
-            <div style={{ display: currentKey === 'bmi' ? 'block' : 'none' }}>
-              <BMICalculator />
-            </div>
-            {/* 计算器 - 通过 display 控制显示/隐藏 */}
-            <div style={{ display: currentKey === 'calculator' ? 'block' : 'none' }}>
-              <Calculator isActive={currentKey === 'calculator'} />
-            </div>
+            {/* BMI 计算 - 懒加载 */}
+            {shouldRender('bmi') && (
+              <div style={{ display: currentKey === 'bmi' ? 'block' : 'none' }}>
+                <Suspense fallback={<LoadingFallback />}>
+                  <BMICalculator />
+                </Suspense>
+              </div>
+            )}
+            {/* 计算器 - 懒加载 */}
+            {shouldRender('calculator') && (
+              <div style={{ display: currentKey === 'calculator' ? 'block' : 'none' }}>
+                <Suspense fallback={<LoadingFallback />}>
+                  <Calculator isActive={currentKey === 'calculator'} />
+                </Suspense>
+              </div>
+            )}
           </Content>
         </Layout>
       </Layout>
