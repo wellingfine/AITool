@@ -17,6 +17,7 @@ import {
   CalendarOutlined,
   CalculatorOutlined,
   FontColorsOutlined,
+  ExperimentOutlined,
 } from '@ant-design/icons';
 
 // 设置页保持同步加载
@@ -34,6 +35,7 @@ const LineDedupe = lazy(() => import('./components/LineDedupe'));
 const BMICalculator = lazy(() => import('./components/BMICalculator'));
 const Calendar = lazy(() => import('./components/Calendar'));
 const Calculator = lazy(() => import('./components/Calculator'));
+const RegexTester = lazy(() => import('./components/RegexTester'));
 
 const { Header, Content, Sider } = Layout;
 
@@ -71,6 +73,11 @@ const mainMenuItems: MenuItem[] = [
         key: 'lineDedupe',
         icon: <DeleteOutlined />,
         label: '行去重'
+      },
+      {
+        key: 'regex',
+        icon: <ExperimentOutlined />,
+        label: '正则表达式'
       },
       {
         key: 'calendar',
@@ -246,7 +253,7 @@ function App() {
             }}
           >
             <span style={{ fontSize: '16px', fontWeight: 500, color: colorText }}>
-              {selectedKey[0] === 'timestamp' ? '时间戳转换' : selectedKey[0] === 'base64' ? 'Base64 转换' : selectedKey[0] === 'textCompare' ? '文本对比' : selectedKey[0] === 'lineDedupe' ? '行去重' : selectedKey[0] === 'calendar' ? '日历' : selectedKey[0] === 'calculator' ? '计算器' : selectedKey[0] === 'hash' ? 'Hash 计算' : selectedKey[0] === 'imageBase64' ? '图片 Base64' : selectedKey[0] === 'unicode' ? 'Unicode 转换' : selectedKey[0] === 'workTracker' ? '任务跟进' : selectedKey[0] === 'bmi' ? 'BMI 计算' : selectedKey[0] === 'settings' ? '设置' : 'AI工具箱'}
+              {selectedKey[0] === 'timestamp' ? '时间戳转换' : selectedKey[0] === 'base64' ? 'Base64 转换' : selectedKey[0] === 'textCompare' ? '文本对比' : selectedKey[0] === 'lineDedupe' ? '行去重' : selectedKey[0] === 'regex' ? '正则表达式' : selectedKey[0] === 'calendar' ? '日历' : selectedKey[0] === 'calculator' ? '计算器' : selectedKey[0] === 'hash' ? 'Hash 计算' : selectedKey[0] === 'imageBase64' ? '图片 Base64' : selectedKey[0] === 'unicode' ? 'Unicode 转换' : selectedKey[0] === 'workTracker' ? '任务跟进' : selectedKey[0] === 'bmi' ? 'BMI 计算' : selectedKey[0] === 'settings' ? '设置' : 'AI工具箱'}
             </span>
           </Header>
           <Content style={{
@@ -295,6 +302,14 @@ function App() {
               <div style={{ display: currentKey === 'lineDedupe' ? 'block' : 'none' }}>
                 <Suspense fallback={<LoadingFallback />}>
                   <LineDedupe />
+                </Suspense>
+              </div>
+            )}
+            {/* 正则表达式 - 懒加载 */}
+            {shouldRender('regex') && (
+              <div style={{ display: currentKey === 'regex' ? 'block' : 'none' }}>
+                <Suspense fallback={<LoadingFallback />}>
+                  <RegexTester />
                 </Suspense>
               </div>
             )}
