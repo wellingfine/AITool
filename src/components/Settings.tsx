@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react';
-import { Card, Form, Input, Button, Typography, Space, message, Empty } from 'antd';
+import { Card, Form, Input, Button, Typography, Space, Empty, App } from 'antd';
 import { FolderOutlined, SaveOutlined } from '@ant-design/icons';
 import { nativeAPI } from '../services/nativeAPI';
 
@@ -9,6 +9,7 @@ const Settings: React.FC = () => {
   const [form] = Form.useForm();
   const [dataPath, setDataPath] = useState<string>('');
   const [displayPath, setDisplayPath] = useState<string>('');
+  const { message } = App.useApp();
 
   useEffect(() => {
     loadSettings();
@@ -17,7 +18,6 @@ const Settings: React.FC = () => {
   const loadSettings = async () => {
     try {
       const path = await nativeAPI.config.getDataPath();
-      console.log('Loaded data path:', path);
       setDataPath(path || '');
       setDisplayPath(path || '');
     } catch (error) {
@@ -32,7 +32,6 @@ const Settings: React.FC = () => {
         message.warning('请选择数据存储路径');
         return;
       }
-      console.log('Saving data path:', path);
       await nativeAPI.config.setDataPath(path);
       setDataPath(path);
       message.success('设置已保存');
@@ -46,7 +45,6 @@ const Settings: React.FC = () => {
     try {
       const path = await nativeAPI.dialog.selectFolder();
       if (path) {
-        console.log('Selected folder:', path);
         setDisplayPath(path);
       }
     } catch (error) {

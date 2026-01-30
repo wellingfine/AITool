@@ -1,5 +1,5 @@
 import { useState, lazy, Suspense, useCallback } from 'react';
-import { Layout, Menu, theme, ConfigProvider, Spin } from 'antd';
+import { Layout, Menu, theme, ConfigProvider, Spin, App as AntApp } from 'antd';
 import {
   AppstoreOutlined,
   ClockCircleOutlined,
@@ -174,7 +174,8 @@ function App() {
         algorithm: theme.defaultAlgorithm,
       }}
     >
-      <Layout style={{ minHeight: '100vh', background: colorBgLayout }}>
+      <AntApp>
+        <Layout style={{ minHeight: '100vh', background: colorBgLayout }}>
         <Sider
           width={200}
           style={{
@@ -359,7 +360,8 @@ function App() {
             )}
           </Content>
         </Layout>
-      </Layout>
+        </Layout>
+      </AntApp>
     </ConfigProvider>
   );
 };

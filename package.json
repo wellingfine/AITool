@@ -9,7 +9,7 @@
     "lint": "eslint .",
     "preview": "vite preview",
     "tauri": "tauri",
-    "tauri:dev": "tauri dev",
+    "t": "tauri dev",
     "tauri:build": "tauri build"
   },
   "dependencies": {
