@@ -1,5 +1,5 @@
 import { useState, useEffect, useRef } from 'react';
-import { Layout, Input, Button, Tag, Space, Tooltip, Popover, message, Popconfirm, Select } from 'antd';
+import { Layout, Input, Button, Tag, Space, Tooltip, Popover, message, Popconfirm, Select, type InputRef } from 'antd';
 import {
   TagOutlined,
   CheckOutlined,
@@ -80,7 +80,7 @@ const WorkTracker = () => {
 
   const fileInputRef = useRef<HTMLInputElement>(null);
   const messagesEndRef = useRef<HTMLDivElement>(null);
-  const newProjectInputRef = useRef<HTMLInputElement>(null);
+  const newProjectInputRef = useRef<InputRef>(null);
 
   // 加载数据
   useEffect(() => {
@@ -106,7 +106,7 @@ const WorkTracker = () => {
   // 创建项目时聚焦输入框
   useEffect(() => {
     if (isCreatingProject && newProjectInputRef.current) {
-      newProjectInputRef.current.focus();
+      newProjectInputRef.current.focus?.();
     }
   }, [isCreatingProject]);
 

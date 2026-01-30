@@ -214,11 +214,6 @@ function solarToLunar(year: number, month: number, day: number) {
   };
 }
 
-// 获取某月的天数 (公历)
-function getDaysInMonth(year: number, month: number): number {
-  return new Date(year, month + 1, 0).getDate();
-}
-
 // 星期名称 (周日在第一列)
 const weekNames = ['日', '一', '二', '三', '四', '五', '六'];
 
