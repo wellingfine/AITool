@@ -5,35 +5,26 @@
  * 在浏览器环境中会自动降级处理，确保应用可以在浏览器中独立运行
  */
 
-// 类型声明
-declare global {
-  interface Window {
-    electronAPI?: {
-      getPlatform: () => Promise<string>;
-      selectFile: () => Promise<string | null>;
-      saveFile: (content: string) => Promise<boolean>;
-      selectFolder: () => Promise<string | null>;
-      readClipboard: () => Promise<string>;
-      writeClipboard: (text: string) => Promise<void>;
-      showNotification: (title: string, body: string) => Promise<void>;
-      getDataPath: () => Promise<string>;
-      setDataPath: (path: string) => Promise<void>;
-      readWorktrackerData: () => Promise<any>;
-      saveWorktrackerData: (data: any) => Promise<void>;
-    };
-  }
-}
+import { invoke } from '@tauri-apps/api/core';
+import { platform } from '@tauri-apps/plugin-os';
+import { open } from '@tauri-apps/plugin-dialog';
+import { save } from '@tauri-apps/plugin-dialog';
 
 // 检测运行环境
-const isElectron = () => {
-  return typeof window !== 'undefined' && window.electronAPI !== undefined;
+const isTauri = () => {
+  return typeof window !== 'undefined' && (window as any).__TAURI__ !== undefined;
 };
 
 // 剪贴板操作
 export const clipboardAPI = {
   read: async (): Promise<string> => {
-    if (isElectron() && window.electronAPI) {
-      return window.electronAPI.readClipboard();
+    if (isTauri()) {
+      try {
+        return await navigator.clipboard.readText();
+      } catch (error) {
+        console.warn('剪贴板读取失败:', error);
+        return '';
+      }
     }
     // 浏览器环境降级
     try {
@@ -45,8 +36,13 @@ export const clipboardAPI = {
   },
 
   write: async (text: string): Promise<void> => {
-    if (isElectron() && window.electronAPI) {
-      return window.electronAPI.writeClipboard(text);
+    if (isTauri()) {
+      try {
+        await navigator.clipboard.writeText(text);
+      } catch (error) {
+        console.warn('剪贴板写入失败:', error);
+      }
+      return;
     }
     // 浏览器环境降级
     try {
@@ -60,8 +56,17 @@ export const clipboardAPI = {
 // 文件操作
 export const fileAPI = {
   selectFile: async (): Promise<string | null> => {
-    if (isElectron() && window.electronAPI) {
-      return window.electronAPI.selectFile();
+    if (isTauri()) {
+      try {
+        const result = await open({
+          multiple: false,
+          directory: false,
+        });
+        return result as string | null;
+      } catch (error) {
+        console.warn('选择文件失败:', error);
+        return null;
+      }
     }
     // 浏览器环境降级
     return new Promise((resolve) => {
@@ -72,14 +77,27 @@ export const fileAPI = {
         const file = (e.target as HTMLInputElement).files?.[0];
         resolve(file ? file.name : null);
       };
-      input.oncancel = () => resolve(null);
       input.click();
     });
   },
 
   saveFile: async (content: string, filename: string = 'download.txt'): Promise<boolean> => {
-    if (isElectron() && window.electronAPI) {
-      return window.electronAPI.saveFile(content);
+    if (isTauri()) {
+      try {
+        const result = await save({
+          defaultPath: filename,
+        });
+        if (result) {
+          // 使用 Tauri 的 fs 插件写入文件
+          const { writeTextFile } = await import('@tauri-apps/plugin-fs');
+          await writeTextFile(result, content);
+          return true;
+        }
+        return false;
+      } catch (error) {
+        console.warn('保存文件失败:', error);
+        return false;
+      }
     }
     // 浏览器环境降级
     try {
@@ -101,8 +119,13 @@ export const fileAPI = {
 // 系统信息
 export const systemAPI = {
   getPlatform: async (): Promise<string> => {
-    if (isElectron() && window.electronAPI) {
-      return window.electronAPI.getPlatform();
+    if (isTauri()) {
+      try {
+        return platform();
+      } catch (error) {
+        console.warn('获取平台信息失败:', error);
+        return navigator.userAgent;
+      }
     }
     // 浏览器环境降级
     return navigator.userAgent;
@@ -112,8 +135,21 @@ export const systemAPI = {
 // 通知
 export const notificationAPI = {
   show: async (title: string, body: string): Promise<void> => {
-    if (isElectron() && window.electronAPI) {
-      return window.electronAPI.showNotification(title, body);
+    if (isTauri()) {
+      try {
+        const { isPermissionGranted, requestPermission, sendNotification } = await import('@tauri-apps/plugin-notification');
+        let permissionGranted = await isPermissionGranted();
+        if (!permissionGranted) {
+          const permission = await requestPermission();
+          permissionGranted = permission === 'granted';
+        }
+        if (permissionGranted) {
+          sendNotification({ title, body });
+        }
+      } catch (error) {
+        console.warn('发送通知失败:', error);
+      }
+      return;
     }
     // 浏览器环境降级
     if ('Notification' in window && Notification.permission === 'granted') {
@@ -131,8 +167,13 @@ export const notificationAPI = {
 // 配置管理
 export const configAPI = {
   getDataPath: async (): Promise<string> => {
-    if (isElectron() && window.electronAPI) {
-      return window.electronAPI.getDataPath();
+    if (isTauri()) {
+      try {
+        return await invoke('get_data_path');
+      } catch (error) {
+        console.warn('获取数据路径失败:', error);
+        return '';
+      }
     }
     // 浏览器环境降级 - 使用 localStorage
     const path = localStorage.getItem('dataPath');
@@ -140,8 +181,14 @@ export const configAPI = {
   },
 
   setDataPath: async (path: string): Promise<void> => {
-    if (isElectron() && window.electronAPI) {
-      return window.electronAPI.setDataPath(path);
+    if (isTauri()) {
+      try {
+        await invoke('set_data_path', { newPath: path });
+      } catch (error) {
+        console.warn('设置数据路径失败:', error);
+        throw error;
+      }
+      return;
     }
     // 浏览器环境降级 - 使用 localStorage
     localStorage.setItem('dataPath', path);
@@ -151,8 +198,17 @@ export const configAPI = {
 // 对话框
 export const dialogAPI = {
   selectFolder: async (): Promise<string | null> => {
-    if (isElectron() && window.electronAPI) {
-      return window.electronAPI.selectFolder();
+    if (isTauri()) {
+      try {
+        const result = await open({
+          directory: true,
+          multiple: false,
+        });
+        return result as string | null;
+      } catch (error) {
+        console.warn('选择文件夹失败:', error);
+        return null;
+      }
     }
     // 浏览器环境降级
     return null;
@@ -162,8 +218,17 @@ export const dialogAPI = {
 // worktracker 数据存储
 export const worktrackerAPI = {
   readData: async (): Promise<any> => {
-    if (isElectron() && window.electronAPI) {
-      return window.electronAPI.readWorktrackerData();
+    if (isTauri()) {
+      try {
+        return await invoke('read_worktracker_data');
+      } catch (error) {
+        console.warn('读取 worktracker 数据失败:', error);
+        return {
+          tags: [],
+          projects: [],
+          records: []
+        };
+      }
     }
     // 浏览器环境降级 - 使用 localStorage
     try {
@@ -182,8 +247,14 @@ export const worktrackerAPI = {
   },
 
   saveData: async (data: any): Promise<void> => {
-    if (isElectron() && window.electronAPI) {
-      return window.electronAPI.saveWorktrackerData(data);
+    if (isTauri()) {
+      try {
+        await invoke('save_worktracker_data', { data });
+      } catch (error) {
+        console.error('保存 worktracker 数据失败:', error);
+        throw error;
+      }
+      return;
     }
     // 浏览器环境降级 - 使用 localStorage
     try {

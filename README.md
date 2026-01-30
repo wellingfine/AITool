@@ -10,22 +10,33 @@
 - **TypeScript** - 类型安全的 JavaScript
 - **Vite** - 快速的前端构建工具
 - **Ant Design** - 企业级 UI 组件库
-- **Electron** - 跨平台桌面应用框架
+- **Tauri 2** - 跨平台桌面应用框架（Rust）
 
 ## 开发
 
 ### 安装依赖&运行
-先安装好nodejs环境
+
+先安装好 Node.js 和 Rust 环境：
+
 ```bash
+# 安装 Node.js 依赖
 npm install
-npm run e
+
+# 运行 Tauri 开发模式
+npm run tauri:dev
 ```
 
 ### 构建和打包
 
-- Web 构建产物用于部署到 Web 服务器
-- Electron 构建产物生成桌面安装程序
-- 不同平台（Windows/Mac/Linux）需要在不同平台分别构建
+```bash
+# 构建 Web 版本
+npm run build
+
+# 构建 Tauri 桌面应用
+npm run tauri:build
+```
+
+不同平台（Windows/Mac/Linux）需要在对应平台分别构建。
 
 ## 开发计划
 

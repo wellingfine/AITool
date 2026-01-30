@@ -1,8 +1,0 @@
-{
-  "watch": ["electron"],
-  "ext": "ts",
-  "ignore": ["dist-electron"],
-  "exec": "tsc -p tsconfig.main.json && tsc -p tsconfig.preload.json && electron .",
-  "delay": 1000
-}
-
