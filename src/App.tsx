@@ -16,6 +16,7 @@ import {
   DeleteOutlined,
   CalendarOutlined,
   CalculatorOutlined,
+  FontColorsOutlined,
 } from '@ant-design/icons';
 
 // 设置页保持同步加载
@@ -26,6 +27,7 @@ const TimestampConverter = lazy(() => import('./components/TimestampConverter'))
 const Base64Converter = lazy(() => import('./components/Base64Converter'));
 const HashCalculator = lazy(() => import('./components/HashCalculator'));
 const ImageBase64 = lazy(() => import('./components/ImageBase64'));
+const UnicodeConverter = lazy(() => import('./components/UnicodeConverter'));
 const WorkTracker = lazy(() => import('./components/WorkTracker'));
 const TextCompare = lazy(() => import('./components/TextCompare'));
 const LineDedupe = lazy(() => import('./components/LineDedupe'));
@@ -96,6 +98,11 @@ const mainMenuItems: MenuItem[] = [
         key: 'imageBase64',
         icon: <PictureOutlined />,
         label: '图片 Base64'
+      },
+      {
+        key: 'unicode',
+        icon: <FontColorsOutlined />,
+        label: 'Unicode 转换'
       }
     ]
   },
@@ -238,7 +245,7 @@ function App() {
             }}
           >
             <span style={{ fontSize: '16px', fontWeight: 500, color: colorText }}>
-              {selectedKey[0] === 'timestamp' ? '时间戳转换' : selectedKey[0] === 'base64' ? 'Base64 转换' : selectedKey[0] === 'textCompare' ? '文本对比' : selectedKey[0] === 'lineDedupe' ? '行去重' : selectedKey[0] === 'calendar' ? '日历' : selectedKey[0] === 'calculator' ? '计算器' : selectedKey[0] === 'hash' ? 'Hash 计算' : selectedKey[0] === 'imageBase64' ? '图片 Base64' : selectedKey[0] === 'workTracker' ? '任务跟进' : selectedKey[0] === 'bmi' ? 'BMI 计算' : selectedKey[0] === 'settings' ? '设置' : 'AI工具箱'}
+              {selectedKey[0] === 'timestamp' ? '时间戳转换' : selectedKey[0] === 'base64' ? 'Base64 转换' : selectedKey[0] === 'textCompare' ? '文本对比' : selectedKey[0] === 'lineDedupe' ? '行去重' : selectedKey[0] === 'calendar' ? '日历' : selectedKey[0] === 'calculator' ? '计算器' : selectedKey[0] === 'hash' ? 'Hash 计算' : selectedKey[0] === 'imageBase64' ? '图片 Base64' : selectedKey[0] === 'unicode' ? 'Unicode 转换' : selectedKey[0] === 'workTracker' ? '任务跟进' : selectedKey[0] === 'bmi' ? 'BMI 计算' : selectedKey[0] === 'settings' ? '设置' : 'AI工具箱'}
             </span>
           </Header>
           <Content style={{
@@ -311,6 +318,14 @@ function App() {
               <div style={{ display: currentKey === 'imageBase64' ? 'block' : 'none' }}>
                 <Suspense fallback={<LoadingFallback />}>
                   <ImageBase64 />
+                </Suspense>
+              </div>
+            )}
+            {/* Unicode 转换 - 懒加载 */}
+            {shouldRender('unicode') && (
+              <div style={{ display: currentKey === 'unicode' ? 'block' : 'none' }}>
+                <Suspense fallback={<LoadingFallback />}>
+                  <UnicodeConverter />
                 </Suspense>
               </div>
             )}
