@@ -19,6 +19,7 @@ import {
   CalculatorOutlined,
   FontColorsOutlined,
   ExperimentOutlined,
+  PlusCircleOutlined,
 } from '@ant-design/icons';
 
 // 设置页保持同步加载
@@ -28,6 +29,7 @@ import Settings from './components/Settings';
 const TimestampConverter = lazy(() => import('./components/TimestampConverter'));
 const Base64Converter = lazy(() => import('./components/Base64Converter'));
 const HashCalculator = lazy(() => import('./components/HashCalculator'));
+const Counter = lazy(() => import('./components/Counter'));
 const ImageBase64 = lazy(() => import('./components/ImageBase64'));
 const UnicodeConverter = lazy(() => import('./components/UnicodeConverter'));
 const WorkTracker = lazy(() => import('./components/WorkTracker'));
@@ -89,6 +91,11 @@ const mainMenuItems: MenuItem[] = [
         key: 'calculator',
         icon: <CalculatorOutlined />,
         label: '计算器'
+      },
+      {
+        key: 'counter',
+        icon: <PlusCircleOutlined />,
+        label: '计数器'
       }
     ]
   },
@@ -173,6 +180,31 @@ function App() {
     return () => window.removeEventListener('resize', checkMobile);
   }, []);
 
+  // 监听手机后退键，用于关闭菜单
+  useEffect(() => {
+    if (!isMobile) return;
+
+    const handleBackButton = (_e: PopStateEvent) => {
+      if (!collapsed) {
+        // 菜单打开时，关闭菜单
+        setCollapsed(true);
+      }
+    };
+
+    window.addEventListener('popstate', handleBackButton);
+    return () => window.removeEventListener('popstate', handleBackButton);
+  }, [isMobile, collapsed]);
+
+  // 菜单打开时添加历史记录，关闭时移除
+  useEffect(() => {
+    if (!isMobile) return;
+
+    if (!collapsed) {
+      // 菜单打开时添加历史记录点
+      window.history.pushState({ menu: 'open' }, '');
+    }
+  }, [isMobile, collapsed]);
+
   // 初始化：加载设置并跳转到上次使用的工具
   useEffect(() => {
     const init = async () => {
@@ -216,7 +248,11 @@ function App() {
         nativeAPI.config.setLastTool(key).catch(console.error);
       }
     }
-  }, []);
+    // 移动端选择工具后自动关闭菜单
+    if (isMobile && key !== 'settings') {
+      setCollapsed(true);
+    }
+  }, [isMobile]);
 
   // 判断组件是否应该被渲染（已加载过或当前选中）
   const shouldRender = useCallback((key: string) => {
@@ -232,7 +268,7 @@ function App() {
       <AntApp>
         <Layout style={{ minHeight: '100vh', background: colorBgLayout }}>
         <Sider
-          width={isMobile ? '80%' : 200}
+          width={isMobile ? '100%' : 200}
           collapsed={!isMobile && collapsed}
           collapsedWidth={isMobile ? 0 : 80}
           trigger={null}
@@ -240,9 +276,8 @@ function App() {
             background: '#001529',
             color: '#fff',
             position: 'fixed',
-            height: isMobile ? 'calc(100vh - env(safe-area-inset-top) - env(safe-area-inset-bottom))' : '100vh',
+            height: isMobile ? 'calc(100vh - env(safe-area-inset-top))' : '100vh',
             paddingTop: isMobile ? 'env(safe-area-inset-top)' : 0,
-            paddingBottom: isMobile ? 'env(safe-area-inset-bottom)' : 0,
             zIndex: 100,
             display: isMobile && collapsed ? 'none' : 'block'
           }}
@@ -251,16 +286,31 @@ function App() {
             height: 64,
             display: 'flex',
             alignItems: 'center',
-            justifyContent: 'center',
+            justifyContent: isMobile ? 'space-between' : 'center',
             fontSize: '20px',
             fontWeight: 'bold',
             borderBottom: '1px solid #1f394c',
-            color: '#fff'
+            color: '#fff',
+            padding: isMobile ? '0 16px' : '0'
           }}>
-            AITool
+            {isMobile && <span style={{ width: 24 }} />}
+            <span>AITool</span>
+            {isMobile && (
+              <span
+                style={{
+                  fontSize: '20px',
+                  cursor: 'pointer',
+                  width: 24,
+                  textAlign: 'center'
+                }}
+                onClick={() => setCollapsed(true)}
+              >
+                ✕
+              </span>
+            )}
           </div>
           <div style={{
-            height: isMobile ? 'calc(100% - 64px - 60px - env(safe-area-inset-top) - env(safe-area-inset-bottom))' : 'calc(100vh - 64px - 60px)',
+            height: isMobile ? 'calc(100vh - 64px - 60px - env(safe-area-inset-top))' : 'calc(100vh - 64px - 60px)',
             overflowY: 'auto'
           }}>
             <Menu
@@ -277,8 +327,7 @@ function App() {
             borderTop: '1px solid #1f394c',
             display: 'flex',
             alignItems: 'center',
-            padding: '0 16px',
-            paddingBottom: isMobile ? 'env(safe-area-inset-bottom)' : 0
+            padding: '0 16px'
           }}>
             <Menu
               mode="inline"
@@ -340,7 +389,7 @@ function App() {
               </span>
             )}
             <span style={{ fontSize: '16px', fontWeight: 500, color: colorText }}>
-              {selectedKey[0] === 'timestamp' ? '时间戳转换' : selectedKey[0] === 'base64' ? 'Base64 转换' : selectedKey[0] === 'textCompare' ? '文本对比' : selectedKey[0] === 'lineDedupe' ? '行去重' : selectedKey[0] === 'regex' ? '正则表达式' : selectedKey[0] === 'calendar' ? '日历' : selectedKey[0] === 'calculator' ? '计算器' : selectedKey[0] === 'hash' ? 'Hash 计算' : selectedKey[0] === 'imageBase64' ? '图片 Base64' : selectedKey[0] === 'unicode' ? 'Unicode 转换' : selectedKey[0] === 'workTracker' ? '任务跟进' : selectedKey[0] === 'bmi' ? 'BMI 计算' : selectedKey[0] === 'settings' ? '设置' : 'AI工具箱'}
+              {selectedKey[0] === 'timestamp' ? '时间戳转换' : selectedKey[0] === 'base64' ? 'Base64 转换' : selectedKey[0] === 'textCompare' ? '文本对比' : selectedKey[0] === 'lineDedupe' ? '行去重' : selectedKey[0] === 'regex' ? '正则表达式' : selectedKey[0] === 'calendar' ? '日历' : selectedKey[0] === 'calculator' ? '计算器' : selectedKey[0] === 'counter' ? '计数器' : selectedKey[0] === 'hash' ? 'Hash 计算' : selectedKey[0] === 'imageBase64' ? '图片 Base64' : selectedKey[0] === 'unicode' ? 'Unicode 转换' : selectedKey[0] === 'workTracker' ? '任务跟进' : selectedKey[0] === 'bmi' ? 'BMI 计算' : selectedKey[0] === 'settings' ? '设置' : 'AI工具箱'}
             </span>
           </Header>
           <Content style={{
@@ -458,6 +507,14 @@ function App() {
               <div style={{ display: currentKey === 'calculator' ? 'block' : 'none' }}>
                 <Suspense fallback={<LoadingFallback />}>
                   <Calculator isActive={currentKey === 'calculator'} />
+                </Suspense>
+              </div>
+            )}
+            {/* 计数器 - 懒加载 */}
+            {shouldRender('counter') && (
+              <div style={{ display: currentKey === 'counter' ? 'block' : 'none' }}>
+                <Suspense fallback={<LoadingFallback />}>
+                  <Counter />
                 </Suspense>
               </div>
             )}
