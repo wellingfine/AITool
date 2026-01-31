@@ -259,7 +259,10 @@ function App() {
           }}>
             AITool
           </div>
-          <div style={{ height: 'calc(100vh - 64px - 60px)', overflowY: 'auto' }}>
+          <div style={{
+            height: isMobile ? 'calc(100% - 64px - 60px - env(safe-area-inset-top) - env(safe-area-inset-bottom))' : 'calc(100vh - 64px - 60px)',
+            overflowY: 'auto'
+          }}>
             <Menu
               mode="inline"
               theme="dark"
@@ -274,7 +277,8 @@ function App() {
             borderTop: '1px solid #1f394c',
             display: 'flex',
             alignItems: 'center',
-            padding: '0 16px'
+            padding: '0 16px',
+            paddingBottom: isMobile ? 'env(safe-area-inset-bottom)' : 0
           }}>
             <Menu
               mode="inline"
@@ -340,7 +344,7 @@ function App() {
             </span>
           </Header>
           <Content style={{
-            padding: isMobile ? '0 16px 16px 16px' : '0',
+            padding: isMobile ? '0 0 16px 0' : '0',
             paddingBottom: isMobile ? 'env(safe-area-inset-bottom)' : 0,
             marginTop: isMobile ? 'calc(64px + env(safe-area-inset-top))' : 64,
             minHeight: isMobile ? 'calc(100vh - 64px - env(safe-area-inset-top))' : 'calc(100vh - 64px)',

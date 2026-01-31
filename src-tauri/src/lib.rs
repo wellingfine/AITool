@@ -95,31 +95,29 @@ async fn save_file(app_handle: tauri::AppHandle, content: String) -> Result<bool
 }
 
 #[tauri::command]
-async fn select_folder(app_handle: tauri::AppHandle) -> Result<Option<String>, String> {
-    use tauri_plugin_dialog::{DialogExt, FilePath};
-    use std::sync::mpsc::channel;
-
+async fn select_folder(_app_handle: tauri::AppHandle) -> Result<Option<String>, String> {
     // 移动端处理：Android 不支持 pick_folder
-    if cfg!(mobile) {
+    #[cfg(mobile)]
+    {
         return Err("移动端暂不支持选择文件夹功能，请选择具体文件".to_string());
     }
 
     // 仅在桌面端编译这段代码
     #[cfg(desktop)]
     {
+        use tauri_plugin_dialog::{DialogExt, FilePath};
+        use std::sync::mpsc::channel;
+
         let (tx, rx) = channel();
-        app_handle.dialog()
+        _app_handle.dialog()
             .file()
             .set_title("选择文件夹")
-            .pick_folder(move |path: Option<FilePath>| { // 明确指定类型
+            .pick_folder(move |path: Option<FilePath>| {
                  let _ = tx.send(path.map(|p| p.to_string()));
             });
         
         return Ok(rx.recv().map_err(|e| e.to_string())?);
     }
-
-    #[cfg(mobile)]
-    Ok(None)
 }
 
 // 读取剪贴板

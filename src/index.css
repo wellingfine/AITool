@@ -21,6 +21,7 @@
   -webkit-user-select: none;
   -moz-user-select: none;
   -ms-user-select: none;
+  -webkit-tap-highlight-color: transparent;
 }
 
 /* 允许输入框和文本域选中 */
