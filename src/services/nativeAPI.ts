@@ -126,6 +126,42 @@ export const configAPI = {
       // 降级到 localStorage
       localStorage.setItem('dataPath', path);
     }
+  },
+
+  getRememberLastTool: async (): Promise<boolean> => {
+    try {
+      return await invoke<boolean>('get_remember_last_tool');
+    } catch (error) {
+      // 降级到 localStorage
+      return localStorage.getItem('rememberLastTool') === 'true';
+    }
+  },
+
+  setRememberLastTool: async (value: boolean): Promise<void> => {
+    try {
+      await invoke('set_remember_last_tool', { value });
+    } catch (error) {
+      // 降级到 localStorage
+      localStorage.setItem('rememberLastTool', value ? 'true' : 'false');
+    }
+  },
+
+  getLastTool: async (): Promise<string> => {
+    try {
+      return await invoke<string>('get_last_tool');
+    } catch (error) {
+      // 降级到 localStorage
+      return localStorage.getItem('lastTool') || '';
+    }
+  },
+
+  setLastTool: async (tool: string): Promise<void> => {
+    try {
+      await invoke('set_last_tool', { tool });
+    } catch (error) {
+      // 降级到 localStorage
+      localStorage.setItem('lastTool', tool);
+    }
   }
 };
 

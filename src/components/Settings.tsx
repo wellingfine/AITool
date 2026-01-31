@@ -1,6 +1,6 @@
 import { useState, useEffect } from 'react';
-import { Card, Form, Input, Button, Typography, Space, Empty, App } from 'antd';
-import { FolderOutlined, SaveOutlined } from '@ant-design/icons';
+import { Card, Form, Input, Button, Typography, Space, Empty, App, Switch } from 'antd';
+import { FolderOutlined, SaveOutlined, HistoryOutlined } from '@ant-design/icons';
 import { nativeAPI } from '../services/nativeAPI';
 
 const { Text, Paragraph } = Typography;
@@ -9,6 +9,7 @@ const Settings: React.FC = () => {
   const [form] = Form.useForm();
   const [dataPath, setDataPath] = useState<string>('');
   const [displayPath, setDisplayPath] = useState<string>('');
+  const [rememberLastTool, setRememberLastTool] = useState<boolean>(false);
   const { message } = App.useApp();
 
   useEffect(() => {
@@ -18,8 +19,10 @@ const Settings: React.FC = () => {
   const loadSettings = async () => {
     try {
       const path = await nativeAPI.config.getDataPath();
+      const remember = await nativeAPI.config.getRememberLastTool();
       setDataPath(path || '');
       setDisplayPath(path || '');
+      setRememberLastTool(remember);
     } catch (error) {
       console.error('Failed to load settings:', error);
     }
@@ -33,12 +36,17 @@ const Settings: React.FC = () => {
         return;
       }
       await nativeAPI.config.setDataPath(path);
+      await nativeAPI.config.setRememberLastTool(rememberLastTool);
       setDataPath(path);
       message.success('设置已保存');
     } catch (error: any) {
       console.error('Save settings error:', error);
       message.error(error?.message || '保存失败');
     }
+  };
+
+  const handleRememberLastToolChange = (checked: boolean) => {
+    setRememberLastTool(checked);
   };
 
   const handleBrowseFolder = async () => {
@@ -113,12 +121,43 @@ const Settings: React.FC = () => {
           </Card>
         )}
 
+        <Card
+          title={
+            <Space>
+              <HistoryOutlined />
+              <span>偏好设置</span>
+            </Space>
+          }
+        >
+          <Form layout="vertical">
+            <Form.Item
+              label="记住上次的选项"
+            >
+              <Space direction="vertical" size="small" style={{ width: '100%' }}>
+                <Switch
+                  checked={rememberLastTool}
+                  onChange={handleRememberLastToolChange}
+                  checkedChildren="开启"
+                  unCheckedChildren="关闭"
+                />
+                <Paragraph type="secondary" style={{ fontSize: 12, marginBottom: 0 }}>
+                  开启后，下次打开应用时会自动跳转到上次使用的工具
+                </Paragraph>
+              </Space>
+            </Form.Item>
+          </Form>
+        </Card>
+
         {dataPath && (
           <Card title="当前配置">
             <Space orientation="vertical" size="small" style={{ width: '100%' }}>
               <div style={{ display: 'flex', justifyContent: 'space-between' }}>
                 <Text type="secondary">数据存储路径：</Text>
                 <Text code>{dataPath}</Text>
+              </div>
+              <div style={{ display: 'flex', justifyContent: 'space-between' }}>
+                <Text type="secondary">记住上次的选项：</Text>
+                <Text code>{rememberLastTool ? '已开启' : '未开启'}</Text>
               </div>
             </Space>
           </Card>

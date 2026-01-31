@@ -1,5 +1,6 @@
-import { useState, lazy, Suspense, useCallback } from 'react';
+import { useState, lazy, Suspense, useCallback, useEffect, useRef } from 'react';
 import { Layout, Menu, theme, ConfigProvider, Spin, App as AntApp } from 'antd';
+import { nativeAPI } from './services/nativeAPI';
 import {
   AppstoreOutlined,
   ClockCircleOutlined,
@@ -150,9 +151,52 @@ function App() {
   const [selectedKey, setSelectedKey] = useState<string[]>([]);
   // 记录已经加载过的组件，用于懒加载
   const [loadedKeys, setLoadedKeys] = useState<Set<string>>(new Set());
+  // 侧边栏折叠状态
+  const [collapsed, setCollapsed] = useState(false);
+  // 是否是移动端
+  const [isMobile, setIsMobile] = useState(false);
+  // 是否记住上次的选项
+  const rememberLastToolRef = useRef<boolean>(false);
   const {
     token: { colorBgLayout, colorBgElevated, colorBorder, colorText, colorTextSecondary },
   } = theme.useToken();
+
+  // 检测屏幕尺寸，判断是否移动端
+  useEffect(() => {
+    const checkMobile = () => {
+      const mobile = window.innerWidth <= 768;
+      setIsMobile(mobile);
+      setCollapsed(mobile);
+    };
+    checkMobile();
+    window.addEventListener('resize', checkMobile);
+    return () => window.removeEventListener('resize', checkMobile);
+  }, []);
+
+  // 初始化：加载设置并跳转到上次使用的工具
+  useEffect(() => {
+    const init = async () => {
+      try {
+        const remember = await nativeAPI.config.getRememberLastTool();
+        rememberLastToolRef.current = remember;
+        if (remember) {
+          const lastTool = await nativeAPI.config.getLastTool();
+          if (lastTool && lastTool !== 'settings') {
+            setSelectedKey([lastTool]);
+            setLoadedKeys(prev => {
+              if (prev.has(lastTool)) return prev;
+              const newSet = new Set(prev);
+              newSet.add(lastTool);
+              return newSet;
+            });
+          }
+        }
+      } catch (error) {
+        console.error('Failed to load remember last tool setting:', error);
+      }
+    };
+    init();
+  }, []);
 
   const currentKey = selectedKey[0];
 
@@ -167,6 +211,10 @@ function App() {
         newSet.add(key);
         return newSet;
       });
+      // 如果开启了记住上次的选项，保存当前工具
+      if (rememberLastToolRef.current) {
+        nativeAPI.config.setLastTool(key).catch(console.error);
+      }
     }
   }, []);
 
@@ -184,13 +232,19 @@ function App() {
       <AntApp>
         <Layout style={{ minHeight: '100vh', background: colorBgLayout }}>
         <Sider
-          width={200}
+          width={isMobile ? '80%' : 200}
+          collapsed={!isMobile && collapsed}
+          collapsedWidth={isMobile ? 0 : 80}
+          trigger={null}
           style={{
             background: '#001529',
             color: '#fff',
             position: 'fixed',
-            height: '100vh',
-            zIndex: 10
+            height: isMobile ? 'calc(100vh - env(safe-area-inset-top) - env(safe-area-inset-bottom))' : '100vh',
+            paddingTop: isMobile ? 'env(safe-area-inset-top)' : 0,
+            paddingBottom: isMobile ? 'env(safe-area-inset-bottom)' : 0,
+            zIndex: 100,
+            display: isMobile && collapsed ? 'none' : 'block'
           }}
         >
           <div style={{
@@ -236,30 +290,60 @@ function App() {
             />
           </div>
         </Sider>
-        <Layout style={{ marginLeft: 200 }}>
+        {/* 移动端遮罩层 */}
+        {isMobile && !collapsed && (
+          <div
+            style={{
+              position: 'fixed',
+              top: 0,
+              left: 0,
+              right: 0,
+              bottom: 0,
+              background: 'rgba(0, 0, 0, 0.5)',
+              zIndex: 99
+            }}
+            onClick={() => setCollapsed(true)}
+          />
+        )}
+        <Layout style={{ marginLeft: isMobile ? 0 : (collapsed ? 80 : 200) }}>
           <Header
             style={{
-              padding: '0 24px',
+              padding: isMobile ? 'env(safe-area-inset-top) 16px 0 16px' : '0 24px',
+              paddingLeft: isMobile ? 16 : 24,
               background: colorBgElevated,
               borderBottom: `1px solid ${colorBorder}`,
               display: 'flex',
               alignItems: 'center',
               position: 'fixed',
               top: 0,
-              left: 200,
+              left: isMobile ? 0 : (collapsed ? 80 : 200),
               right: 0,
               zIndex: 9,
-              height: 64
+              height: isMobile ? 'calc(64px + env(safe-area-inset-top))' : 64
             }}
           >
+            {/* 移动端菜单按钮 */}
+            {isMobile && (
+              <span
+                style={{
+                  fontSize: '18px',
+                  marginRight: '12px',
+                  cursor: 'pointer'
+                }}
+                onClick={() => setCollapsed(!collapsed)}
+              >
+                ☰
+              </span>
+            )}
             <span style={{ fontSize: '16px', fontWeight: 500, color: colorText }}>
               {selectedKey[0] === 'timestamp' ? '时间戳转换' : selectedKey[0] === 'base64' ? 'Base64 转换' : selectedKey[0] === 'textCompare' ? '文本对比' : selectedKey[0] === 'lineDedupe' ? '行去重' : selectedKey[0] === 'regex' ? '正则表达式' : selectedKey[0] === 'calendar' ? '日历' : selectedKey[0] === 'calculator' ? '计算器' : selectedKey[0] === 'hash' ? 'Hash 计算' : selectedKey[0] === 'imageBase64' ? '图片 Base64' : selectedKey[0] === 'unicode' ? 'Unicode 转换' : selectedKey[0] === 'workTracker' ? '任务跟进' : selectedKey[0] === 'bmi' ? 'BMI 计算' : selectedKey[0] === 'settings' ? '设置' : 'AI工具箱'}
             </span>
           </Header>
           <Content style={{
-            padding: '0',
-            marginTop: 64,
-            minHeight: 'calc(100vh - 64px)',
+            padding: isMobile ? '0 16px 16px 16px' : '0',
+            paddingBottom: isMobile ? 'env(safe-area-inset-bottom)' : 0,
+            marginTop: isMobile ? 'calc(64px + env(safe-area-inset-top))' : 64,
+            minHeight: isMobile ? 'calc(100vh - 64px - env(safe-area-inset-top))' : 'calc(100vh - 64px)',
             background: colorBgLayout
           }}>
             {/* 欢迎页面 - 无选中时显示 */}
