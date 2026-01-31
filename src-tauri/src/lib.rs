@@ -61,23 +61,32 @@ fn get_platform() -> String {
 #[tauri::command]
 async fn select_file(app_handle: tauri::AppHandle) -> Result<Option<String>, String> {
     use tauri_plugin_dialog::DialogExt;
-    let result = app_handle.dialog()
-        .file()
-        .blocking_pick_file();
+    use std::sync::mpsc::channel;
     
-    Ok(result.map(|path| path.to_string()))
+    let (tx, rx) = channel();
+    app_handle.dialog()
+        .file()
+        .pick_file(move |path| {
+            let _ = tx.send(path.map(|p| p.to_string()));
+        });
+    
+    Ok(rx.recv().map_err(|e| e.to_string())?)
 }
 
 // 保存文件
 #[tauri::command]
 async fn save_file(app_handle: tauri::AppHandle, content: String) -> Result<bool, String> {
     use tauri_plugin_dialog::DialogExt;
-    let result = app_handle.dialog()
-        .file()
-        .blocking_save_file();
+    use std::sync::mpsc::channel;
     
-    if let Some(path) = result {
-        let path_str = path.to_string();
+    let (tx, rx) = channel();
+    app_handle.dialog()
+        .file()
+        .save_file(move |path| {
+            let _ = tx.send(path.map(|p| p.to_string()));
+        });
+    
+    if let Some(path_str) = rx.recv().map_err(|e| e.to_string())? {
         fs::write(&path_str, content).map_err(|e| e.to_string())?;
         Ok(true)
     } else {
@@ -89,12 +98,17 @@ async fn save_file(app_handle: tauri::AppHandle, content: String) -> Result<bool
 #[tauri::command]
 async fn select_folder(app_handle: tauri::AppHandle) -> Result<Option<String>, String> {
     use tauri_plugin_dialog::DialogExt;
-    let result = app_handle.dialog()
+    use std::sync::mpsc::channel;
+    
+    let (tx, rx) = channel();
+    app_handle.dialog()
         .file()
         .set_title("选择文件夹")
-        .blocking_pick_folder();
+        .pick_folder(move |path| {
+            let _ = tx.send(path.map(|p| p.to_string()));
+        });
     
-    Ok(result.map(|path| path.to_string()))
+    Ok(rx.recv().map_err(|e| e.to_string())?)
 }
 
 // 读取剪贴板
