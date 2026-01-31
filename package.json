@@ -11,9 +11,10 @@
     "tauri": "tauri",
     "dev": "tauri dev",
     "build": "tauri build",
-    "android:init":"npx tauri android init",
-    "android:debug":"npx tauri android build --debug",
-    "android:release":"npx tauri android build"
+    "android:init": "npx tauri android init",
+    "android:init-release": "npx tauri android init && node scripts/setup-android-signing.js",
+    "android:debug": "npx tauri android build --debug",
+    "android:release": "npx tauri android build"
   },
   "dependencies": {
     "@tauri-apps/api": "^2",

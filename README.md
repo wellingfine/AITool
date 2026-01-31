@@ -23,17 +23,30 @@
 npm install
 
 # 运行 Tauri 开发模式
-npm run tauri:dev
+npm run dev
 ```
 
 ### 构建和打包
 
 ```bash
-# 构建 Web 版本
+# 构建 Tauri 桌面应用
 npm run build
 
-# 构建 Tauri 桌面应用
-npm run tauri:build
+```
+
+### 构建Android
+
+如果只要构建debug 版本，不需要签名，但生成的apk比较大 300M+
+```bash
+npm run android:init
+npm run android:debug
+```
+
+如果要构建release 版本，需要先配置好签名文件，参考 https://tauri.app/zh-cn/distribute/sign/android/#configure-gradle-to-use-the-signing-key 生成jks文件用于签名。复制 `template-keystore.properties` 到 `keystore.properties`，然后修改 `keystore.properties` 中的 `storePassword` 和 `keyPassword` 为你自己的密码，最后指定一个jks文件路径。 生成的apk大概40M
+
+```bash
+npm run android:init-release
+npm run android:release
 ```
 
 不同平台（Windows/Mac/Linux）需要在对应平台分别构建。
