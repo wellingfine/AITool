@@ -10,7 +10,10 @@
     "preview": "vite preview",
     "tauri": "tauri",
     "dev": "tauri dev",
-    "build": "tauri build"
+    "build": "tauri build",
+    "android:init":"npx tauri android init",
+    "android:debug":"npx tauri android build --debug",
+    "android:release":"npx tauri android build"
   },
   "dependencies": {
     "@tauri-apps/api": "^2",
