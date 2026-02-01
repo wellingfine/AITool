@@ -20,6 +20,7 @@ import {
   FontColorsOutlined,
   ExperimentOutlined,
   PlusCircleOutlined,
+  AimOutlined,
 } from '@ant-design/icons';
 
 // 设置页保持同步加载
@@ -39,6 +40,7 @@ const BMICalculator = lazy(() => import('./components/BMICalculator'));
 const Calendar = lazy(() => import('./components/Calendar'));
 const Calculator = lazy(() => import('./components/Calculator'));
 const RegexTester = lazy(() => import('./components/RegexTester'));
+const ReactionTest = lazy(() => import('./components/ReactionTest'));
 
 const { Header, Content, Sider } = Layout;
 
@@ -142,6 +144,11 @@ const mainMenuItems: MenuItem[] = [
         key: 'bmi',
         icon: <HeartOutlined />,
         label: 'BMI 计算'
+      },
+      {
+        key: 'reaction',
+        icon: <AimOutlined />,
+        label: '反应测试'
       }
     ]
   }
@@ -389,7 +396,7 @@ function App() {
               </span>
             )}
             <span style={{ fontSize: '16px', fontWeight: 500, color: colorText }}>
-              {selectedKey[0] === 'timestamp' ? '时间戳转换' : selectedKey[0] === 'base64' ? 'Base64 转换' : selectedKey[0] === 'textCompare' ? '文本对比' : selectedKey[0] === 'lineDedupe' ? '行去重' : selectedKey[0] === 'regex' ? '正则表达式' : selectedKey[0] === 'calendar' ? '日历' : selectedKey[0] === 'calculator' ? '计算器' : selectedKey[0] === 'counter' ? '计数器' : selectedKey[0] === 'hash' ? 'Hash 计算' : selectedKey[0] === 'imageBase64' ? '图片 Base64' : selectedKey[0] === 'unicode' ? 'Unicode 转换' : selectedKey[0] === 'workTracker' ? '任务跟进' : selectedKey[0] === 'bmi' ? 'BMI 计算' : selectedKey[0] === 'settings' ? '设置' : 'AI工具箱'}
+              {selectedKey[0] === 'timestamp' ? '时间戳转换' : selectedKey[0] === 'base64' ? 'Base64 转换' : selectedKey[0] === 'textCompare' ? '文本对比' : selectedKey[0] === 'lineDedupe' ? '行去重' : selectedKey[0] === 'regex' ? '正则表达式' : selectedKey[0] === 'calendar' ? '日历' : selectedKey[0] === 'calculator' ? '计算器' : selectedKey[0] === 'counter' ? '计数器' : selectedKey[0] === 'hash' ? 'Hash 计算' : selectedKey[0] === 'imageBase64' ? '图片 Base64' : selectedKey[0] === 'unicode' ? 'Unicode 转换' : selectedKey[0] === 'workTracker' ? '任务跟进' : selectedKey[0] === 'bmi' ? 'BMI 计算' : selectedKey[0] === 'reaction' ? '反应测试' : selectedKey[0] === 'settings' ? '设置' : 'AI工具箱'}
             </span>
           </Header>
           <Content style={{
@@ -499,6 +506,14 @@ function App() {
               <div style={{ display: currentKey === 'bmi' ? 'block' : 'none' }}>
                 <Suspense fallback={<LoadingFallback />}>
                   <BMICalculator />
+                </Suspense>
+              </div>
+            )}
+            {/* 反应测试 - 懒加载 */}
+            {shouldRender('reaction') && (
+              <div style={{ display: currentKey === 'reaction' ? 'block' : 'none' }}>
+                <Suspense fallback={<LoadingFallback />}>
+                  <ReactionTest />
                 </Suspense>
               </div>
             )}

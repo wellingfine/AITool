@@ -6,13 +6,9 @@ import {
   Col,
   theme,
   Progress,
-  Space,
-  Segmented,
 } from "antd";
 import {
   UserOutlined,
-  ManOutlined,
-  WomanOutlined,
 } from "@ant-design/icons";
 
 interface BMIResult {
@@ -26,7 +22,6 @@ interface BMIResult {
 const BMICalculator: React.FC = () => {
   const [height, setHeight] = useState<number | null>(170);
   const [weight, setWeight] = useState<number | null>(65);
-  const [gender, setGender] = useState<'male' | 'female'>('male');
   const [result, setResult] = useState<BMIResult | null>(null);
   
   const { token } = theme.useToken();
@@ -94,19 +89,6 @@ const BMICalculator: React.FC = () => {
   return (
     <div style={{ padding: "16px", maxWidth: 800, margin: '0 auto' }}>
       <Card>
-        {/* 性别选择 */}
-        <div style={{ textAlign: 'center', marginBottom: 24 }}>
-          <Segmented
-            value={gender}
-            onChange={(value) => setGender(value as 'male' | 'female')}
-            options={[
-              { label: <Space><ManOutlined />男性</Space>, value: 'male' },
-              { label: <Space><WomanOutlined />女性</Space>, value: 'female' },
-            ]}
-            size="large"
-          />
-        </div>
-
         {/* 身高体重输入 */}
         <Row gutter={32} justify="center">
           <Col>
