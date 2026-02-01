@@ -1,6 +1,6 @@
 import React, { useState, useRef, useCallback } from "react";
 import { Card, Button, theme, Statistic } from "antd";
-import { PlayCircleOutlined, ReloadOutlined } from "@ant-design/icons";
+import { ReloadOutlined } from "@ant-design/icons";
 
 type GameState = 'idle' | 'waiting' | 'ready' | 'finished' | 'falseStart';
 
@@ -9,7 +9,7 @@ const ReactionTest: React.FC = () => {
   const [reactionTime, setReactionTime] = useState<number | null>(null);
   const [history, setHistory] = useState<number[]>([]);
   
-  const timeoutRef = useRef<NodeJS.Timeout | null>(null);
+  const timeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null);
   const startTimeRef = useRef<number>(0);
   
   const { token } = theme.useToken();
