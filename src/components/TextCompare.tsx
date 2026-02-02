@@ -1,6 +1,5 @@
 import React, { useState } from "react";
 import {
-  Card,
   Input,
   Button,
   Typography,
@@ -9,6 +8,7 @@ import {
   theme,
   Tag,
 } from "antd";
+import Block from '../lib/Block';
 
 const { Text } = Typography;
 const { TextArea } = Input;
@@ -92,118 +92,117 @@ const TextCompare: React.FC = () => {
   };
 
   return (
-    <div style={{ padding: "16px" }}>
-      {/* 输入区域 */}
-      <Card>
-        <Row gutter={16}>
-          <Col xs={24} lg={12}>
-            <Text type="secondary" style={{ display: "block", marginBottom: 8 }}>
-              左侧文本（每行一条）
-            </Text>
-            <TextArea
-              value={leftText}
-              onChange={(e) => setLeftText(e.target.value)}
-              placeholder="请输入左侧文本，每行一条内容..."
-              rows={10}
-              style={{ fontFamily: "monospace" }}
-            />
-          </Col>
-          <Col xs={24} lg={12}>
-            <Text type="secondary" style={{ display: "block", marginBottom: 8 }}>
-              右侧文本（每行一条）
-            </Text>
-            <TextArea
-              value={rightText}
-              onChange={(e) => setRightText(e.target.value)}
-              placeholder="请输入右侧文本，每行一条内容..."
-              rows={10}
-              style={{ fontFamily: "monospace" }}
-            />
-          </Col>
-        </Row>
-        <Button
-          type="primary"
-          block
-          onClick={handleCompare}
-          style={{ marginTop: 16 }}
-        >
-          对比
-        </Button>
-      </Card>
+    <div style={{ padding: '8px 0', maxWidth: 900, margin: '0 auto' }}>
+      <div style={{ display: 'flex', flexDirection: 'column', width: '100%' }}>
+        {/* 输入区域 */}
+        <Block>
+          <div style={{ display: 'flex', flexDirection: 'column', gap: 16 }}>
+            <Row gutter={16}>
+              <Col xs={24} lg={12}>
+                <Text type="secondary" style={{ display: "block", marginBottom: 8 }}>
+                  左侧文本（每行一条）
+                </Text>
+                <TextArea
+                  value={leftText}
+                  onChange={(e) => setLeftText(e.target.value)}
+                  placeholder="请输入左侧文本，每行一条内容..."
+                  rows={8}
+                  style={{ fontFamily: "monospace" }}
+                />
+              </Col>
+              <Col xs={24} lg={12}>
+                <Text type="secondary" style={{ display: "block", marginBottom: 8 }}>
+                  右侧文本（每行一条）
+                </Text>
+                <TextArea
+                  value={rightText}
+                  onChange={(e) => setRightText(e.target.value)}
+                  placeholder="请输入右侧文本，每行一条内容..."
+                  rows={8}
+                  style={{ fontFamily: "monospace" }}
+                />
+              </Col>
+            </Row>
+            <Button type="primary" block onClick={handleCompare}>
+              对比
+            </Button>
+          </div>
+        </Block>
 
-      {/* 对比结果 */}
-      {result && (
-        <Card style={{ marginTop: 16 }}>
-          <Row gutter={[16, 16]}>
-            {/* 左侧独有 */}
-            <Col xs={24} lg={12}>
-              <div style={{ marginBottom: 8 }}>
-                <Tag color="red">左侧独有 ({result.leftOnly.length})</Tag>
-              </div>
-              <div style={resultListStyle}>
-                {result.leftOnly.length > 0 ? (
-                  result.leftOnly.map((line, index) => (
-                    <div key={index} style={{ padding: '2px 0' }}>{line}</div>
-                  ))
-                ) : (
-                  <Text type="secondary">无差异</Text>
-                )}
-              </div>
-            </Col>
-            {/* 右侧独有 */}
-            <Col xs={24} lg={12}>
-              <div style={{ marginBottom: 8 }}>
-                <Tag color="green">右侧独有 ({result.rightOnly.length})</Tag>
-              </div>
-              <div style={resultListStyle}>
-                {result.rightOnly.length > 0 ? (
-                  result.rightOnly.map((line, index) => (
-                    <div key={index} style={{ padding: '2px 0' }}>{line}</div>
-                  ))
-                ) : (
-                  <Text type="secondary">无差异</Text>
-                )}
-              </div>
-            </Col>
-            {/* 左侧重复行 */}
-            <Col xs={24} lg={12}>
-              <div style={{ marginBottom: 8 }}>
-                <Tag color="blue">左侧重复行 ({result.leftDuplicate.length})</Tag>
-              </div>
-              <div style={resultListStyle}>
-                {result.leftDuplicate.length > 0 ? (
-                  result.leftDuplicate.map((item, index) => (
-                    <div key={index} style={{ padding: '2px 0', display: 'flex', justifyContent: 'space-between' }}>
-                      <span style={{ flex: 1, overflow: 'hidden', textOverflow: 'ellipsis' }}>{item.text}</span>
-                      <Tag color="orange" style={{ marginLeft: 8, flexShrink: 0 }}>×{item.count}</Tag>
-                    </div>
-                  ))
-                ) : (
-                  <Text type="secondary">无重复</Text>
-                )}
-              </div>
-            </Col>
-            {/* 右侧重复行 */}
-            <Col xs={24} lg={12}>
-              <div style={{ marginBottom: 8 }}>
-                <Tag color="blue">右侧重复行 ({result.rightDuplicate.length})</Tag>
-              </div>
-              <div style={resultListStyle}>
-                {result.rightDuplicate.length > 0 ? (
-                  result.rightDuplicate.map((item, index) => (
-                    <div key={index} style={{ padding: '2px 0', display: 'flex', justifyContent: 'space-between' }}>
-                      <span style={{ flex: 1, overflow: 'hidden', textOverflow: 'ellipsis' }}>{item.text}</span>
-                      <Tag color="orange" style={{ marginLeft: 8, flexShrink: 0 }}>×{item.count}</Tag>
-                    </div>
-                  ))
-                ) : (
-                  <Text type="secondary">无重复</Text>
-                )}
-              </div>
-            </Col>
-          </Row>
-        </Card>
-      )}
+        {/* 对比结果 */}
+        {result && (
+          <Block>
+            <Row gutter={[16, 16]}>
+              {/* 左侧独有 */}
+              <Col xs={24} lg={12}>
+                <div style={{ marginBottom: 8 }}>
+                  <Tag color="red">左侧独有 ({result.leftOnly.length})</Tag>
+                </div>
+                <div style={resultListStyle}>
+                  {result.leftOnly.length > 0 ? (
+                    result.leftOnly.map((line, index) => (
+                      <div key={index} style={{ padding: '2px 0' }}>{line}</div>
+                    ))
+                  ) : (
+                    <Text type="secondary">无差异</Text>
+                  )}
+                </div>
+              </Col>
+              {/* 右侧独有 */}
+              <Col xs={24} lg={12}>
+                <div style={{ marginBottom: 8 }}>
+                  <Tag color="green">右侧独有 ({result.rightOnly.length})</Tag>
+                </div>
+                <div style={resultListStyle}>
+                  {result.rightOnly.length > 0 ? (
+                    result.rightOnly.map((line, index) => (
+                      <div key={index} style={{ padding: '2px 0' }}>{line}</div>
+                    ))
+                  ) : (
+                    <Text type="secondary">无差异</Text>
+                  )}
+                </div>
+              </Col>
+              {/* 左侧重复行 */}
+              <Col xs={24} lg={12}>
+                <div style={{ marginBottom: 8 }}>
+                  <Tag color="blue">左侧重复行 ({result.leftDuplicate.length})</Tag>
+                </div>
+                <div style={resultListStyle}>
+                  {result.leftDuplicate.length > 0 ? (
+                    result.leftDuplicate.map((item, index) => (
+                      <div key={index} style={{ padding: '2px 0', display: 'flex', justifyContent: 'space-between' }}>
+                        <span style={{ flex: 1, overflow: 'hidden', textOverflow: 'ellipsis' }}>{item.text}</span>
+                        <Tag color="orange" style={{ marginLeft: 8, flexShrink: 0 }}>×{item.count}</Tag>
+                      </div>
+                    ))
+                  ) : (
+                    <Text type="secondary">无重复</Text>
+                  )}
+                </div>
+              </Col>
+              {/* 右侧重复行 */}
+              <Col xs={24} lg={12}>
+                <div style={{ marginBottom: 8 }}>
+                  <Tag color="blue">右侧重复行 ({result.rightDuplicate.length})</Tag>
+                </div>
+                <div style={resultListStyle}>
+                  {result.rightDuplicate.length > 0 ? (
+                    result.rightDuplicate.map((item, index) => (
+                      <div key={index} style={{ padding: '2px 0', display: 'flex', justifyContent: 'space-between' }}>
+                        <span style={{ flex: 1, overflow: 'hidden', textOverflow: 'ellipsis' }}>{item.text}</span>
+                        <Tag color="orange" style={{ marginLeft: 8, flexShrink: 0 }}>×{item.count}</Tag>
+                      </div>
+                    ))
+                  ) : (
+                    <Text type="secondary">无重复</Text>
+                  )}
+                </div>
+              </Col>
+            </Row>
+          </Block>
+        )}
+      </div>
     </div>
   );
 };

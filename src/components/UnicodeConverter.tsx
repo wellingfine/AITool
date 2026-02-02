@@ -1,23 +1,21 @@
 import React, { useState } from "react";
 import {
-  Card,
   Input,
   Button,
   Typography,
-  Space,
   message,
   Row,
   Col,
   theme,
-  Divider,
 } from "antd";
 import {
   CopyOutlined,
   SwapOutlined,
 } from "@ant-design/icons";
 import { nativeAPI } from "../services/nativeAPI";
+import Block from '../lib/Block';
 
-const { Text, Title } = Typography;
+const { Text } = Typography;
 const { TextArea } = Input;
 
 const UnicodeConverter: React.FC = () => {
@@ -148,24 +146,22 @@ const UnicodeConverter: React.FC = () => {
   };
 
   return (
-    <div style={{ padding: "16px" }}>
-      <Space direction="vertical" size="middle" style={{ width: "100%" }}>
-        <Card>
-          <Title level={5} style={{ marginTop: 0 }}>
-            <SwapOutlined style={{ marginRight: 8, color: token.colorPrimary }} />
-            Unicode 编码转换
-          </Title>
-          <Text type="secondary">
-            支持中文与 Unicode 互转、ASCII 与 Unicode 互转，在输入框中输入内容后点击对应按钮即可转换。
-          </Text>
-          
-          <Divider />
-          
-          <Row gutter={[16, 16]}>
-            <Col xs={24} lg={12}>
-              <div style={{ display: "flex", justifyContent: "space-between", marginBottom: 8 }}>
-                <Text strong>输入内容</Text>
-                <Space>
+    <div style={{ padding: '8px 0', maxWidth: 900, margin: '0 auto' }}>
+      <div style={{ display: 'flex', flexDirection: 'column', width: '100%' }}>
+        <Block>
+          <div style={{ display: 'flex', flexDirection: 'column', gap: 16 }}>
+            <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
+              <SwapOutlined style={{ color: token.colorPrimary }} />
+              <Text strong>Unicode 编码转换</Text>
+            </div>
+            <Text type="secondary" style={{ fontSize: 13 }}>
+              支持中文与 Unicode 互转、ASCII 与 Unicode 互转，在输入框中输入内容后点击对应按钮即可转换。
+            </Text>
+            
+            <Row gutter={[16, 16]}>
+              <Col xs={24} lg={12}>
+                <div style={{ display: "flex", justifyContent: "space-between", marginBottom: 8 }}>
+                  <Text strong>输入内容</Text>
                   <Button
                     type="link"
                     size="small"
@@ -174,117 +170,99 @@ const UnicodeConverter: React.FC = () => {
                   >
                     清空
                   </Button>
-                </Space>
-              </div>
-              <TextArea
-                value={input}
-                onChange={(e) => setInput(e.target.value)}
-                placeholder="请输入要转换的内容..."
-                autoSize={{ minRows: 8, maxRows: 15 }}
-                style={{ fontFamily: "monospace" }}
-              />
-            </Col>
-            <Col xs={24} lg={12}>
-              <div style={{ display: "flex", justifyContent: "space-between", marginBottom: 8 }}>
-                <Text strong>转换结果</Text>
-                <Space>
-                  <Button
-                    type="link"
-                    size="small"
-                    icon={<SwapOutlined />}
-                    onClick={handleSwap}
-                    style={{ padding: 0, height: "auto" }}
-                  >
-                    交换
-                  </Button>
-                  <Button
-                    type="link"
-                    size="small"
-                    icon={<CopyOutlined />}
-                    onClick={() => copyToClipboard(output)}
-                    style={{ padding: 0, height: "auto" }}
-                  >
-                    复制
-                  </Button>
-                </Space>
-              </div>
-              <TextArea
-                value={output}
-                readOnly
-                placeholder="转换结果将显示在这里..."
-                autoSize={{ minRows: 8, maxRows: 15 }}
-                style={{ fontFamily: "monospace", background: token.colorFillAlter }}
-              />
-            </Col>
-          </Row>
+                </div>
+                <TextArea
+                  value={input}
+                  onChange={(e) => setInput(e.target.value)}
+                  placeholder="请输入要转换的内容..."
+                  autoSize={{ minRows: 6, maxRows: 12 }}
+                  style={{ fontFamily: "monospace" }}
+                />
+              </Col>
+              <Col xs={24} lg={12}>
+                <div style={{ display: "flex", justifyContent: "space-between", marginBottom: 8 }}>
+                  <Text strong>转换结果</Text>
+                  <div style={{ display: 'flex', gap: 8 }}>
+                    <Button
+                      type="link"
+                      size="small"
+                      icon={<SwapOutlined />}
+                      onClick={handleSwap}
+                      style={{ padding: 0, height: "auto" }}
+                    >
+                      交换
+                    </Button>
+                    <Button
+                      type="link"
+                      size="small"
+                      icon={<CopyOutlined />}
+                      onClick={() => copyToClipboard(output)}
+                      style={{ padding: 0, height: "auto" }}
+                    >
+                      复制
+                    </Button>
+                  </div>
+                </div>
+                <TextArea
+                  value={output}
+                  readOnly
+                  placeholder="转换结果将显示在这里..."
+                  autoSize={{ minRows: 6, maxRows: 12 }}
+                  style={{ fontFamily: "monospace", background: token.colorFillAlter }}
+                />
+              </Col>
+            </Row>
 
-          <Divider>转换操作</Divider>
+            <Row gutter={[8, 8]}>
+              <Col xs={12} sm={8} md={6} lg={4}>
+                <Button type="primary" block onClick={() => handleConvert("chineseToUnicode")}>
+                  中文 → Unicode
+                </Button>
+              </Col>
+              <Col xs={12} sm={8} md={6} lg={4}>
+                <Button type="primary" block onClick={() => handleConvert("unicodeToChinese")}>
+                  Unicode → 中文
+                </Button>
+              </Col>
+              <Col xs={12} sm={8} md={6} lg={4}>
+                <Button block onClick={() => handleConvert("asciiToUnicode")}>
+                  ASCII → Unicode
+                </Button>
+              </Col>
+              <Col xs={12} sm={8} md={6} lg={4}>
+                <Button block onClick={() => handleConvert("unicodeToAscii")}>
+                  Unicode → ASCII
+                </Button>
+              </Col>
+              <Col xs={12} sm={8} md={6} lg={4}>
+                <Button block onClick={() => handleConvert("allToUnicode")}>
+                  全部 → Unicode
+                </Button>
+              </Col>
+              <Col xs={12} sm={8} md={6} lg={4}>
+                <Button block onClick={() => handleConvert("unicodeToAll")}>
+                  Unicode → 全部
+                </Button>
+              </Col>
+            </Row>
+          </div>
+        </Block>
 
-          <Row gutter={[12, 12]}>
-            <Col xs={12} sm={8} md={6} lg={4}>
-              <Button
-                type="primary"
-                block
-                onClick={() => handleConvert("chineseToUnicode")}
-              >
-                中文 → Unicode
-              </Button>
-            </Col>
-            <Col xs={12} sm={8} md={6} lg={4}>
-              <Button
-                type="primary"
-                block
-                onClick={() => handleConvert("unicodeToChinese")}
-              >
-                Unicode → 中文
-              </Button>
-            </Col>
-            <Col xs={12} sm={8} md={6} lg={4}>
-              <Button
-                block
-                onClick={() => handleConvert("asciiToUnicode")}
-              >
-                ASCII → Unicode
-              </Button>
-            </Col>
-            <Col xs={12} sm={8} md={6} lg={4}>
-              <Button
-                block
-                onClick={() => handleConvert("unicodeToAscii")}
-              >
-                Unicode → ASCII
-              </Button>
-            </Col>
-            <Col xs={12} sm={8} md={6} lg={4}>
-              <Button
-                block
-                onClick={() => handleConvert("allToUnicode")}
-              >
-                全部 → Unicode
-              </Button>
-            </Col>
-            <Col xs={12} sm={8} md={6} lg={4}>
-              <Button
-                block
-                onClick={() => handleConvert("unicodeToAll")}
-              >
-                Unicode → 全部
-              </Button>
-            </Col>
-          </Row>
-
-          <Divider>说明</Divider>
-          
-          <Space direction="vertical" size="small" style={{ width: "100%" }}>
-            <Text type="secondary">• <Text strong>中文 → Unicode</Text>：将中文字符转换为 Unicode 编码格式（如：你好 → \u4f60\u597d）</Text>
-            <Text type="secondary">• <Text strong>Unicode → 中文</Text>：将 Unicode 编码转换回中文字符</Text>
-            <Text type="secondary">• <Text strong>ASCII → Unicode</Text>：将 ASCII 字符转换为 Unicode 编码格式（如：ABC → \u0041\u0042\u0043）</Text>
-            <Text type="secondary">• <Text strong>Unicode → ASCII</Text>：将 Unicode 编码转换回 ASCII 字符</Text>
-            <Text type="secondary">• <Text strong>全部 → Unicode</Text>：将所有字符（包括中文和 ASCII）全部转换为 Unicode 编码</Text>
-            <Text type="secondary">• <Text strong>Unicode → 全部</Text>：将所有 Unicode 编码转换回原始字符</Text>
-          </Space>
-        </Card>
-      </Space>
+        {/* 说明 */}
+        <Block>
+          <div style={{ display: 'flex', flexDirection: 'column', gap: 8, width: '100%' }}>
+            <Text strong>说明</Text>
+            <ul style={{ margin: 0, paddingLeft: 16, color: token.colorTextSecondary, fontSize: 13 }}>
+              <li><Text strong>中文 → Unicode</Text>：将中文字符转换为 Unicode 编码格式（如：你好 → \u4f60\u597d）</li>
+              <li><Text strong>Unicode → 中文</Text>：将 Unicode 编码转换回中文字符</li>
+              <li><Text strong>ASCII → Unicode</Text>：将 ASCII 字符转换为 Unicode 编码格式</li>
+              <li><Text strong>Unicode → ASCII</Text>：将 Unicode 编码转换回 ASCII 字符</li>
+              <li><Text strong>全部 → Unicode</Text>：将所有字符全部转换为 Unicode 编码</li>
+              <li><Text strong>Unicode → 全部</Text>：将所有 Unicode 编码转换回原始字符</li>
+            </ul>
+          </div>
+        </Block>
+      </div>
     </div>
   );
 };

@@ -1,14 +1,10 @@
 import React, { useState, useEffect } from "react";
 import {
-  Card,
   Input,
   Button,
   Typography,
   Space,
   message,
-  Row,
-  Col,
-  Descriptions,
   Tag,
   theme,
   DatePicker,
@@ -21,6 +17,7 @@ import {
   CalendarOutlined,
 } from "@ant-design/icons";
 import { nativeAPI } from "../services/nativeAPI";
+import Block from '../lib/Block';
 
 const { Text } = Typography;
 
@@ -116,107 +113,62 @@ const TimestampConverter: React.FC = () => {
   });
 
   return (
-    <div style={{ padding: "16px" }}>
-      <Space orientation="vertical" size="middle" style={{ width: "100%" }}>
+    <div style={{ padding: '8px 0', maxWidth: 700, margin: '0 auto' }}>
+      <div style={{ display: 'flex', flexDirection: 'column', width: '100%' }}>
         {/* 当前时间卡片 */}
-        <Card
-          styles={{
-            body: { padding: "20px 24px" },
-          }}
-        >
-          <Row gutter={[16, 16]} align="middle">
-            <Col xs={24} sm={12}>
-              <Descriptions
-                column={1}
-                size="small"
-                items={[
-                  {
-                    label: <Text type="secondary">当前时间</Text>,
-                    children: (
-                      <Text
-                        strong
-                        style={{ fontSize: 16, color: token.colorText }}
-                      >
-                        {currentFormatted}
-                      </Text>
-                    ),
-                  },
-                  {
-                    label: <Text type="secondary">时间戳（秒）</Text>,
-                    children: (
-                      <Space size={8}>
-                        <Tag color="blue" icon={<ClockCircleOutlined />}>
-                          {currentTimestamp}
-                        </Tag>
-                        <Button
-                          type="link"
-                          size="small"
-                          icon={<CopyOutlined />}
-                          onClick={() =>
-                            copyToClipboard(currentTimestamp.toString())
-                          }
-                          style={{ padding: 0, height: "auto" }}
-                        >
-                          复制
-                        </Button>
-                      </Space>
-                    ),
-                  },
-                  {
-                    label: <Text type="secondary">时间戳（毫秒）</Text>,
-                    children: (
-                      <Space size={8}>
-                        <Tag color="cyan">{Date.now()}</Tag>
-                        <Button
-                          type="link"
-                          size="small"
-                          icon={<CopyOutlined />}
-                          onClick={() => copyToClipboard(Date.now().toString())}
-                          style={{ padding: 0, height: "auto" }}
-                        >
-                          复制
-                        </Button>
-                      </Space>
-                    ),
-                  },
-                ]}
-              />
-            </Col>
-            <Col xs={24} sm={12} style={{ textAlign: "center" }}>
+        <Block>
+          <div style={{ display: 'flex', flexDirection: 'column', gap: 12 }}>
+            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+              <Text strong>当前时间</Text>
               <Button
                 type="primary"
-                size="large"
                 icon={<ReloadOutlined />}
                 onClick={getCurrentTimestamp}
-                style={{ minWidth: 140 }}
               >
                 刷新
               </Button>
-            </Col>
-          </Row>
-        </Card>
+            </div>
+            <div>
+              <Text style={{ fontSize: 16 }}>{currentFormatted}</Text>
+            </div>
+            <div style={{ display: 'flex', alignItems: 'center', gap: 8, flexWrap: 'wrap' }}>
+              <Text type="secondary">时间戳（秒）:</Text>
+              <Tag color="blue" icon={<ClockCircleOutlined />}>
+                {currentTimestamp}
+              </Tag>
+              <Button
+                type="link"
+                size="small"
+                icon={<CopyOutlined />}
+                onClick={() => copyToClipboard(currentTimestamp.toString())}
+                style={{ padding: 0, height: "auto" }}
+              >
+                复制
+              </Button>
+            </div>
+            <div style={{ display: 'flex', alignItems: 'center', gap: 8, flexWrap: 'wrap' }}>
+              <Text type="secondary">时间戳（毫秒）:</Text>
+              <Tag color="cyan">{Date.now()}</Tag>
+              <Button
+                type="link"
+                size="small"
+                icon={<CopyOutlined />}
+                onClick={() => copyToClipboard(Date.now().toString())}
+                style={{ padding: 0, height: "auto" }}
+              >
+                复制
+              </Button>
+            </div>
+          </div>
+        </Block>
 
         {/* 时间戳转日期 */}
-        <Card
-          title={
-            <Space>
+        <Block>
+          <div style={{ display: 'flex', flexDirection: 'column', gap: 12 }}>
+            <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
               <ClockCircleOutlined style={{ color: token.colorPrimary }} />
-              <span>时间戳 → 日期时间</span>
-            </Space>
-          }
-          extra={
-            <Button
-              size="small"
-              onClick={() => {
-                setTimestamp("");
-                setDatetime("");
-              }}
-            >
-              清空
-            </Button>
-          }
-        >
-          <Space orientation="vertical" size="middle" style={{ width: "100%" }}>
+              <Text strong>时间戳 → 日期时间</Text>
+            </div>
             <Input
               placeholder="请输入时间戳（秒或毫秒）"
               size="large"
@@ -237,10 +189,8 @@ const TimestampConverter: React.FC = () => {
                 ) : null
               }
             />
-
             <Button
               type="primary"
-              size="large"
               block
               onClick={() => convertTimestampToDate(timestamp)}
             >
@@ -250,23 +200,14 @@ const TimestampConverter: React.FC = () => {
             {datetime && (
               <div
                 style={{
-                  padding: "16px",
+                  padding: "12px",
                   borderRadius: token.borderRadius,
                   background: token.colorFillAlter,
                 }}
               >
-                <Text
-                  type="secondary"
-                  style={{ display: "block", marginBottom: 8 }}
-                >
-                  转换结果
-                </Text>
-                <Space orientation="vertical" size={12} style={{ width: "100%" }}>
+                <Space direction="vertical" size={8} style={{ width: "100%" }}>
                   <Space size={12}>
-                    <Text
-                      strong
-                      style={{ fontSize: 18, color: token.colorText }}
-                    >
+                    <Text strong style={{ fontSize: 16, color: token.colorText }}>
                       {datetime}
                     </Text>
                     <Button
@@ -275,79 +216,36 @@ const TimestampConverter: React.FC = () => {
                       icon={<CopyOutlined />}
                       onClick={() => copyToClipboard(datetime, "日期已复制")}
                     >
-                      复制日期
+                      复制
                     </Button>
                   </Space>
-                  <div
-                    style={{
-                      display: "flex",
-                      alignItems: "center",
-                      justifyContent: "space-between",
-                      flexWrap: "wrap",
-                      gap: 8,
-                    }}
-                  >
+                  <div style={{ display: "flex", alignItems: "center", gap: 8 }}>
                     <Text type="secondary">秒级：</Text>
-                    <Space>
-                      <Tag color="blue">{timestamp}</Tag>
-                      <Button
-                        type="link"
-                        size="small"
-                        icon={<CopyOutlined />}
-                        onClick={() => copyToClipboard(timestamp, "秒级已复制")}
-                        style={{ padding: 0, height: "auto" }}
-                      >
-                        复制
-                      </Button>
-                    </Space>
+                    <Tag color="blue">{timestamp}</Tag>
                   </div>
-                  <div
-                    style={{
-                      display: "flex",
-                      alignItems: "center",
-                      justifyContent: "space-between",
-                      flexWrap: "wrap",
-                      gap: 8,
-                    }}
-                  >
+                  <div style={{ display: "flex", alignItems: "center", gap: 8 }}>
                     <Text type="secondary">毫秒级：</Text>
-                    <Space>
-                      <Tag color="cyan">{millisecondTimestamp}</Tag>
-                      <Button
-                        type="link"
-                        size="small"
-                        icon={<CopyOutlined />}
-                        onClick={() =>
-                          copyToClipboard(millisecondTimestamp, "毫秒级已复制")
-                        }
-                        style={{ padding: 0, height: "auto" }}
-                      >
-                        复制
-                      </Button>
-                    </Space>
+                    <Tag color="cyan">{millisecondTimestamp}</Tag>
                   </div>
                 </Space>
               </div>
             )}
-          </Space>
-        </Card>
+          </div>
+        </Block>
 
         {/* 日期转时间戳 */}
-        <Card
-          title={
-            <Space>
+        <Block>
+          <div style={{ display: 'flex', flexDirection: 'column', gap: 12 }}>
+            <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
               <CalendarOutlined style={{ color: token.colorPrimary }} />
-              <span>日期时间 → 时间戳</span>
-            </Space>
-          }
-        >
-          <Space orientation="vertical" size="middle" style={{ width: "100%" }}>
-              <DatePicker
-                showTime
-                format="YYYY-MM-DD HH:mm:ss"
-                size="large"
-                value={selectedDate as any}
-                onChange={(date) => {
+              <Text strong>日期时间 → 时间戳</Text>
+            </div>
+            <DatePicker
+              showTime
+              format="YYYY-MM-DD HH:mm:ss"
+              size="large"
+              value={selectedDate as any}
+              onChange={(date) => {
                 setSelectedDate(date);
                 if (date) convertDateToTimestamp(date);
                 else {
@@ -359,45 +257,20 @@ const TimestampConverter: React.FC = () => {
               style={{ width: "100%" }}
             />
 
-            {timestamp && (
+            {timestamp && selectedDate && (
               <div
                 style={{
-                  padding: "16px",
+                  padding: "12px",
                   borderRadius: token.borderRadius,
                   background: token.colorFillAlter,
                 }}
               >
-                <Text
-                  type="secondary"
-                  style={{ display: "block", marginBottom: 8 }}
-                >
-                  转换结果
-                </Text>
-                <Space orientation="vertical" size={8} style={{ width: "100%" }}>
-                  <div
-                    style={{
-                      display: "flex",
-                      alignItems: "center",
-                      justifyContent: "space-between",
-                    }}
-                  >
+                <Space direction="vertical" size={8} style={{ width: "100%" }}>
+                  <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between" }}>
                     <Text type="secondary">日期时间：</Text>
-                    <Space>
-                      <Text
-                        strong
-                        style={{ fontSize: 16, color: token.colorText }}
-                      >
-                        {datetime}
-                      </Text>
-                    </Space>
+                    <Text strong>{datetime}</Text>
                   </div>
-                  <div
-                    style={{
-                      display: "flex",
-                      alignItems: "center",
-                      justifyContent: "space-between",
-                    }}
-                  >
+                  <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between" }}>
                     <Text type="secondary">秒级：</Text>
                     <Space>
                       <Tag color="blue">{timestamp}</Tag>
@@ -405,21 +278,13 @@ const TimestampConverter: React.FC = () => {
                         type="link"
                         size="small"
                         icon={<CopyOutlined />}
-                        onClick={() =>
-                          copyToClipboard(timestamp, "秒级时间戳已复制")
-                        }
+                        onClick={() => copyToClipboard(timestamp, "秒级时间戳已复制")}
                       >
                         复制
                       </Button>
                     </Space>
                   </div>
-                  <div
-                    style={{
-                      display: "flex",
-                      alignItems: "center",
-                      justifyContent: "space-between",
-                    }}
-                  >
+                  <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between" }}>
                     <Text type="secondary">毫秒级：</Text>
                     <Space>
                       <Tag color="cyan">{millisecondTimestamp}</Tag>
@@ -427,12 +292,7 @@ const TimestampConverter: React.FC = () => {
                         type="link"
                         size="small"
                         icon={<CopyOutlined />}
-                        onClick={() =>
-                          copyToClipboard(
-                            millisecondTimestamp,
-                            "毫秒级时间戳已复制",
-                          )
-                        }
+                        onClick={() => copyToClipboard(millisecondTimestamp, "毫秒级时间戳已复制")}
                       >
                         复制
                       </Button>
@@ -441,9 +301,9 @@ const TimestampConverter: React.FC = () => {
                 </Space>
               </div>
             )}
-          </Space>
-        </Card>
-      </Space>
+          </div>
+        </Block>
+      </div>
     </div>
   );
 };

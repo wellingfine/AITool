@@ -1,6 +1,5 @@
 import React, { useState, useEffect } from "react";
 import {
-  Card,
   InputNumber,
   Row,
   Col,
@@ -10,6 +9,7 @@ import {
 import {
   UserOutlined,
 } from "@ant-design/icons";
+import Block from '../lib/Block';
 
 interface BMIResult {
   bmi: number;
@@ -87,96 +87,94 @@ const BMICalculator: React.FC = () => {
   };
 
   return (
-    <div style={{ padding: "16px", maxWidth: 800, margin: '0 auto' }}>
-      <Card>
-        {/* 身高体重输入 */}
-        <Row gutter={32} justify="center">
-          <Col>
-            <div style={{ textAlign: 'center' }}>
-              <div style={{ marginBottom: 8, color: token.colorTextSecondary }}>身高 (cm)</div>
-              <InputNumber
-                value={height}
-                onChange={(value) => setHeight(value)}
-                min={100}
-                max={250}
-                size="large"
-                style={{ width: 120 }}
-                placeholder="身高"
-              />
-            </div>
-          </Col>
-          <Col>
-            <div style={{ textAlign: 'center' }}>
-              <div style={{ marginBottom: 8, color: token.colorTextSecondary }}>体重 (kg)</div>
-              <InputNumber
-                value={weight}
-                onChange={(value) => setWeight(value)}
-                min={20}
-                max={300}
-                size="large"
-                style={{ width: 120 }}
-                placeholder="体重"
-                step={0.1}
-              />
-            </div>
-          </Col>
-        </Row>
+    <div style={{ padding: '8px 0', maxWidth: 600, margin: '0 auto' }}>
+      <div style={{ display: 'flex', flexDirection: 'column', width: '100%' }}>
+        <Block>
+          {/* 身高体重输入 */}
+          <Row gutter={32} justify="center">
+            <Col>
+              <div style={{ textAlign: 'center' }}>
+                <div style={{ marginBottom: 8, color: token.colorTextSecondary }}>身高 (cm)</div>
+                <InputNumber
+                  value={height}
+                  onChange={(value) => setHeight(value)}
+                  min={100}
+                  max={250}
+                  size="large"
+                  style={{ width: 120 }}
+                  placeholder="身高"
+                />
+              </div>
+            </Col>
+            <Col>
+              <div style={{ textAlign: 'center' }}>
+                <div style={{ marginBottom: 8, color: token.colorTextSecondary }}>体重 (kg)</div>
+                <InputNumber
+                  value={weight}
+                  onChange={(value) => setWeight(value)}
+                  min={20}
+                  max={300}
+                  size="large"
+                  style={{ width: 120 }}
+                  placeholder="体重"
+                  step={0.1}
+                />
+              </div>
+            </Col>
+          </Row>
+        </Block>
 
         {/* BMI 结果显示 */}
         {result && (
-          <div style={{ marginTop: 32 }}>
-            {/* BMI 数值 */}
-            <div style={{ textAlign: 'center', marginBottom: 24 }}>
-              <div style={{ fontSize: 48, fontWeight: 'bold', color: result.color }}>
-                {result.bmi.toFixed(1)}
+          <>
+            <Block>
+              {/* BMI 数值 */}
+              <div style={{ textAlign: 'center', marginBottom: 16 }}>
+                <div style={{ fontSize: 48, fontWeight: 'bold', color: result.color }}>
+                  {result.bmi.toFixed(1)}
+                </div>
+                <div style={{ 
+                  fontSize: 20, 
+                  color: result.color,
+                  fontWeight: 500,
+                  marginTop: 8
+                }}>
+                  {result.category}
+                </div>
               </div>
-              <div style={{ 
-                fontSize: 20, 
-                color: result.color,
-                fontWeight: 500,
-                marginTop: 8
-              }}>
-                {result.category}
-              </div>
-            </div>
 
-            {/* BMI 范围条 */}
-            <div style={{ padding: '0 20px', marginBottom: 24 }}>
-              <Progress
-                percent={getProgressPercent(result.bmi)}
-                showInfo={false}
-                strokeColor={{
-                  '0%': '#faad14',
-                  '17.5%': '#52c41a',
-                  '45%': '#52c41a',
-                  '65%': '#fa8c16',
-                  '100%': '#f5222d',
-                }}
-                trailColor={token.colorFillSecondary}
-                size={['100%', 12]}
-              />
-              <div style={{ 
-                display: 'flex', 
-                justifyContent: 'space-between', 
-                marginTop: 8,
-                fontSize: 12,
-                color: token.colorTextSecondary
-              }}>
-                <span>偏瘦 (&lt;18.5)</span>
-                <span>正常 (18.5-24)</span>
-                <span>偏胖 (24-28)</span>
-                <span>肥胖 (&gt;28)</span>
+              {/* BMI 范围条 */}
+              <div style={{ padding: '0 20px' }}>
+                <Progress
+                  percent={getProgressPercent(result.bmi)}
+                  showInfo={false}
+                  strokeColor={{
+                    '0%': '#faad14',
+                    '17.5%': '#52c41a',
+                    '45%': '#52c41a',
+                    '65%': '#fa8c16',
+                    '100%': '#f5222d',
+                  }}
+                  trailColor={token.colorFillSecondary}
+                  size={['100%', 12]}
+                />
+                <div style={{ 
+                  display: 'flex', 
+                  justifyContent: 'space-between', 
+                  marginTop: 8,
+                  fontSize: 12,
+                  color: token.colorTextSecondary
+                }}>
+                  <span>偏瘦 (&lt;18.5)</span>
+                  <span>正常 (18.5-24)</span>
+                  <span>偏胖 (24-28)</span>
+                  <span>肥胖 (&gt;28)</span>
+                </div>
               </div>
-            </div>
+            </Block>
 
             {/* 健康体重范围 */}
-            <Card 
-              size="small" 
-              style={{ 
-                background: token.colorFillAlter,
-                marginBottom: 16
-              }}
-            >
+            <Block>
               <Row gutter={16}>
                 <Col span={12}>
                   <div style={{ textAlign: 'center' }}>
@@ -205,13 +203,10 @@ const BMICalculator: React.FC = () => {
                   </div>
                 </Col>
               </Row>
-            </Card>
+            </Block>
 
             {/* 健康建议 */}
-            <Card 
-              size="small"
-              style={{ background: token.colorFillAlter }}
-            >
+            <Block>
               <div style={{ display: 'flex', alignItems: 'flex-start', gap: 8 }}>
                 <UserOutlined style={{ color: token.colorPrimary, marginTop: 4 }} />
                 <div>
@@ -219,19 +214,23 @@ const BMICalculator: React.FC = () => {
                   <div style={{ color: token.colorTextSecondary }}>{result.suggestion}</div>
                 </div>
               </div>
-            </Card>
-          </div>
+            </Block>
+          </>
         )}
-      </Card>
 
-      {/* BMI 说明 */}
-      <Card style={{ marginTop: 16 }} size="small">
-        <div style={{ color: token.colorTextSecondary, fontSize: 13 }}>
-          <div style={{ fontWeight: 500, marginBottom: 8, color: token.colorText }}>关于 BMI</div>
-          <p>BMI（Body Mass Index）即身体质量指数，是用体重公斤数除以身高米数平方得出的数字，是目前国际上常用的衡量人体胖瘦程度以及是否健康的一个标准。</p>
-          <p style={{ margin: 0 }}>计算公式：BMI = 体重(kg) ÷ 身高²(m²)</p>
-        </div>
-      </Card>
+        {/* BMI 说明 */}
+        <Block>
+          <div style={{ display: 'flex', flexDirection: 'column', gap: 8, width: '100%' }}>
+            <div style={{ fontWeight: 500, color: token.colorText }}>关于 BMI</div>
+            <div style={{ color: token.colorTextSecondary, fontSize: 13 }}>
+              BMI（Body Mass Index）即身体质量指数，是用体重公斤数除以身高米数平方得出的数字，是目前国际上常用的衡量人体胖瘦程度以及是否健康的一个标准。
+            </div>
+            <div style={{ color: token.colorTextSecondary, fontSize: 13 }}>
+              计算公式：BMI = 体重(kg) ÷ 身高²(m²)
+            </div>
+          </div>
+        </Block>
+      </div>
     </div>
   );
 };

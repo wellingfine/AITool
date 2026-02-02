@@ -1,8 +1,9 @@
 import { useState, useRef, useCallback } from 'react';
-import { Button, Space, Typography, Card, Statistic, Row, Col } from 'antd';
+import { Button, Typography, Statistic, Row, Col } from 'antd';
 import { ReloadOutlined, PlayCircleOutlined, PauseCircleOutlined } from '@ant-design/icons';
+import Block from '../lib/Block';
 
-const { Title } = Typography;
+const { Text } = Typography;
 
 const Counter: React.FC = () => {
   const [count, setCount] = useState(0);
@@ -70,24 +71,22 @@ const Counter: React.FC = () => {
   };
 
   return (
-    <div style={{ padding: '24px', maxWidth: 600, margin: '0 auto' }}>
-      <Space direction="vertical" size="large" style={{ width: '100%' }}>
-        <Card>
-          <Space direction="vertical" size="middle" style={{ width: '100%', textAlign: 'center' }}>
-            <Title level={4}>计数器</Title>
-
+    <div style={{ padding: '8px 0', maxWidth: 500, margin: '0 auto' }}>
+      <div style={{ display: 'flex', flexDirection: 'column', width: '100%' }}>
+        <Block>
+          <div style={{ display: 'flex', flexDirection: 'column', gap: 16, alignItems: 'center' }}>
             {/* 时间显示 */}
             <Statistic
               title="计时"
               value={formatTime(elapsedTime)}
-              valueStyle={{ fontSize: '36px', fontFamily: 'monospace' }}
+              valueStyle={{ fontSize: '32px', fontFamily: 'monospace' }}
             />
 
             {/* 计数显示 */}
             <Statistic
               title="计数"
               value={count}
-              valueStyle={{ fontSize: '72px', color: '#1890ff', fontWeight: 'bold' }}
+              valueStyle={{ fontSize: '64px', color: '#1890ff', fontWeight: 'bold' }}
             />
 
             {/* 大计数按钮 */}
@@ -96,12 +95,12 @@ const Counter: React.FC = () => {
               size="large"
               onClick={handleCount}
               style={{
-                width: '200px',
-                height: '200px',
+                width: '180px',
+                height: '180px',
                 fontSize: '48px',
                 borderRadius: '50%',
-                marginTop: 24,
-                marginBottom: 24
+                marginTop: 8,
+                marginBottom: 8
               }}
             >
               +1
@@ -129,9 +128,20 @@ const Counter: React.FC = () => {
                 </Button>
               </Col>
             </Row>
-          </Space>
-        </Card>
-      </Space>
+          </div>
+        </Block>
+
+        {/* 使用说明 */}
+        <Block>
+          <div style={{ display: 'flex', flexDirection: 'column', gap: 8, width: '100%' }}>
+            <Text strong>使用说明</Text>
+            <ul style={{ margin: 0, paddingLeft: 16, color: 'var(--ant-color-text-secondary)', fontSize: 13 }}>
+              <li>点击大按钮进行计数，首次点击会自动开始计时</li>
+              <li>可以暂停/继续计时，或点击重置清零所有数据</li>
+            </ul>
+          </div>
+        </Block>
+      </div>
     </div>
   );
 };

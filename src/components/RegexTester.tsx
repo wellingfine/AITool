@@ -1,6 +1,7 @@
 import { useState, useEffect, useCallback } from 'react';
-import { Card, Input, Button, Space, Typography, Tag, Row, Col, Badge } from 'antd';
+import { Input, Button, Typography, Tag, Row, Col, Badge, theme } from 'antd';
 import { EyeOutlined, BranchesOutlined, CheckCircleOutlined, CloseCircleOutlined } from '@ant-design/icons';
+import Block from '../lib/Block';
 
 const { TextArea } = Input;
 const { Text } = Typography;
@@ -487,6 +488,7 @@ const RegexTester: React.FC = () => {
     error: null,
     matchCount: 0
   });
+  const { token } = theme.useToken();
 
   // 实时匹配
   const performMatch = useCallback(() => {
@@ -587,11 +589,11 @@ const RegexTester: React.FC = () => {
   const tokens = pattern ? parseRegex(pattern) : [];
 
   return (
-    <div style={{ padding: '16px' }}>
-      <Space direction="vertical" size="middle" style={{ width: '100%' }}>
+    <div style={{ padding: '8px 0', maxWidth: 900, margin: '0 auto' }}>
+      <div style={{ display: 'flex', flexDirection: 'column', width: '100%' }}>
         {/* 正则表达式输入 */}
-        <Card>
-          <Space direction="vertical" style={{ width: '100%' }}>
+        <Block>
+          <div style={{ display: 'flex', flexDirection: 'column', gap: 12 }}>
             <Input
               placeholder="输入正则表达式，例如: ^\\d+$"
               value={pattern}
@@ -600,7 +602,6 @@ const RegexTester: React.FC = () => {
               addonAfter={`/${flags}`}
               style={{ fontFamily: 'monospace' }}
             />
-
             {/* 标志位选择 */}
             <div>
               <Text type="secondary" style={{ marginRight: 8 }}>标志位:</Text>
@@ -614,51 +615,45 @@ const RegexTester: React.FC = () => {
                   {flag}
                 </Tag>
               ))}
-              <Text type="secondary" style={{ marginLeft: 16, fontSize: 12 }}>
+              <Text type="secondary" style={{ marginLeft: 8, fontSize: 12 }}>
                 g:全局 i:忽略大小写 m:多行 s:点匹配换行 u:Unicode
               </Text>
             </div>
-          </Space>
-        </Card>
+          </div>
+        </Block>
 
         {/* 可视化解析 */}
         {tokens.length > 0 && (
-          <Card size="small">
+          <Block>
             <div style={{ marginBottom: 12 }}>
               <EyeOutlined style={{ marginRight: 8 }} />
               <Text strong>正则可视化解析:</Text>
             </div>
             <div style={{
-              padding: '16px',
-              background: '#f5f5f5',
+              padding: '12px',
+              background: token.colorFillAlter,
               borderRadius: '8px',
               overflowX: 'auto'
             }}>
               <RegexVisualizer nodes={tokens} />
             </div>
-          </Card>
+          </Block>
         )}
 
         {/* 测试文本和结果 */}
-        <Card>
-          <Space direction="vertical" style={{ width: '100%' }}>
+        <Block>
+          <div style={{ display: 'flex', flexDirection: 'column', gap: 12 }}>
             <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
               <Text strong>测试文本</Text>
               {result.error ? (
-                <Badge
-                  count={<CloseCircleOutlined style={{ color: '#ff4d4f' }} />}
-                  style={{ backgroundColor: 'transparent' }}
-                />
+                <Badge count={<CloseCircleOutlined style={{ color: '#ff4d4f' }} />} style={{ backgroundColor: 'transparent' }} />
               ) : result.matchCount > 0 ? (
-                <Badge
-                  count={<CheckCircleOutlined style={{ color: '#52c41a' }} />}
-                  style={{ backgroundColor: 'transparent' }}
-                />
+                <Badge count={<CheckCircleOutlined style={{ color: '#52c41a' }} />} style={{ backgroundColor: 'transparent' }} />
               ) : null}
             </div>
 
             <TextArea
-              rows={6}
+              rows={5}
               placeholder="输入要测试的文本..."
               value={testText}
               onChange={(e) => setTestText(e.target.value)}
@@ -687,23 +682,21 @@ const RegexTester: React.FC = () => {
                 border: '1px solid #b7eb8f',
                 borderRadius: '4px'
               }}>
-                <div style={{ marginBottom: 8, display: 'flex', justifyContent: 'space-between' }}>
+                <div style={{ marginBottom: 8 }}>
                   <Text strong style={{ color: '#389e0d' }}>
                     匹配结果 ({result.matchCount}个)
                   </Text>
                 </div>
-
                 {/* 高亮显示 */}
                 <div style={{
                   padding: '8px',
                   background: 'white',
                   borderRadius: '4px',
-                  marginBottom: 12,
-                  minHeight: 40
+                  marginBottom: 8,
+                  minHeight: 36
                 }}>
                   {result.highlightedText}
                 </div>
-
                 {/* 匹配列表 */}
                 {result.matches.length > 0 && (
                   <div>
@@ -719,56 +712,58 @@ const RegexTester: React.FC = () => {
                 )}
               </div>
             )}
-          </Space>
-        </Card>
+          </div>
+        </Block>
 
         {/* 常用正则预设 */}
-        <Card size="small">
+        <Block>
           <div style={{ marginBottom: 8 }}>
             <Text strong>常用正则表达式:</Text>
           </div>
           <Row gutter={[8, 8]}>
             {PRESETS.map((preset) => (
               <Col key={preset.name}>
-                <Button
-                  size="small"
-                  onClick={() => handlePresetClick(preset)}
-                  title={preset.desc}
-                >
+                <Button size="small" onClick={() => handlePresetClick(preset)} title={preset.desc}>
                   {preset.name}
                 </Button>
               </Col>
             ))}
           </Row>
-        </Card>
+        </Block>
 
         {/* 正则语法参考 */}
-        <Card size="small">
+        <Block>
           <Row gutter={[16, 8]}>
             <Col span={8}>
               <Text strong>字符类</Text>
-              <div><code>.</code> - 任意字符</div>
-              <div><code>\d</code> - 数字</div>
-              <div><code>\w</code> - 单词字符</div>
-              <div><code>\s</code> - 空白字符</div>
+              <div style={{ fontSize: 13, color: token.colorTextSecondary }}>
+                <div><code>.</code> - 任意字符</div>
+                <div><code>\d</code> - 数字</div>
+                <div><code>\w</code> - 单词字符</div>
+                <div><code>\s</code> - 空白字符</div>
+              </div>
             </Col>
             <Col span={8}>
               <Text strong>量词</Text>
-              <div><code>*</code> - 0次或多次</div>
-              <div><code>+</code> - 1次或多次</div>
-              <div><code>?</code> - 0次或1次</div>
-              <div><code>{'{n,m}'}</code> - n到m次</div>
+              <div style={{ fontSize: 13, color: token.colorTextSecondary }}>
+                <div><code>*</code> - 0次或多次</div>
+                <div><code>+</code> - 1次或多次</div>
+                <div><code>?</code> - 0次或1次</div>
+                <div><code>{'{n,m}'}</code> - n到m次</div>
+              </div>
             </Col>
             <Col span={8}>
               <Text strong>位置</Text>
-              <div><code>^</code> - 行首</div>
-              <div><code>$</code> - 行尾</div>
-              <div><code>\b</code> - 单词边界</div>
-              <div><code>(?=)</code> - 正向肯定</div>
+              <div style={{ fontSize: 13, color: token.colorTextSecondary }}>
+                <div><code>^</code> - 行首</div>
+                <div><code>$</code> - 行尾</div>
+                <div><code>\b</code> - 单词边界</div>
+                <div><code>(?=)</code> - 正向肯定</div>
+              </div>
             </Col>
           </Row>
-        </Card>
-      </Space>
+        </Block>
+      </div>
     </div>
   );
 };

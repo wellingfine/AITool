@@ -1,6 +1,5 @@
 import React, { useState, useCallback, useEffect } from "react";
 import {
-  Card,
   Button,
   Row,
   Col,
@@ -12,6 +11,7 @@ import {
 import {
   DeleteOutlined,
 } from "@ant-design/icons";
+import Block from '../lib/Block';
 
 const { Text } = Typography;
 
@@ -908,73 +908,75 @@ const Calculator: React.FC<CalculatorProps> = ({ isActive = true }) => {
   };
 
   return (
-    <div style={{ padding: "16px", maxWidth: 900, margin: "0 auto" }}>
-      <Card>
-        {/* 模式切换 */}
-        <div style={{ marginBottom: 12 }}>
-          <Segmented
-            value={mode}
-            onChange={(v) => {
-              setMode(v as CalculatorMode);
-              handleClear();
-            }}
-            options={[
-              { label: "标准", value: "standard" },
-              { label: "科学", value: "scientific" },
-              { label: "程序员", value: "programmer" },
-            ]}
-            block
-          />
-        </div>
-
-        {/* 显示屏 */}
-        <div
-          style={{
-            background: token.colorFillAlter,
-            borderRadius: token.borderRadius,
-            padding: "12px 16px",
-            marginBottom: 12,
-            textAlign: "right",
-          }}
-        >
-          <div style={{ minHeight: 18, marginBottom: 2 }}>
-            <Text type="secondary" style={{ fontSize: 12 }}>
-              {history}
-            </Text>
+    <div style={{ padding: '8px 0', maxWidth: 900, margin: "0 auto" }}>
+      <div style={{ display: 'flex', flexDirection: 'column', width: '100%' }}>
+        <Block>
+          {/* 模式切换 */}
+          <div style={{ marginBottom: 12 }}>
+            <Segmented
+              value={mode}
+              onChange={(v) => {
+                setMode(v as CalculatorMode);
+                handleClear();
+              }}
+              options={[
+                { label: "标准", value: "standard" },
+                { label: "科学", value: "scientific" },
+                { label: "程序员", value: "programmer" },
+              ]}
+              block
+            />
           </div>
+
+          {/* 显示屏 */}
           <div
             style={{
-              fontSize: mode === "programmer" ? 20 : 28,
-              fontWeight: 600,
-              color: token.colorText,
-              wordBreak: "break-all",
-              lineHeight: 1.2,
-              fontFamily: "monospace",
+              background: token.colorFillAlter,
+              borderRadius: token.borderRadius,
+              padding: "12px 16px",
+              marginBottom: 12,
+              textAlign: "right",
             }}
           >
-            {getCurrentDisplay()}
+            <div style={{ minHeight: 18, marginBottom: 2 }}>
+              <Text type="secondary" style={{ fontSize: 12 }}>
+                {history}
+              </Text>
+            </div>
+            <div
+              style={{
+                fontSize: mode === "programmer" ? 20 : 28,
+                fontWeight: 600,
+                color: token.colorText,
+                wordBreak: "break-all",
+                lineHeight: 1.2,
+                fontFamily: "monospace",
+              }}
+            >
+              {getCurrentDisplay()}
+            </div>
           </div>
-        </div>
 
-        {/* 按键区 */}
-        {mode === "standard" && renderStandardButtons()}
-        {mode === "scientific" && renderScientificButtons()}
-        {mode === "programmer" && renderProgrammerButtons()}
+          {/* 按键区 */}
+          {mode === "standard" && renderStandardButtons()}
+          {mode === "scientific" && renderScientificButtons()}
+          {mode === "programmer" && renderProgrammerButtons()}
 
-        {/* 快捷键提示 */}
-        <div
-          style={{
-            marginTop: 12,
-            padding: "8px 12px",
-            background: token.colorFillAlter,
-            borderRadius: token.borderRadius,
-            fontSize: 11,
-            color: token.colorTextSecondary,
-          }}
-        >
-          快捷键: 数字键 | Enter=计算 | Esc=清空 | Backspace=退格
-        </div>
-      </Card>
+          {/* 快捷键提示 */}
+          <div
+            style={{
+              marginTop: 12,
+              padding: "8px 12px",
+              background: token.colorFillAlter,
+              borderRadius: token.borderRadius,
+              fontSize: 11,
+              color: token.colorTextSecondary,
+            }}
+          >
+            快捷键: 数字键 | Enter=计算 | Esc=清空 | Backspace=退格
+          </div>
+        </Block>
+      </div>
     </div>
   );
 };

@@ -1,14 +1,13 @@
 import React, { useState, useRef } from "react";
 import {
-  Card,
   Input,
   Button,
   Typography,
-  Space,
   message,
   Progress,
   theme,
   Checkbox,
+  Space,
 } from "antd";
 import {
   CopyOutlined,
@@ -17,6 +16,7 @@ import {
 } from "@ant-design/icons";
 import CryptoJS from "crypto-js";
 import { nativeAPI } from "../services/nativeAPI";
+import Block from '../lib/Block';
 
 const { Text } = Typography;
 const { TextArea } = Input;
@@ -183,7 +183,7 @@ const HashCalculator: React.FC = () => {
 
   // 渲染结果列表
   const renderHashResults = (results: HashResults) => {
-    const entries = Object.entries(results).filter(([_, value]) => value);
+    const entries = Object.entries(results).filter(([, value]) => value);
     if (entries.length === 0) return null;
 
     return (
@@ -213,38 +213,38 @@ const HashCalculator: React.FC = () => {
     );
   };
 
-  // 算法选择区域
-  const AlgoCheckboxes = (
-    <Space style={{ marginBottom: 16 }}>
-      <Text type="secondary">算法:</Text>
-      <Checkbox
-        checked={selectedAlgos.includes("MD5")}
-        onChange={(e) => handleAlgoChange("MD5", e.target.checked)}
-      >
-        MD5
-      </Checkbox>
-      <Checkbox
-        checked={selectedAlgos.includes("SHA1")}
-        onChange={(e) => handleAlgoChange("SHA1", e.target.checked)}
-      >
-        SHA-1
-      </Checkbox>
-      <Checkbox
-        checked={selectedAlgos.includes("SHA256")}
-        onChange={(e) => handleAlgoChange("SHA256", e.target.checked)}
-      >
-        SHA-256
-      </Checkbox>
-    </Space>
-  );
-
   return (
-    <div style={{ padding: "16px" }}>
-      {AlgoCheckboxes}
-      <Space orientation="vertical" size="middle" style={{ width: "100%" }}>
+    <div style={{ padding: '8px 0', maxWidth: 800, margin: '0 auto' }}>
+      <div style={{ display: 'flex', flexDirection: 'column', width: '100%' }}>
+        {/* 算法选择 */}
+        <Block>
+          <Space>
+            <Text type="secondary">算法:</Text>
+            <Checkbox
+              checked={selectedAlgos.includes("MD5")}
+              onChange={(e) => handleAlgoChange("MD5", e.target.checked)}
+            >
+              MD5
+            </Checkbox>
+            <Checkbox
+              checked={selectedAlgos.includes("SHA1")}
+              onChange={(e) => handleAlgoChange("SHA1", e.target.checked)}
+            >
+              SHA-1
+            </Checkbox>
+            <Checkbox
+              checked={selectedAlgos.includes("SHA256")}
+              onChange={(e) => handleAlgoChange("SHA256", e.target.checked)}
+            >
+              SHA-256
+            </Checkbox>
+          </Space>
+        </Block>
+
         {/* 字符串 Hash 计算 */}
-        <Card title="字符串 Hash 计算">
-          <Space orientation="vertical" style={{ width: "100%" }}>
+        <Block>
+          <div style={{ display: 'flex', flexDirection: 'column', gap: 12 }}>
+            <Text strong>字符串 Hash 计算</Text>
             <Text type="secondary">输入文本</Text>
             <TextArea
               value={textInput}
@@ -257,12 +257,13 @@ const HashCalculator: React.FC = () => {
               计算
             </Button>
             {renderHashResults(textHashResults)}
-          </Space>
-        </Card>
+          </div>
+        </Block>
 
         {/* 文件 Hash 计算 */}
-        <Card title="文件 Hash 计算">
-          <Space orientation="vertical" style={{ width: "100%" }}>
+        <Block>
+          <div style={{ display: 'flex', flexDirection: 'column', gap: 12 }}>
+            <Text strong>文件 Hash 计算</Text>
             <div
               onDrop={handleDrop}
               onDragOver={handleDragOver}
@@ -270,7 +271,7 @@ const HashCalculator: React.FC = () => {
               style={{
                 border: `2px dashed ${token.colorBorder}`,
                 borderRadius: token.borderRadius,
-                padding: "40px 20px",
+                padding: "32px 20px",
                 textAlign: "center",
                 cursor: "pointer",
                 background: token.colorFillAlter,
@@ -279,7 +280,7 @@ const HashCalculator: React.FC = () => {
               onMouseEnter={(e) => (e.currentTarget.style.borderColor = token.colorPrimary)}
               onMouseLeave={(e) => (e.currentTarget.style.borderColor = token.colorBorder)}
             >
-              <InboxOutlined style={{ fontSize: 48, color: token.colorPrimary }} />
+              <InboxOutlined style={{ fontSize: 40, color: token.colorPrimary }} />
               <p style={{ marginTop: 8, marginBottom: 0, color: token.colorTextSecondary }}>
                 点击或拖拽文件到此区域
               </p>
@@ -292,7 +293,7 @@ const HashCalculator: React.FC = () => {
             />
 
             {fileName && (
-              <div style={{ marginTop: 16 }}>
+              <div style={{ marginTop: 8 }}>
                 <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center" }}>
                   <Text>
                     文件: <Text strong>{fileName}</Text>
@@ -315,9 +316,9 @@ const HashCalculator: React.FC = () => {
                 {renderHashResults(fileHashResults)}
               </div>
             )}
-          </Space>
-        </Card>
-      </Space>
+          </div>
+        </Block>
+      </div>
     </div>
   );
 };

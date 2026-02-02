@@ -1,10 +1,8 @@
 import React, { useState } from "react";
 import {
-  Card,
   Input,
   Button,
   Typography,
-  Space,
   message,
   Row,
   Col,
@@ -16,6 +14,7 @@ import {
   UnlockOutlined,
 } from "@ant-design/icons";
 import { nativeAPI } from "../services/nativeAPI";
+import Block from '../lib/Block';
 
 const { Text } = Typography;
 const { TextArea } = Input;
@@ -90,116 +89,112 @@ const Base64Converter: React.FC = () => {
   };
 
   return (
-    <div style={{ padding: "16px" }}>
-      <Space orientation="vertical" size="middle" style={{ width: "100%" }}>
+    <div style={{ padding: '8px 0', maxWidth: 900, margin: '0 auto' }}>
+      <div style={{ display: 'flex', flexDirection: 'column', width: '100%' }}>
         {/* 编码区域 */}
-        <Card
-          title={
-            <Space>
+        <Block>
+          <div style={{ display: 'flex', flexDirection: 'column', gap: 16 }}>
+            <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
               <LockOutlined style={{ color: token.colorPrimary }} />
-              <span>文本 → Base64 编码</span>
-            </Space>
-          }
-        >
-          <Row gutter={16}>
-            <Col xs={24} lg={12}>
-              <Text type="secondary" style={{ display: "block", marginBottom: 8 }}>
-                原始文本
-              </Text>
-              <TextArea
-                value={encodeInput}
-                onChange={(e) => setEncodeInput(e.target.value)}
-                placeholder="请输入要编码的文本..."
-                autoSize={{ minRows: 5, maxRows: 10 }}
-                style={{ fontFamily: "monospace" }}
-              />
-            </Col>
-            <Col xs={24} lg={12}>
-              <div style={{ display: "flex", justifyContent: "space-between", marginBottom: 8 }}>
-                <Text type="secondary">Base64 结果</Text>
-                <Button
-                  type="link"
-                  size="small"
-                  icon={<CopyOutlined />}
-                  onClick={() => copyToClipboard(encodeOutput)}
-                  style={{ padding: 0, height: "auto" }}
-                >
-                  复制
-                </Button>
-              </div>
-              <TextArea
-                value={encodeOutput}
-                readOnly
-                placeholder="编码结果"
-                autoSize={{ minRows: 5, maxRows: 10 }}
-                style={{ fontFamily: "monospace", background: token.colorFillAlter }}
-              />
-            </Col>
-          </Row>
-          <Button
-            type="primary"
-            block
-            onClick={handleEncode}
-            style={{ marginTop: 16 }}
-          >
-            编码
-          </Button>
-        </Card>
+              <Text strong>文本 → Base64 编码</Text>
+            </div>
+            <Row gutter={16}>
+              <Col xs={24} lg={12}>
+                <Text type="secondary" style={{ display: "block", marginBottom: 8 }}>
+                  原始文本
+                </Text>
+                <TextArea
+                  value={encodeInput}
+                  onChange={(e) => setEncodeInput(e.target.value)}
+                  placeholder="请输入要编码的文本..."
+                  autoSize={{ minRows: 4, maxRows: 8 }}
+                  style={{ fontFamily: "monospace" }}
+                />
+              </Col>
+              <Col xs={24} lg={12}>
+                <div style={{ display: "flex", justifyContent: "space-between", marginBottom: 8 }}>
+                  <Text type="secondary">Base64 结果</Text>
+                  <Button
+                    type="link"
+                    size="small"
+                    icon={<CopyOutlined />}
+                    onClick={() => copyToClipboard(encodeOutput)}
+                    style={{ padding: 0, height: "auto" }}
+                  >
+                    复制
+                  </Button>
+                </div>
+                <TextArea
+                  value={encodeOutput}
+                  readOnly
+                  placeholder="编码结果"
+                  autoSize={{ minRows: 4, maxRows: 8 }}
+                  style={{ fontFamily: "monospace", background: token.colorFillAlter }}
+                />
+              </Col>
+            </Row>
+            <Button
+              type="primary"
+              block
+              onClick={handleEncode}
+            >
+              编码
+            </Button>
+          </div>
+        </Block>
 
         {/* 解码区域 */}
-        <Card
-          title={
-            <Space>
+        <Block>
+          <div style={{ display: 'flex', flexDirection: 'column', gap: 16 }}>
+            <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
               <UnlockOutlined style={{ color: token.colorPrimary }} />
-              <span>Base64 → 文本 解码</span>
-            </Space>
-          }
-        >
-          <Row gutter={16}>
-            <Col xs={24} lg={12}>
-              <Text type="secondary" style={{ display: "block", marginBottom: 8 }}>
-                Base64 字符串
-              </Text>
-              <TextArea
-                value={decodeInput}
-                onChange={(e) => setDecodeInput(e.target.value)}
-                placeholder="请输入要解码的 Base64 字符串..."
-                autoSize={{ minRows: 5, maxRows: 10 }}
-                style={{ fontFamily: "monospace" }}
-              />
-            </Col>
-            <Col xs={24} lg={12}>
-              <div style={{ display: "flex", justifyContent: "space-between", marginBottom: 8 }}>
-                <Text type="secondary">解码结果</Text>
-                <Button
-                  type="link"
-                  size="small"
-                  icon={<CopyOutlined />}
-                  onClick={() => copyToClipboard(decodeOutput)}
-                  style={{ padding: 0, height: "auto" }}
-                >
-                  复制
-                </Button>
-              </div>
-              <TextArea
-                value={decodeOutput}
-                readOnly
-                placeholder="解码结果"
-                autoSize={{ minRows: 5, maxRows: 10 }}
-                style={{ fontFamily: "monospace", background: token.colorFillAlter }}
-              />
-            </Col>
-          </Row>
-          <Button
-            type="primary"
-            block
-            onClick={handleDecode}
-            style={{ marginTop: 16 }}
-          >
-            解码
-          </Button>
-        </Card>
-      </Space>
+              <Text strong>Base64 → 文本 解码</Text>
+            </div>
+            <Row gutter={16}>
+              <Col xs={24} lg={12}>
+                <Text type="secondary" style={{ display: "block", marginBottom: 8 }}>
+                  Base64 字符串
+                </Text>
+                <TextArea
+                  value={decodeInput}
+                  onChange={(e) => setDecodeInput(e.target.value)}
+                  placeholder="请输入要解码的 Base64 字符串..."
+                  autoSize={{ minRows: 4, maxRows: 8 }}
+                  style={{ fontFamily: "monospace" }}
+                />
+              </Col>
+              <Col xs={24} lg={12}>
+                <div style={{ display: "flex", justifyContent: "space-between", marginBottom: 8 }}>
+                  <Text type="secondary">解码结果</Text>
+                  <Button
+                    type="link"
+                    size="small"
+                    icon={<CopyOutlined />}
+                    onClick={() => copyToClipboard(decodeOutput)}
+                    style={{ padding: 0, height: "auto" }}
+                  >
+                    复制
+                  </Button>
+                </div>
+                <TextArea
+                  value={decodeOutput}
+                  readOnly
+                  placeholder="解码结果"
+                  autoSize={{ minRows: 4, maxRows: 8 }}
+                  style={{ fontFamily: "monospace", background: token.colorFillAlter }}
+                />
+              </Col>
+            </Row>
+            <Button
+              type="primary"
+              block
+              onClick={handleDecode}
+            >
+              解码
+            </Button>
+          </div>
+        </Block>
+      </div>
     </div>
   );
 };
