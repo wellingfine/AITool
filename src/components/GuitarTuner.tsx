@@ -1,8 +1,9 @@
 import React, { useState, useRef, useCallback, useEffect } from 'react';
-import { Card, Select, Button, Typography, theme } from 'antd';
+import { Select, Button, Typography, theme } from 'antd';
 import { InfoCircleOutlined, AudioOutlined, AudioMutedOutlined } from '@ant-design/icons';
+import Block from '../lib/Block';
 
-const { Title, Text } = Typography;
+const { Text } = Typography;
 const { Option } = Select;
 
 // 音符频率映射（基于 A4 = 440Hz）
@@ -360,11 +361,10 @@ const GuitarTuner: React.FC = () => {
   };
 
   return (
-    <div style={{ padding: '24px', maxWidth: 800, margin: '0 auto' }}>
-      <div style={{ display: 'flex', flexDirection: 'column', gap: 16, width: '100%' }}>
-        <Card>
+    <div style={{ padding: '8px 0', maxWidth: 800, margin: '0 auto' }}>
+      <div style={{ display: 'flex', flexDirection: 'column', width: '100%' }}>
+        <Block>
           <div style={{ display: 'flex', flexDirection: 'column', gap: 24, width: '100%' }}>
-            <Title level={4} style={{ textAlign: 'center', margin: 0 }}>吉他调音器</Title>
 
             {/* 调弦选择 */}
             <Select
@@ -528,29 +528,30 @@ const GuitarTuner: React.FC = () => {
                 })}
               </div>
             </div>
-
+            
+            {/* 麦克风控制 */}
+            <div style={{ textAlign: 'center' }}>
+            <Button
+                type={isListening ? "primary" : "default"}
+                icon={isListening ? <AudioOutlined /> : <AudioMutedOutlined />}
+                onClick={toggleListening}
+                size="large"
+                danger={isListening}
+                block
+            >
+                {isListening ? '停止监听' : '开始监听麦克风'}
+            </Button>
+            {errorMsg && (
+                <div style={{ color: token.colorError, fontSize: 13, marginTop: 8 }}>{errorMsg}</div>
+            )}
+            </div>
           </div>
-        </Card>
+        </Block>
 
-        {/* 麦克风控制 */}
-        <div style={{ textAlign: 'center' }}>
-          <Button
-            type={isListening ? "primary" : "default"}
-            icon={isListening ? <AudioOutlined /> : <AudioMutedOutlined />}
-            onClick={toggleListening}
-            size="large"
-            danger={isListening}
-            block
-          >
-            {isListening ? '停止监听' : '开始监听麦克风'}
-          </Button>
-          {errorMsg && (
-            <div style={{ color: token.colorError, fontSize: 13, marginTop: 8 }}>{errorMsg}</div>
-          )}
-        </div>
+        
 
         {/* 音高偏差指示器 - 始终显示 */}
-        <Card size="small" styles={{ body: { padding: '16px' } }}>
+        <Block>
           <div style={{ textAlign: 'center' }}>
             <div style={{ fontSize: 13, color: token.colorTextSecondary, marginBottom: 16, fontWeight: 500 }}>音准指示</div>
             
@@ -734,10 +735,10 @@ const GuitarTuner: React.FC = () => {
               })()}
             </div>
           </div>
-        </Card>
+        </Block>
 
         {/* 调弦说明 */}
-        <Card size="small">
+        <Block>
           <div style={{ display: 'flex', flexDirection: 'column', gap: 8, width: '100%' }}>
             <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
               <InfoCircleOutlined style={{ color: token.colorPrimary }} />
@@ -747,10 +748,10 @@ const GuitarTuner: React.FC = () => {
               {getTuningDescription(currentTuning.name)}
             </Text>
           </div>
-        </Card>
+        </Block>
 
         {/* 使用说明 */}
-        <Card size="small">
+        <Block>
           <div style={{ display: 'flex', flexDirection: 'column', gap: 8, width: '100%' }}>
             <Text strong>使用说明</Text>
             <ul style={{ margin: 0, paddingLeft: 16, color: token.colorTextSecondary, fontSize: 13 }}>
@@ -760,7 +761,7 @@ const GuitarTuner: React.FC = () => {
               <li>绿色进度条表示音准准确度</li>
             </ul>
           </div>
-        </Card>
+        </Block>
       </div>
     </div>
   );
