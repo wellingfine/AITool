@@ -21,6 +21,7 @@ import {
   ExperimentOutlined,
   PlusCircleOutlined,
   AimOutlined,
+  CustomerServiceOutlined,
 } from '@ant-design/icons';
 
 // 设置页保持同步加载
@@ -41,6 +42,7 @@ const Calendar = lazy(() => import('./components/Calendar'));
 const Calculator = lazy(() => import('./components/Calculator'));
 const RegexTester = lazy(() => import('./components/RegexTester'));
 const ReactionTest = lazy(() => import('./components/ReactionTest'));
+const GuitarTuner = lazy(() => import('./components/GuitarTuner'));
 
 const { Header, Content, Sider } = Layout;
 
@@ -149,6 +151,11 @@ const mainMenuItems: MenuItem[] = [
         key: 'reaction',
         icon: <AimOutlined />,
         label: '反应测试'
+      },
+      {
+        key: 'guitarTuner',
+        icon: <CustomerServiceOutlined />,
+        label: '吉他调音'
       }
     ]
   }
@@ -396,7 +403,7 @@ function App() {
               </span>
             )}
             <span style={{ fontSize: '16px', fontWeight: 500, color: colorText }}>
-              {selectedKey[0] === 'timestamp' ? '时间戳转换' : selectedKey[0] === 'base64' ? 'Base64 转换' : selectedKey[0] === 'textCompare' ? '文本对比' : selectedKey[0] === 'lineDedupe' ? '行去重' : selectedKey[0] === 'regex' ? '正则表达式' : selectedKey[0] === 'calendar' ? '日历' : selectedKey[0] === 'calculator' ? '计算器' : selectedKey[0] === 'counter' ? '计数器' : selectedKey[0] === 'hash' ? 'Hash 计算' : selectedKey[0] === 'imageBase64' ? '图片 Base64' : selectedKey[0] === 'unicode' ? 'Unicode 转换' : selectedKey[0] === 'workTracker' ? '任务跟进' : selectedKey[0] === 'bmi' ? 'BMI 计算' : selectedKey[0] === 'reaction' ? '反应测试' : selectedKey[0] === 'settings' ? '设置' : 'AI工具箱'}
+              {selectedKey[0] === 'timestamp' ? '时间戳转换' : selectedKey[0] === 'base64' ? 'Base64 转换' : selectedKey[0] === 'textCompare' ? '文本对比' : selectedKey[0] === 'lineDedupe' ? '行去重' : selectedKey[0] === 'regex' ? '正则表达式' : selectedKey[0] === 'calendar' ? '日历' : selectedKey[0] === 'calculator' ? '计算器' : selectedKey[0] === 'counter' ? '计数器' : selectedKey[0] === 'hash' ? 'Hash 计算' : selectedKey[0] === 'imageBase64' ? '图片 Base64' : selectedKey[0] === 'unicode' ? 'Unicode 转换' : selectedKey[0] === 'workTracker' ? '任务跟进' : selectedKey[0] === 'bmi' ? 'BMI 计算' : selectedKey[0] === 'reaction' ? '反应测试' : selectedKey[0] === 'guitarTuner' ? '吉他调音' : selectedKey[0] === 'settings' ? '设置' : 'AI工具箱'}
             </span>
           </Header>
           <Content style={{
@@ -530,6 +537,14 @@ function App() {
               <div style={{ display: currentKey === 'counter' ? 'block' : 'none' }}>
                 <Suspense fallback={<LoadingFallback />}>
                   <Counter />
+                </Suspense>
+              </div>
+            )}
+            {/* 吉他调音 - 懒加载 */}
+            {shouldRender('guitarTuner') && (
+              <div style={{ display: currentKey === 'guitarTuner' ? 'block' : 'none' }}>
+                <Suspense fallback={<LoadingFallback />}>
+                  <GuitarTuner />
                 </Suspense>
               </div>
             )}
