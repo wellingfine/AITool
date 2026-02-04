@@ -1,7 +1,8 @@
 import React, { useState, useRef, useCallback, useEffect } from 'react';
-import { Select, Button, Typography, theme } from 'antd';
-import { InfoCircleOutlined, AudioOutlined, AudioMutedOutlined } from '@ant-design/icons';
+import { Select, Button, Typography, theme, Modal } from 'antd';
+import { InfoCircleOutlined, AudioOutlined, AudioMutedOutlined, ExclamationCircleOutlined } from '@ant-design/icons';
 import Block from '../lib/Block';
+import { isAndroid } from '../lib/utils';
 
 const { Text } = Typography;
 const { Option } = Select;
@@ -145,6 +146,7 @@ const GuitarTuner: React.FC = () => {
   const [detectedFreq, setDetectedFreq] = useState<number | null>(null);
   const [errorMsg, setErrorMsg] = useState<string>('');
   const [volume, setVolume] = useState(0);
+  const [permissionDenied, setPermissionDenied] = useState(false);
 
   const audioContextRef = useRef<AudioContext | null>(null);
   const oscillatorsRef = useRef<OscillatorNode[]>([]);
@@ -233,19 +235,65 @@ const GuitarTuner: React.FC = () => {
 
   // 使用 ref 来跟踪监听状态，避免循环依赖
   const isListeningRef = useRef(false);
-  
-  // 开始监听麦克风
-  const startListening = useCallback(async () => {
+
+  // 显示权限帮助弹窗
+  const showPermissionHelp = () => {
+    Modal.info({
+      title: '需要麦克风权限',
+      icon: <ExclamationCircleOutlined />,
+      content: (
+        <div style={{ marginTop: 16 }}>
+          <p>吉他调音器需要访问麦克风来识别音高。</p>
+          {isAndroid() ? (
+            <>
+              <p style={{ marginTop: 12, fontWeight: 'bold' }}>Android 用户:</p>
+              <ol style={{ paddingLeft: 20 }}>
+                <li>点击"确定"关闭此弹窗</li>
+                <li>当系统弹出权限请求时，请点击"允许"</li>
+                <li>如果之前拒绝了权限，请前往：<br/>设置 → 应用 → AITool → 权限 → 麦克风 → 允许</li>
+              </ol>
+            </>
+          ) : (
+            <>
+              <p style={{ marginTop: 12 }}>请在浏览器弹出的权限请求中选择"允许"。</p>
+            </>
+          )}
+        </div>
+      ),
+      onOk() {
+        // 用户关闭弹窗后，再次尝试申请权限
+        requestMicrophonePermission();
+      },
+    });
+  };
+
+  // 申请麦克风权限
+  const requestMicrophonePermission = async () => {
     try {
       setErrorMsg('');
-      
-      const stream = await navigator.mediaDevices.getUserMedia({ 
+      setPermissionDenied(false);
+
+      // 先检查权限状态（如果浏览器支持）
+      if (navigator.permissions && navigator.permissions.query) {
+        try {
+          const permissionStatus = await navigator.permissions.query({ name: 'microphone' as PermissionName });
+          if (permissionStatus.state === 'denied') {
+            setPermissionDenied(true);
+            setErrorMsg(isAndroid() ? '麦克风权限被拒绝，请前往系统设置开启' : '麦克风权限被拒绝');
+            return;
+          }
+        } catch (e) {
+          // 某些浏览器不支持查询麦克风权限，继续尝试
+        }
+      }
+
+      const stream = await navigator.mediaDevices.getUserMedia({
         audio: {
           echoCancellation: false,
           noiseSuppression: false,
           autoGainControl: false,
           sampleRate: 44100
-        } 
+        }
       });
       mediaStreamRef.current = stream;
 
@@ -317,10 +365,28 @@ const GuitarTuner: React.FC = () => {
 
       detect();
     } catch (err) {
-      setErrorMsg('无法访问麦克风，请检查权限设置');
       console.error('Microphone access error:', err);
+      setPermissionDenied(true);
+
+      // 根据错误类型显示不同提示
+      if (err instanceof DOMException) {
+        if (err.name === 'NotAllowedError' || err.name === 'PermissionDeniedError') {
+          setErrorMsg(isAndroid()
+            ? '麦克风权限被拒绝，请检查应用权限设置'
+            : '麦克风权限被拒绝，请在浏览器设置中允许访问'
+          );
+        } else if (err.name === 'NotFoundError') {
+          setErrorMsg('未找到麦克风设备');
+        } else if (err.name === 'NotReadableError') {
+          setErrorMsg('麦克风被其他应用占用');
+        } else {
+          setErrorMsg(`麦克风错误: ${err.message}`);
+        }
+      } else {
+        setErrorMsg('无法访问麦克风，请检查权限设置');
+      }
     }
-  }, [currentTuning.strings]);
+  };
 
   // 停止监听
   const stopListening = useCallback(() => {
@@ -356,7 +422,12 @@ const GuitarTuner: React.FC = () => {
     if (isListening) {
       stopListening();
     } else {
-      startListening();
+      // 如果之前权限被拒绝，显示帮助弹窗
+      if (permissionDenied) {
+        showPermissionHelp();
+      } else {
+        requestMicrophonePermission();
+      }
     }
   };
 
@@ -542,7 +613,14 @@ const GuitarTuner: React.FC = () => {
                 {isListening ? '停止监听' : '开始监听麦克风'}
             </Button>
             {errorMsg && (
-                <div style={{ color: token.colorError, fontSize: 13, marginTop: 8 }}>{errorMsg}</div>
+                <div style={{ color: token.colorError, fontSize: 13, marginTop: 8 }}>
+                  {errorMsg}
+                  {permissionDenied && isAndroid() && (
+                    <div style={{ marginTop: 4, fontSize: 12 }}>
+                      提示：请前往 设置 → 应用 → AITool → 权限 → 麦克风 → 允许
+                    </div>
+                  )}
+                </div>
             )}
             </div>
           </div>

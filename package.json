@@ -11,11 +11,25 @@
     "tauri": "tauri",
     "dev": "tauri dev",
     "build": "tauri build",
-    "android:init": "npx tauri android init",
-    "android:init-release": "npx tauri android init && node scripts/setup-android-signing.js",
-    "android:debug": "npx tauri android build --debug",
-    "android:release": "npx tauri android build"
+    "android:init": "npx tauri android init && node scripts/setup-android-permissions.js",
+    "android:init-release": "npx tauri android init && node scripts/setup-android-signing.js && node scripts/setup-android-permissions.js",
+    "android:debug": "node scripts/setup-android-permissions.js && npx tauri android build --debug",
+    "android:release": "node scripts/setup-android-permissions.js && npx tauri android build"
   },
+  "androidPermissions": [
+    {
+      "name": "android.permission.INTERNET",
+      "comment": "网络访问"
+    },
+    {
+      "name": "android.permission.RECORD_AUDIO",
+      "comment": "麦克风权限 - 吉他调音功能需要"
+    },
+    {
+      "name": "android.permission.MODIFY_AUDIO_SETTINGS",
+      "comment": "音频设置修改"
+    }
+  ],
   "dependencies": {
     "@tauri-apps/api": "^2",
     "@tauri-apps/plugin-dialog": "^2",
