@@ -2,8 +2,6 @@
 //! 
 //! 提供系统平台信息、剪贴板操作、通知等通用功能
 
-use serde::{Deserialize, Serialize};
-
 /// 获取当前系统平台信息
 /// 
 /// # Returns
@@ -11,12 +9,6 @@ use serde::{Deserialize, Serialize};
 #[tauri::command]
 pub fn get_platform() -> String {
     tauri_plugin_os::platform().to_string()
-}
-
-/// 剪贴板内容结构
-#[derive(Serialize, Deserialize, Debug)]
-pub struct ClipboardContent {
-    pub text: String,
 }
 
 /// 读取系统剪贴板文本内容

@@ -4,7 +4,6 @@
 
 use std::fs;
 use std::sync::mpsc::channel;
-use tauri::Manager;
 
 /// 选择单个文件
 /// 
