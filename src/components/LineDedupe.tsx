@@ -1,6 +1,7 @@
 import { useState } from 'react';
-import { Input, Button, Card, Space, Typography, message, Statistic, Row, Col, Switch, Tag } from 'antd';
+import { Input, Button, Space, Typography, message, Statistic, Row, Col, Switch, Tag } from 'antd';
 import { CopyOutlined, ClearOutlined, DeleteOutlined } from '@ant-design/icons';
+import Block from '../lib/Block';
 
 const { TextArea } = Input;
 const { Text } = Typography;
@@ -70,8 +71,8 @@ const LineDedupe: React.FC = () => {
   };
 
   return (
-    <div style={{ padding: '24px' }}>
-      <Card>
+    <div style={{ padding: '8px 0', maxWidth: 800, margin: '0 auto' }}>
+      <Block>
         <Space direction="vertical" style={{ width: '100%' }} size="middle">
           <div>
             <Text strong>输入文本（每行一条数据）</Text>
@@ -92,66 +93,68 @@ const LineDedupe: React.FC = () => {
               清空
             </Button>
           </Space>
-
-          {stats.original > 0 && (
-            <Row gutter={16}>
-              <Col span={8}>
-                <Statistic title="原始行数" value={stats.original} />
-              </Col>
-              <Col span={8}>
-                <Statistic title="去重后行数" value={stats.deduped} />
-              </Col>
-              <Col span={8}>
-                <Statistic title="移除重复" value={stats.removed} valueStyle={{ color: stats.removed > 0 ? '#cf1322' : undefined }} />
-              </Col>
-            </Row>
-          )}
-
-          {results.length > 0 && (
-            <div>
-              <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 8 }}>
-                <Space>
-                  <Text strong>去重结果</Text>
-                  <Button size="small" icon={<CopyOutlined />} onClick={handleCopy}>
-                    复制
-                  </Button>
-                </Space>
-                <Space>
-                  <Text>显示次数：</Text>
-                  <Switch checked={showCount} onChange={setShowCount} size="small" />
-                </Space>
-              </div>
-              <div style={{ 
-                border: '1px solid #d9d9d9', 
-                borderRadius: 6, 
-                padding: 12,
-                background: '#fafafa'
-              }}>
-                {results.map((item, index) => (
-                  <div 
-                    key={index} 
-                    style={{ 
-                      padding: '6px 0', 
-                      borderBottom: index < results.length - 1 ? '1px solid #f0f0f0' : 'none',
-                      fontFamily: 'monospace',
-                      display: 'flex',
-                      alignItems: 'center',
-                      gap: 8
-                    }}
-                  >
-                    <span style={{ flex: 1, wordBreak: 'break-all' }}>{item.text}</span>
-                    {showCount && (
-                      <Tag color={item.count > 1 ? 'orange' : 'default'}>
-                        {item.count}
-                      </Tag>
-                    )}
-                  </div>
-                ))}
-              </div>
-            </div>
-          )}
         </Space>
-      </Card>
+      </Block>
+
+      {stats.original > 0 && (
+        <Block>
+          <Row gutter={16}>
+            <Col span={8}>
+              <Statistic title="原始行数" value={stats.original} />
+            </Col>
+            <Col span={8}>
+              <Statistic title="去重后行数" value={stats.deduped} />
+            </Col>
+            <Col span={8}>
+              <Statistic title="移除重复" value={stats.removed} valueStyle={{ color: stats.removed > 0 ? '#cf1322' : undefined }} />
+            </Col>
+          </Row>
+        </Block>
+      )}
+
+      {results.length > 0 && (
+        <Block>
+          <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 8 }}>
+            <Space>
+              <Text strong>去重结果</Text>
+              <Button size="small" icon={<CopyOutlined />} onClick={handleCopy}>
+                复制
+              </Button>
+            </Space>
+            <Space>
+              <Text>显示次数：</Text>
+              <Switch checked={showCount} onChange={setShowCount} size="small" />
+            </Space>
+          </div>
+          <div style={{
+            border: '1px solid #d9d9d9',
+            borderRadius: 6,
+            padding: 12,
+            background: '#fafafa'
+          }}>
+            {results.map((item, index) => (
+              <div
+                key={index}
+                style={{
+                  padding: '6px 0',
+                  borderBottom: index < results.length - 1 ? '1px solid #f0f0f0' : 'none',
+                  fontFamily: 'monospace',
+                  display: 'flex',
+                  alignItems: 'center',
+                  gap: 8
+                }}
+              >
+                <span style={{ flex: 1, wordBreak: 'break-all' }}>{item.text}</span>
+                {showCount && (
+                  <Tag color={item.count > 1 ? 'orange' : 'default'}>
+                    {item.count}
+                  </Tag>
+                )}
+              </div>
+            ))}
+          </div>
+        </Block>
+      )}
     </div>
   );
 };

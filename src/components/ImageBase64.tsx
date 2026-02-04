@@ -16,6 +16,7 @@ import {
   ZoomInOutlined,
 } from "@ant-design/icons";
 import { nativeAPI } from "../services/nativeAPI";
+import Block from '../lib/Block';
 
 const { Text } = Typography;
 const { TextArea } = Input;
@@ -179,170 +180,168 @@ const ImageBase64: React.FC = () => {
   };
 
   return (
-    <div style={{ padding: "16px" }}>
-      <Space orientation="vertical" size="middle" style={{ width: "100%" }}>
-        {/* Base64 输入区域 */}
-        <div>
-          <Text type="secondary" style={{ display: "block", marginBottom: 8 }}>
-            输入图片 Base64（自动检测是否带头）
-          </Text>
-          <TextArea
-            value={base64Input}
-            onChange={(e) => setBase64Input(e.target.value)}
-            placeholder="粘贴图片 Base64 字符串，支持带头或不带头格式..."
-            rows={5}
-            style={{ fontFamily: "monospace", resize: "none" }}
-          />
-          <div style={{ textAlign: "right", marginTop: 8 }}>
-            <Button type="primary" onClick={handleConvert}>
-              转换为图片
-            </Button>
-          </div>
+    <div style={{ padding: '8px 0', maxWidth: 800, margin: '0 auto' }}>
+      {/* Base64 输入区域 */}
+      <Block>
+        <Text type="secondary" style={{ display: "block", marginBottom: 8 }}>
+          输入图片 Base64（自动检测是否带头）
+        </Text>
+        <TextArea
+          value={base64Input}
+          onChange={(e) => setBase64Input(e.target.value)}
+          placeholder="粘贴图片 Base64 字符串，支持带头或不带头格式..."
+          rows={5}
+          style={{ fontFamily: "monospace", resize: "none" }}
+        />
+        <div style={{ textAlign: "right", marginTop: 8 }}>
+          <Button type="primary" onClick={handleConvert}>
+            转换为图片
+          </Button>
         </div>
+      </Block>
 
-        {/* 图片列表 */}
-        <div>
-          <Text type="secondary" style={{ display: "block", marginBottom: 8 }}>
-            图片列表
-          </Text>
+      {/* 图片列表 */}
+      <Block>
+        <Text type="secondary" style={{ display: "block", marginBottom: 8 }}>
+          图片列表
+        </Text>
+        <div
+          style={{
+            display: "grid",
+            gridTemplateColumns: "repeat(auto-fill, minmax(150px, 1fr))",
+            gap: 16,
+          }}
+        >
+          {/* 拖拽上传区域 - 放在第一个位置 */}
           <div
+            onDrop={handleDrop}
+            onDragOver={handleDragOver}
+            onClick={() => fileInputRef.current?.click()}
             style={{
-              display: "grid",
-              gridTemplateColumns: "repeat(auto-fill, minmax(150px, 1fr))",
-              gap: 16,
+              aspectRatio: "1",
+              border: `2px dashed ${token.colorBorder}`,
+              borderRadius: token.borderRadius,
+              display: "flex",
+              flexDirection: "column",
+              alignItems: "center",
+              justifyContent: "center",
+              cursor: "pointer",
+              background: token.colorFillAlter,
+              transition: "border-color 0.3s",
             }}
+            onMouseEnter={(e) => (e.currentTarget.style.borderColor = token.colorPrimary)}
+            onMouseLeave={(e) => (e.currentTarget.style.borderColor = token.colorBorder)}
           >
-                        {/* 拖拽上传区域 - 放在第一个位置 */}
-            <div
-              onDrop={handleDrop}
-              onDragOver={handleDragOver}
-              onClick={() => fileInputRef.current?.click()}
-              style={{
-                aspectRatio: "1",
-                border: `2px dashed ${token.colorBorder}`,
-                borderRadius: token.borderRadius,
-                display: "flex",
-                flexDirection: "column",
-                alignItems: "center",
-                justifyContent: "center",
-                cursor: "pointer",
-                background: token.colorFillAlter,
-                transition: "border-color 0.3s",
-              }}
-              onMouseEnter={(e) => (e.currentTarget.style.borderColor = token.colorPrimary)}
-              onMouseLeave={(e) => (e.currentTarget.style.borderColor = token.colorBorder)}
-            >
-              <PlusOutlined style={{ fontSize: 24, color: token.colorTextSecondary }} />
-              <Text type="secondary" style={{ marginTop: 8, fontSize: 12, textAlign: "center" }}>
-                拖拽图片
-                <br />
-                或点击选择
-              </Text>
-            </div>
-            <input
-              ref={fileInputRef}
-              type="file"
-              accept="image/*"
-              style={{ display: "none" }}
-              onChange={handleFileSelect}
-            />
-
-            {images.map((img) => (
-              <div
-                key={img.id}
-                style={{
-                  position: "relative",
-                  aspectRatio: "1",
-                  border: `1px solid ${token.colorBorder}`,
-                  borderRadius: token.borderRadius,
-                  overflow: "hidden",
-                  cursor: "pointer",
-                }}
-                onMouseEnter={() => setHoveredId(img.id)}
-                onMouseLeave={() => setHoveredId(null)}
-              >
-                <img
-                  src={img.base64WithHeader}
-                  alt="preview"
-                  style={{
-                    width: "100%",
-                    height: "100%",
-                    objectFit: "contain",
-                    background: token.colorFillAlter,
-                  }}
-                  onClick={() => handlePreview(img.base64WithHeader)}
-                />
-                {/* Hover 操作层 */}
-                {hoveredId === img.id && (
-                  <div
-                    style={{
-                      position: "absolute",
-                      top: 0,
-                      left: 0,
-                      right: 0,
-                      bottom: 0,
-                      background: "rgba(0,0,0,0.6)",
-                      display: "flex",
-                      flexDirection: "column",
-                      alignItems: "center",
-                      justifyContent: "center",
-                      gap: 8,
-                    }}
-                  >
-                    <Tooltip title="放大查看" placement="right">
-                      <Button
-                        type="primary"
-                        size="small"
-                        icon={<ZoomInOutlined />}
-                        onClick={() => handlePreview(img.base64WithHeader)}
-                      >
-                        放大
-                      </Button>
-                    </Tooltip>
-                    <Tooltip title="复制完整 Base64（带头）" placement="right">
-                      <Button
-                        size="small"
-                        icon={<CopyOutlined />}
-                        onClick={(e) => {
-                          e.stopPropagation();
-                          copyToClipboard(img.base64WithHeader, "完整 Base64");
-                        }}
-                      >
-                        复制 Base64
-                      </Button>
-                    </Tooltip>
-                    <Tooltip title="复制纯 Base64（不带头）" placement="right">
-                      <Button
-                        size="small"
-                        icon={<CopyOutlined />}
-                        onClick={(e) => {
-                          e.stopPropagation();
-                          copyToClipboard(img.base64Raw, "去头 Base64");
-                        }}
-                      >
-                        复制去头
-                      </Button>
-                    </Tooltip>
-                    <Tooltip title="删除" placement="right">
-                      <Button
-                        danger
-                        size="small"
-                        icon={<DeleteOutlined />}
-                        onClick={(e) => {
-                          e.stopPropagation();
-                          handleDelete(img.id);
-                        }}
-                      >
-                        删除
-                      </Button>
-                    </Tooltip>
-                  </div>
-                )}
-              </div>
-            ))}
+            <PlusOutlined style={{ fontSize: 24, color: token.colorTextSecondary }} />
+            <Text type="secondary" style={{ marginTop: 8, fontSize: 12, textAlign: "center" }}>
+              拖拽图片
+              <br />
+              或点击选择
+            </Text>
           </div>
+          <input
+            ref={fileInputRef}
+            type="file"
+            accept="image/*"
+            style={{ display: "none" }}
+            onChange={handleFileSelect}
+          />
+
+          {images.map((img) => (
+            <div
+              key={img.id}
+              style={{
+                position: "relative",
+                aspectRatio: "1",
+                border: `1px solid ${token.colorBorder}`,
+                borderRadius: token.borderRadius,
+                overflow: "hidden",
+                cursor: "pointer",
+              }}
+              onMouseEnter={() => setHoveredId(img.id)}
+              onMouseLeave={() => setHoveredId(null)}
+            >
+              <img
+                src={img.base64WithHeader}
+                alt="preview"
+                style={{
+                  width: "100%",
+                  height: "100%",
+                  objectFit: "contain",
+                  background: token.colorFillAlter,
+                }}
+                onClick={() => handlePreview(img.base64WithHeader)}
+              />
+              {/* Hover 操作层 */}
+              {hoveredId === img.id && (
+                <div
+                  style={{
+                    position: "absolute",
+                    top: 0,
+                    left: 0,
+                    right: 0,
+                    bottom: 0,
+                    background: "rgba(0,0,0,0.6)",
+                    display: "flex",
+                    flexDirection: "column",
+                    alignItems: "center",
+                    justifyContent: "center",
+                    gap: 8,
+                  }}
+                >
+                  <Tooltip title="放大查看" placement="right">
+                    <Button
+                      type="primary"
+                      size="small"
+                      icon={<ZoomInOutlined />}
+                      onClick={() => handlePreview(img.base64WithHeader)}
+                    >
+                      放大
+                    </Button>
+                  </Tooltip>
+                  <Tooltip title="复制完整 Base64（带头）" placement="right">
+                    <Button
+                      size="small"
+                      icon={<CopyOutlined />}
+                      onClick={(e) => {
+                        e.stopPropagation();
+                        copyToClipboard(img.base64WithHeader, "完整 Base64");
+                      }}
+                    >
+                      复制 Base64
+                    </Button>
+                  </Tooltip>
+                  <Tooltip title="复制纯 Base64（不带头）" placement="right">
+                    <Button
+                      size="small"
+                      icon={<CopyOutlined />}
+                      onClick={(e) => {
+                        e.stopPropagation();
+                        copyToClipboard(img.base64Raw, "去头 Base64");
+                      }}
+                    >
+                      复制去头
+                    </Button>
+                  </Tooltip>
+                  <Tooltip title="删除" placement="right">
+                    <Button
+                      danger
+                      size="small"
+                      icon={<DeleteOutlined />}
+                      onClick={(e) => {
+                        e.stopPropagation();
+                        handleDelete(img.id);
+                      }}
+                    >
+                      删除
+                    </Button>
+                  </Tooltip>
+                </div>
+              )}
+            </div>
+          ))}
         </div>
-      </Space>
+      </Block>
 
       {/* 图片预览 Modal */}
       <Modal

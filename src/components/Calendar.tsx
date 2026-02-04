@@ -1,6 +1,7 @@
 import { useState, useEffect, useRef, useCallback } from 'react';
-import { Card, Button, Typography, Space, Tag, Spin } from 'antd';
+import { Button, Typography, Space, Tag, Spin } from 'antd';
 import { VerticalAlignMiddleOutlined } from '@ant-design/icons';
+import Block from '../lib/Block';
 
 const { Title, Text } = Typography;
 
@@ -671,16 +672,13 @@ const Calendar: React.FC = () => {
     : null;
 
   return (
-    <div style={{ padding: 24, height: 'calc(100vh - 64px)', display: 'flex', flexDirection: 'column' }}>
-      <Card 
-        style={{ flex: 1, display: 'flex', flexDirection: 'column', overflow: 'hidden' }}
-        styles={{ body: { flex: 1, display: 'flex', flexDirection: 'column', overflow: 'hidden', padding: 16 } }}
-      >
+    <div style={{ padding: '8px 0', height: 'calc(100vh - 64px)', display: 'flex', flexDirection: 'column' }}>
+      <Block style={{ flex: 1, display: 'flex', flexDirection: 'column', overflow: 'hidden' }}>
         {/* 固定头部 */}
         <div style={{ marginBottom: 12 }}>
-          <div style={{ 
-            display: 'flex', 
-            justifyContent: 'space-between', 
+          <div style={{
+            display: 'flex',
+            justifyContent: 'space-between',
             alignItems: 'center',
             marginBottom: 12
           }}>
@@ -701,18 +699,18 @@ const Calendar: React.FC = () => {
               回到今天
             </Button>
           </div>
-          
+
           {/* 星期标题 */}
-          <div style={{ 
-            display: 'grid', 
+          <div style={{
+            display: 'grid',
             gridTemplateColumns: 'repeat(7, 1fr)',
             borderBottom: '1px solid #f0f0f0',
             paddingBottom: 8
           }}>
             {weekNames.map((name, index) => (
-              <div 
+              <div
                 key={name}
-                style={{ 
+                style={{
                   textAlign: 'center',
                   fontWeight: 500,
                   color: index === 0 || index === 6 ? '#ff4d4f' : undefined
@@ -725,10 +723,10 @@ const Calendar: React.FC = () => {
         </div>
 
         {/* 可滚动区域 */}
-        <div 
+        <div
           ref={containerRef}
           onScroll={handleScroll}
-          style={{ 
+          style={{
             flex: 1,
             overflowY: 'auto',
             overflowX: 'hidden',
@@ -742,8 +740,8 @@ const Calendar: React.FC = () => {
         </div>
 
         {/* 图例 */}
-        <div style={{ 
-          paddingTop: 12, 
+        <div style={{
+          paddingTop: 12,
           borderTop: '1px solid #f0f0f0',
           marginTop: 12
         }}>
@@ -754,7 +752,7 @@ const Calendar: React.FC = () => {
             <Tag color="red" style={{ fontSize: 11 }}>节日</Tag>
           </Space>
         </div>
-      </Card>
+      </Block>
     </div>
   );
 };

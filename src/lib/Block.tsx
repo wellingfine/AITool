@@ -11,20 +11,31 @@ const Block: React.FC<BlockProps> = ({ children, style, className }) => {
   const { token } = theme.useToken();
 
   return (
-    <div
-      className={className}
-      style={{
-        background: token.colorBgElevated,
-        borderRadius: token.borderRadius,
-        border: `1px solid ${token.colorBorder}`,
-        padding: 16,
-        marginTop: 8,
-        marginBottom: 8,
-        ...style
-      }}
-    >
-      {children}
-    </div>
+    <>
+      <style>{`
+        @media (max-width: 576px) {
+          .block-responsive {
+            border-radius: 0 !important;
+            border-left: none !important;
+            border-right: none !important;
+          }
+        }
+      `}</style>
+      <div
+        className={`block-responsive ${className || ''}`}
+        style={{
+          background: token.colorBgElevated,
+          borderRadius: token.borderRadiusLG,
+          border: `1px solid ${token.colorBorder}`,
+          padding: 16,
+          marginTop: 8,
+          marginBottom: 8,
+          ...style
+        }}
+      >
+        {children}
+      </div>
+    </>
   );
 };
 
