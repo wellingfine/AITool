@@ -23,9 +23,7 @@ import {
   DeleteOutlined,
   UserAddOutlined,
   DollarOutlined,
-  SwapOutlined,
   TeamOutlined,
-  ClearOutlined,
   BookOutlined,
   DownOutlined,
   EditOutlined,
@@ -40,7 +38,7 @@ interface Participant {
   name: string;
 }
 
-// 支出记录
+// 账单记录
 interface Expense {
   id: string;
   description: string;
@@ -293,17 +291,16 @@ const SplitBill: React.FC = () => {
       participants: [...participants, newParticipant],
     });
     setNewParticipantName('');
-    message.success('添加成功');
   };
 
   // 删除参与者
   const handleDeleteParticipant = (id: string) => {
-    // 检查是否有相关支出
+    // 检查是否有相关账单
     const hasExpense = expenses.some(
       (e) => e.paidBy === id || e.splitAmong.includes(id)
     );
     if (hasExpense) {
-      message.error('该参与者有相关支出记录，无法删除');
+      message.error('该参与者有相关账单记录，无法删除');
       return;
     }
     updateCurrentLedger({
@@ -312,15 +309,15 @@ const SplitBill: React.FC = () => {
     message.success('删除成功');
   };
 
-  // 添加支出
+  // 添加账单
   const handleAddExpense = () => {
     if (!currentLedger) return;
 
     if (!newExpense.description.trim()) {
-      message.warning('请输入支出描述');
+      message.warning('请输入账单描述');
       return;
     }
-    if (!newExpense.amount || newExpense.amount <= 0) {
+    if (!newExpense.amount || newExpense.amount === 0) {
       message.warning('请输入有效金额');
       return;
     }
@@ -354,7 +351,7 @@ const SplitBill: React.FC = () => {
     message.success('添加成功');
   };
 
-  // 删除支出
+  // 删除账单
   const handleDeleteExpense = (id: string) => {
     updateCurrentLedger({
       expenses: expenses.filter((e) => e.id !== id),
@@ -382,7 +379,7 @@ const SplitBill: React.FC = () => {
     return participants.find((p) => p.id === id)?.name || '未知';
   };
 
-  // 计算总支出
+  // 计算总金额
   const totalExpense = expenses.reduce((sum, e) => sum + e.amount, 0);
 
   // 计算每人应付金额
@@ -532,7 +529,7 @@ const SplitBill: React.FC = () => {
                 <Text>{participants.length} 人</Text>
               </span>
               <span>
-                <Text type="secondary">支出：</Text>
+                <Text type="secondary">账单：</Text>
                 <Text>{expenses.length} 笔</Text>
               </span>
               <span>
@@ -650,7 +647,7 @@ const SplitBill: React.FC = () => {
               )}
             </Block>
 
-            {/* 添加支出 */}
+            {/* 添加账单 */}
             <Block>
               <div
                 style={{
@@ -661,13 +658,13 @@ const SplitBill: React.FC = () => {
                 }}
               >
                 <DollarOutlined style={{ color: token.colorPrimary }} />
-                <Text strong>添加支出</Text>
+                <Text strong>添加账单</Text>
               </div>
 
               <Row gutter={[12, 12]}>
                 <Col xs={24} sm={12}>
                   <Input
-                    placeholder="支出描述（如：午餐、门票）"
+                    placeholder="账单描述（如：午餐、门票、退款）"
                     value={newExpense.description}
                     onChange={(e) =>
                       setNewExpense({ ...newExpense, description: e.target.value })
@@ -676,12 +673,11 @@ const SplitBill: React.FC = () => {
                 </Col>
                 <Col xs={24} sm={12}>
                   <InputNumber
-                    placeholder="金额"
+                    placeholder="金额（可为负数表示收入）"
                     value={newExpense.amount || undefined}
                     onChange={(value) =>
                       setNewExpense({ ...newExpense, amount: value || 0 })
                     }
-                    min={0}
                     precision={2}
                     prefix="¥"
                     style={{ width: '100%' }}
@@ -727,7 +723,7 @@ const SplitBill: React.FC = () => {
                       onClick={handleAddExpense}
                       disabled={participants.length === 0}
                     >
-                      添加支出
+                      添加账单
                     </Button>
                     {participants.length > 0 &&
                       newExpense.splitAmong.length !== participants.length && (
@@ -747,41 +743,20 @@ const SplitBill: React.FC = () => {
               </Row>
             </Block>
 
-            {/* 支出记录列表 */}
+            {/* 账单记录列表 */}
             <Block>
               <div
                 style={{
                   display: 'flex',
                   alignItems: 'center',
-                  justifyContent: 'space-between',
                   marginBottom: 12,
                 }}
               >
-                <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
-                  <DollarOutlined style={{ color: token.colorPrimary }} />
-                  <Text strong>支出记录</Text>
-                  <Text type="secondary" style={{ fontSize: 12 }}>
-                    ({expenses.length} 笔，共 ¥{totalExpense.toFixed(2)})
-                  </Text>
-                </div>
-                {(participants.length > 0 || expenses.length > 0) && (
-                  <Popconfirm
-                    title="确认清空"
-                    description="确定要清空当前账本的所有数据吗？此操作不可恢复。"
-                    onConfirm={handleClearAll}
-                    okText="确定"
-                    cancelText="取消"
-                  >
-                    <Button
-                      type="text"
-                      danger
-                      size="small"
-                      icon={<ClearOutlined />}
-                    >
-                      清空
-                    </Button>
-                  </Popconfirm>
-                )}
+                <DollarOutlined style={{ color: token.colorPrimary }} />
+                <Text strong>账单记录</Text>
+                <Text type="secondary" style={{ fontSize: 12, marginLeft: 8 }}>
+                  ({expenses.length} 笔，共 ¥{totalExpense.toFixed(2)})
+                </Text>
               </div>
 
               {expenses.length > 0 ? (
@@ -794,7 +769,7 @@ const SplitBill: React.FC = () => {
                         <Popconfirm
                           key="delete"
                           title="确认删除"
-                          description="确定要删除这笔支出吗？"
+                          description="确定要删除这笔账单吗？"
                           onConfirm={() => handleDeleteExpense(expense.id)}
                           okText="确定"
                           cancelText="取消"
@@ -857,79 +832,13 @@ const SplitBill: React.FC = () => {
                 />
               ) : (
                 <Empty
-                  description="暂无支出记录"
+                  description="暂无账单记录"
                   image={Empty.PRESENTED_IMAGE_SIMPLE}
                 />
               )}
             </Block>
 
-            {/* 结算方案 */}
-            {settlements.length > 0 && (
-              <Block
-                style={{
-                  background: token.colorSuccessBg,
-                  borderColor: token.colorSuccessBorder,
-                }}
-              >
-                <div
-                  style={{
-                    display: 'flex',
-                    alignItems: 'center',
-                    gap: 8,
-                    marginBottom: 12,
-                  }}
-                >
-                  <SwapOutlined style={{ color: token.colorSuccess }} />
-                  <Text strong style={{ color: token.colorSuccess }}>
-                    结算方案
-                  </Text>
-                </div>
-
-                <List
-                  size="small"
-                  dataSource={settlements}
-                  renderItem={(settlement, index) => (
-                    <List.Item style={{ padding: '8px 0' }}>
-                      <div
-                        style={{
-                          display: 'flex',
-                          alignItems: 'center',
-                          gap: 8,
-                          width: '100%',
-                        }}
-                      >
-                        <Tag color="blue">{index + 1}</Tag>
-                        <Text strong>
-                          {getParticipantName(settlement.from)}
-                        </Text>
-                        <SwapOutlined
-                          style={{ color: token.colorTextSecondary }}
-                        />
-                        <Text strong>{getParticipantName(settlement.to)}</Text>
-                        <Text
-                          style={{
-                            marginLeft: 'auto',
-                            color: token.colorSuccess,
-                            fontWeight: 600,
-                            fontSize: 16,
-                          }}
-                        >
-                          ¥{settlement.amount.toFixed(2)}
-                        </Text>
-                      </div>
-                    </List.Item>
-                  )}
-                />
-
-                <Divider style={{ margin: '12px 0' }} />
-
-                <div style={{ fontSize: 12, color: token.colorTextSecondary }}>
-                  提示：以上是最优的结算方案，按照此方案转账可使转账次数最少。
-                </div>
-              </Block>
-            )}
-
-            {/* 个人明细 */}
+            {/* 账单明细 */}
             {participants.length > 0 && expenses.length > 0 && (
               <Block>
                 <div
@@ -941,7 +850,7 @@ const SplitBill: React.FC = () => {
                   }}
                 >
                   <TeamOutlined style={{ color: token.colorPrimary }} />
-                  <Text strong>个人明细</Text>
+                  <Text strong>账单明细</Text>
                 </div>
 
                 <List
@@ -1029,7 +938,7 @@ const SplitBill: React.FC = () => {
               2. 添加所有参与活动的人员
             </div>
             <div style={{ color: token.colorTextSecondary, fontSize: 13 }}>
-              3. 每次有人付款时，添加支出记录，选择付款人和参与分摊的人
+              3. 每次有人付款时，添加账单记录，选择付款人和参与分摊的人
             </div>
             <div style={{ color: token.colorTextSecondary, fontSize: 13 }}>
               4. 系统会自动计算最优的结算方案，使转账次数最少
