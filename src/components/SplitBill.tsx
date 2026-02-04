@@ -11,7 +11,6 @@ import {
   Popconfirm,
   Empty,
   Tag,
-  Divider,
   Typography,
   Space,
   message,
@@ -93,7 +92,6 @@ const SplitBill: React.FC = () => {
     paidBy: '',
     splitAmong: [] as string[],
   });
-  const [settlements, setSettlements] = useState<Settlement[]>([]);
 
   const { token } = theme.useToken();
 
@@ -138,7 +136,6 @@ const SplitBill: React.FC = () => {
   // 计算结算方案
   useEffect(() => {
     if (participants.length === 0 || expenses.length === 0) {
-      setSettlements([]);
       return;
     }
 
@@ -204,7 +201,6 @@ const SplitBill: React.FC = () => {
       if (creditor.amount < 0.01) j++;
     }
 
-    setSettlements(newSettlements);
   }, [participants, expenses]);
 
   // 更新当前账本
@@ -357,21 +353,6 @@ const SplitBill: React.FC = () => {
       expenses: expenses.filter((e) => e.id !== id),
     });
     message.success('删除成功');
-  };
-
-  // 清空当前账本数据
-  const handleClearAll = () => {
-    updateCurrentLedger({
-      participants: [],
-      expenses: [],
-    });
-    setNewExpense({
-      description: '',
-      amount: 0,
-      paidBy: '',
-      splitAmong: [],
-    });
-    message.success('已清空所有数据');
   };
 
   // 获取参与者姓名
