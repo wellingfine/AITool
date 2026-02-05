@@ -4,6 +4,9 @@
 
 import { nativeAPI } from './nativeAPI';
 
+const STORAGE_PATH = 'splitbill';
+const STORAGE_FILE = 'data';
+
 // 参与者
 export interface Participant {
   id: string;
@@ -38,26 +41,12 @@ export interface SplitBillData {
 export const splitBillStorage = {
   // 读取数据
   async getData(): Promise<SplitBillData> {
-    try {
-      const data = await nativeAPI.splitbill.readData();
-      return data;
-    } catch (error) {
-      console.error('读取AA账单数据失败:', error);
-    }
-    return {
-      ledgers: [],
-      currentLedgerId: ''
-    };
+    return await nativeAPI.storage.load(STORAGE_PATH, STORAGE_FILE, { ledgers: [], currentLedgerId: '' });
   },
 
   // 保存数据
   async saveData(data: SplitBillData): Promise<void> {
-    try {
-      await nativeAPI.splitbill.saveData(data);
-    } catch (error) {
-      console.error('保存AA账单数据失败:', error);
-      throw error;
-    }
+    await nativeAPI.storage.save(STORAGE_PATH, STORAGE_FILE, data);
   },
 
   // 获取所有账本

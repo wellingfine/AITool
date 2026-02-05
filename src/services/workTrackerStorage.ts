@@ -4,6 +4,9 @@
 
 import { nativeAPI } from './nativeAPI';
 
+const STORAGE_PATH = 'worktracker';
+const STORAGE_FILE = 'data';
+
 // 标签类型
 export interface Tag {
   id: string;
@@ -55,7 +58,7 @@ export const workTrackerStorage = {
   // 读取数据
   async getData(): Promise<WorkTrackerData> {
     try {
-      const data = await nativeAPI.worktracker.readData();
+      const data = await nativeAPI.storage.load(STORAGE_PATH, STORAGE_FILE, { tags: [], projects: [], records: [] });
 
       // 兼容旧版本数据结构（从 items 迁移到 projects 和 records）
       if (data.items && !data.projects) {
@@ -132,7 +135,7 @@ export const workTrackerStorage = {
   // 保存数据
   async saveData(data: WorkTrackerData): Promise<void> {
     try {
-      await nativeAPI.worktracker.saveData(data);
+      await nativeAPI.storage.save(STORAGE_PATH, STORAGE_FILE, data);
     } catch (error) {
       console.error('保存任务跟进数据失败:', error);
       throw error;

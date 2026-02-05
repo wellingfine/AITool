@@ -177,98 +177,60 @@ export const dialogAPI = {
   }
 };
 
-// worktracker 数据存储
-export const worktrackerAPI = {
-  readData: async (): Promise<any> => {
+// 通用数据存储
+export const storageAPI = {
+  load: async (subPath: string, fileName: string, defaultValue?: any): Promise<any> => {
     try {
-      return await invoke('read_worktracker_data');
+      return await invoke('load_data', { subPath, fileName, defaultValue });
     } catch (error) {
       // 降级到 localStorage
       try {
-        const data = localStorage.getItem('workTrackerData');
+        const key = `storage_${subPath}_${fileName}`;
+        const data = localStorage.getItem(key);
         if (data) return JSON.parse(data);
       } catch (e) {
         console.error('读取 localStorage 失败:', e);
       }
-      return { tags: [], projects: [], records: [] };
+      return defaultValue ?? {};
     }
   },
 
-  saveData: async (data: any): Promise<void> => {
+  save: async (subPath: string, fileName: string, data: any): Promise<void> => {
     try {
-      await invoke('save_worktracker_data', { data });
+      await invoke('save_data', { subPath, fileName, data });
     } catch (error) {
       // 降级到 localStorage
       try {
-        localStorage.setItem('workTrackerData', JSON.stringify(data));
+        const key = `storage_${subPath}_${fileName}`;
+        localStorage.setItem(key, JSON.stringify(data));
       } catch (e) {
         console.error('保存到 localStorage 失败:', e);
         throw e;
       }
     }
-  }
-};
-
-// daycountdown 数据存储
-export const daycountdownAPI = {
-  readData: async (): Promise<any> => {
-    try {
-      return await invoke('read_daycountdown_data');
-    } catch (error) {
-      // 降级到 localStorage
-      try {
-        const data = localStorage.getItem('dayCountdownData');
-        if (data) return JSON.parse(data);
-      } catch (e) {
-        console.error('读取 localStorage 失败:', e);
-      }
-      return { events: [] };
-    }
   },
 
-  saveData: async (data: any): Promise<void> => {
+  delete: async (subPath: string, fileName: string): Promise<void> => {
     try {
-      await invoke('save_daycountdown_data', { data });
+      await invoke('delete_data', { subPath, fileName });
     } catch (error) {
       // 降级到 localStorage
       try {
-        localStorage.setItem('dayCountdownData', JSON.stringify(data));
+        const key = `storage_${subPath}_${fileName}`;
+        localStorage.removeItem(key);
       } catch (e) {
-        console.error('保存到 localStorage 失败:', e);
+        console.error('删除 localStorage 失败:', e);
         throw e;
       }
     }
-  }
-};
-
-// splitbill 数据存储
-export const splitbillAPI = {
-  readData: async (): Promise<any> => {
-    try {
-      return await invoke('read_splitbill_data');
-    } catch (error) {
-      // 降级到 localStorage
-      try {
-        const data = localStorage.getItem('splitBillData');
-        if (data) return JSON.parse(data);
-      } catch (e) {
-        console.error('读取 localStorage 失败:', e);
-      }
-      return { ledgers: [], currentLedgerId: '' };
-    }
   },
 
-  saveData: async (data: any): Promise<void> => {
+  listFiles: async (subPath: string): Promise<string[]> => {
     try {
-      await invoke('save_splitbill_data', { data });
+      return await invoke('list_data_files', { subPath });
     } catch (error) {
-      // 降级到 localStorage
-      try {
-        localStorage.setItem('splitBillData', JSON.stringify(data));
-      } catch (e) {
-        console.error('保存到 localStorage 失败:', e);
-        throw e;
-      }
+      // 降级到 localStorage - 返回空列表
+      return [];
     }
   }
 };
@@ -281,9 +243,7 @@ export const nativeAPI = {
   notification: notificationAPI,
   config: configAPI,
   dialog: dialogAPI,
-  worktracker: worktrackerAPI,
-  daycountdown: daycountdownAPI,
-  splitbill: splitbillAPI
+  storage: storageAPI
 };
 
 export default nativeAPI;

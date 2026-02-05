@@ -4,11 +4,14 @@
 
 import { nativeAPI } from './nativeAPI';
 
+const STORAGE_PATH = 'daycountdown';
+const STORAGE_FILE = 'data';
+
 // 倒计时事件类型
 export interface CountdownEvent {
   id: string;
   title: string;
-  targetDate: string; // ISO 8601 格式日期字符串
+  targetDate: string;
   color: string;
   createdAt: string;
 }
@@ -19,38 +22,19 @@ export interface DayCountdownData {
 }
 
 const DEFAULT_COLORS = [
-  '#f5222d', // 红色
-  '#fa8c16', // 橙色
-  '#faad14', // 金色
-  '#52c41a', // 绿色
-  '#13c2c2', // 青色
-  '#1890ff', // 蓝色
-  '#722ed1', // 紫色
-  '#eb2f96', // 粉色
+  '#f5222d', '#fa8c16', '#faad14', '#52c41a',
+  '#13c2c2', '#1890ff', '#722ed1', '#eb2f96',
 ];
 
 export const dayCountdownStorage = {
   // 读取数据
   async getData(): Promise<DayCountdownData> {
-    try {
-      const data = await nativeAPI.daycountdown.readData();
-      return data;
-    } catch (error) {
-      console.error('读取倒计时数据失败:', error);
-    }
-    return {
-      events: []
-    };
+    return await nativeAPI.storage.load(STORAGE_PATH, STORAGE_FILE, { events: [] });
   },
 
   // 保存数据
   async saveData(data: DayCountdownData): Promise<void> {
-    try {
-      await nativeAPI.daycountdown.saveData(data);
-    } catch (error) {
-      console.error('保存倒计时数据失败:', error);
-      throw error;
-    }
+    await nativeAPI.storage.save(STORAGE_PATH, STORAGE_FILE, data);
   },
 
   // 添加倒计时事件
@@ -88,7 +72,6 @@ export const dayCountdownStorage = {
   // 获取所有事件
   async getEvents(): Promise<CountdownEvent[]> {
     const data = await this.getData();
-    // 按目标日期排序
     return data.events.sort((a, b) => new Date(a.targetDate).getTime() - new Date(b.targetDate).getTime());
   },
 
@@ -99,8 +82,7 @@ export const dayCountdownStorage = {
     const target = new Date(targetDate);
     target.setHours(0, 0, 0, 0);
     const diffTime = target.getTime() - now.getTime();
-    const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24));
-    return diffDays;
+    return Math.ceil(diffTime / (1000 * 60 * 60 * 24));
   },
 
   // 获取可用颜色
