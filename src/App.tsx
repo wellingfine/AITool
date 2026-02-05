@@ -1,17 +1,18 @@
 import { useState, lazy, Suspense, useCallback, useEffect, useRef, useMemo } from 'react';
 import { Layout, Menu, theme, ConfigProvider, Spin, App as AntApp } from 'antd';
 import { nativeAPI } from './services/nativeAPI';
-import { SettingOutlined } from '@ant-design/icons';
+
 import { getTools, getCategories, getToolById, type ToolConfig } from './services/appConfig';
 import { getIconByName } from './services/iconMap';
 
-// 设置页保持同步加载
+// 设置页和关于页保持同步加载
 import Settings from './components/Settings';
+import About from './components/About';
 
 const { Header, Content, Sider } = Layout;
 
-// 组件映射表
-const componentMap: Record<string, React.LazyExoticComponent<React.ComponentType<any>>> = {
+// 懒加载组件映射表
+const lazyComponentMap: Record<string, React.LazyExoticComponent<React.ComponentType<any>>> = {
   TimestampConverter: lazy(() => import('./components/TimestampConverter')),
   Base64Converter: lazy(() => import('./components/Base64Converter')),
   HashCalculator: lazy(() => import('./components/HashCalculator')),
@@ -29,6 +30,12 @@ const componentMap: Record<string, React.LazyExoticComponent<React.ComponentType
   GuitarTuner: lazy(() => import('./components/GuitarTuner')),
   SplitBill: lazy(() => import('./components/SplitBill')),
   DayCountdown: lazy(() => import('./components/DayCountdown')),
+};
+
+// 同步加载组件映射表
+const syncComponentMap: Record<string, React.ComponentType<any>> = {
+  Settings,
+  About,
 };
 
 // 菜单项类型
@@ -132,7 +139,7 @@ function App() {
         rememberLastToolRef.current = remember;
         if (remember) {
           const lastTool = await nativeAPI.config.getLastTool();
-          if (lastTool && lastTool !== 'settings') {
+          if (lastTool) {
             const tool = getToolById(lastTool);
             if (tool) {
               setSelectedKey([lastTool]);
@@ -158,7 +165,7 @@ function App() {
   const handleSelect = useCallback((e: { selectedKeys: string[] }) => {
     const key = e.selectedKeys[0];
     setSelectedKey(e.selectedKeys);
-    if (key && key !== 'settings') {
+    if (key) {
       setLoadedKeys(prev => {
         if (prev.has(key)) return prev;
         const newSet = new Set(prev);
@@ -171,7 +178,7 @@ function App() {
       }
     }
     // 移动端选择工具后自动关闭菜单
-    if (isMobile && key !== 'settings') {
+    if (isMobile) {
       setCollapsed(true);
     }
   }, [isMobile]);
@@ -183,13 +190,24 @@ function App() {
 
   // 渲染工具组件
   const renderToolComponent = (tool: ToolConfig) => {
-    const Component = componentMap[tool.component];
-    if (!Component) return null;
+    // 优先检查同步组件
+    const SyncComponent = syncComponentMap[tool.component];
+    if (SyncComponent) {
+      return (
+        <div style={{ display: currentKey === tool.id ? 'block' : 'none' }}>
+          <SyncComponent />
+        </div>
+      );
+    }
+
+    // 检查懒加载组件
+    const LazyComponent = lazyComponentMap[tool.component];
+    if (!LazyComponent) return null;
 
     return (
       <div style={{ display: currentKey === tool.id ? 'block' : 'none' }}>
         <Suspense fallback={<LoadingFallback />}>
-          <Component />
+          <LazyComponent />
         </Suspense>
       </div>
     );
@@ -197,7 +215,6 @@ function App() {
 
   // 获取页面标题
   const getPageTitle = () => {
-    if (currentKey === 'settings') return '设置';
     if (currentTool) return currentTool.name;
     return 'AI工具箱';
   };
@@ -253,7 +270,7 @@ function App() {
             )}
           </div>
           <div style={{
-            height: isMobile ? 'calc(100vh - 64px - 60px - env(safe-area-inset-top))' : 'calc(100vh - 64px - 60px)',
+            height: isMobile ? 'calc(100vh - 64px - env(safe-area-inset-top))' : 'calc(100vh - 64px)',
             overflowY: 'auto'
           }}>
             <Menu
@@ -265,26 +282,7 @@ function App() {
               items={mainMenuItems}
             />
           </div>
-          <div style={{
-            height: 60,
-            borderTop: '1px solid #1f394c',
-            display: 'flex',
-            alignItems: 'center',
-            padding: '0 16px'
-          }}>
-            <Menu
-              mode="inline"
-              theme="dark"
-              style={{ borderRight: 0, flex: 1 }}
-              selectedKeys={selectedKey}
-              onSelect={handleSelect}
-              items={[{
-                key: 'settings',
-                icon: <SettingOutlined />,
-                label: '设置'
-              }]}
-            />
-          </div>
+
         </Sider>
         {/* 移动端遮罩层 */}
         {isMobile && !collapsed && (
@@ -354,15 +352,8 @@ function App() {
               欢迎使用
             </div>
 
-            {/* 设置 - 保持同步加载 */}
-            <div style={{ display: currentKey === 'settings' ? 'block' : 'none' }}>
-              <Settings />
-            </div>
-
             {/* 动态渲染工具组件 */}
-            {getTools().map(tool => (
-              shouldRender(tool.id) && renderToolComponent(tool)
-            ))}
+            {getTools().map(tool => shouldRender(tool.id) && renderToolComponent(tool))}
           </Content>
         </Layout>
         </Layout>

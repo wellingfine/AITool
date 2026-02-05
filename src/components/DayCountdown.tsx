@@ -82,6 +82,7 @@ const DayCountdown: React.FC = () => {
       await dayCountdownStorage.deleteEvent(editingEvent.id);
       message.success('删除成功');
       setIsDeleteModalOpen(false);
+      setIsModalOpen(false);
       loadEvents();
     } catch (error) {
       console.error('删除失败:', error);

@@ -34,6 +34,9 @@ import {
   EditOutlined,
   UserAddOutlined,
   DollarOutlined,
+  InfoCircleOutlined,
+  GithubOutlined,
+  CodeOutlined,
 } from '@ant-design/icons';
 
 // 图标映射表
@@ -68,6 +71,9 @@ const iconMap: Record<string, React.ComponentType<any>> = {
   EditOutlined,
   UserAddOutlined,
   DollarOutlined,
+  InfoCircleOutlined,
+  GithubOutlined,
+  CodeOutlined,
 };
 
 // 根据名称获取图标组件
