@@ -1,10 +1,11 @@
 //! AITool 应用主入口
-//! 
+//!
 //! 使用 Controller 模式组织代码，按功能模块分类：
 //! - common_controller: 通用系统功能（平台、剪贴板、通知）
 //! - file_controller: 文件操作（选择、保存）
 //! - config_controller: 应用配置（数据路径）
 //! - worktracker_controller: 任务跟进数据存储
+//! - daycountdown_controller: 天倒计时数据存储
 
 use tauri::Manager;
 
@@ -50,6 +51,10 @@ pub fn run() {
             // 任务跟进数据 (worktracker_controller)
             controller::worktracker_controller::read_worktracker_data,
             controller::worktracker_controller::save_worktracker_data,
+
+            // 天倒计时数据 (daycountdown_controller)
+            controller::daycountdown_controller::read_daycountdown_data,
+            controller::daycountdown_controller::save_daycountdown_data,
         ])
         .run(tauri::generate_context!())
         .expect("error while running tauri application");

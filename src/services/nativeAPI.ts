@@ -209,6 +209,38 @@ export const worktrackerAPI = {
   }
 };
 
+// daycountdown 数据存储
+export const daycountdownAPI = {
+  readData: async (): Promise<any> => {
+    try {
+      return await invoke('read_daycountdown_data');
+    } catch (error) {
+      // 降级到 localStorage
+      try {
+        const data = localStorage.getItem('dayCountdownData');
+        if (data) return JSON.parse(data);
+      } catch (e) {
+        console.error('读取 localStorage 失败:', e);
+      }
+      return { events: [] };
+    }
+  },
+
+  saveData: async (data: any): Promise<void> => {
+    try {
+      await invoke('save_daycountdown_data', { data });
+    } catch (error) {
+      // 降级到 localStorage
+      try {
+        localStorage.setItem('dayCountdownData', JSON.stringify(data));
+      } catch (e) {
+        console.error('保存到 localStorage 失败:', e);
+        throw e;
+      }
+    }
+  }
+};
+
 // 导出所有 API
 export const nativeAPI = {
   clipboard: clipboardAPI,
@@ -217,7 +249,8 @@ export const nativeAPI = {
   notification: notificationAPI,
   config: configAPI,
   dialog: dialogAPI,
-  worktracker: worktrackerAPI
+  worktracker: worktrackerAPI,
+  daycountdown: daycountdownAPI
 };
 
 export default nativeAPI;
