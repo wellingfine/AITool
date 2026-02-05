@@ -133,7 +133,7 @@ const Settings: React.FC = () => {
             <Form.Item
               label="记住上次的选项"
             >
-              <Space direction="vertical" size="small" style={{ width: '100%' }}>
+              <Space orientation="vertical" size="small" style={{ width: '100%' }}>
                 <Switch
                   checked={rememberLastTool}
                   onChange={handleRememberLastToolChange}

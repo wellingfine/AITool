@@ -58,78 +58,11 @@ export const workTrackerStorage = {
   // 读取数据
   async getData(): Promise<WorkTrackerData> {
     try {
-      const data = await nativeAPI.storage.load(STORAGE_PATH, STORAGE_FILE, { tags: [], projects: [], records: [] });
-
-      // 兼容旧版本数据结构（从 items 迁移到 projects 和 records）
-      if (data.items && !data.projects) {
-        console.log('检测到旧版本数据结构，正在迁移...');
-        // 将旧的 items 转换为项目和记录
-        const projects: WorkProject[] = [];
-        const records: WorkRecord[] = [];
-
-        data.items.forEach((item: any) => {
-          // 为每个事项创建一个项目
-          const project: WorkProject = {
-            id: item.id,
-            name: item.title,
-            createdAt: item.createdAt,
-            updatedAt: item.updatedAt
-          };
-          projects.push(project);
-
-          // 将事项内容作为记录，tags 从 item 迁移到 record
-          const record: WorkRecord = {
-            id: `${item.id}_record`,
-            projectId: item.id,
-            content: item.content,
-            images: item.images || [],
-            isTodo: item.isTodo || false,
-            isDone: item.isDone || false,
-            tags: item.tags || [],
-            createdAt: item.createdAt
-          };
-          records.push(record);
-        });
-
-        // 更新数据结构
-        data.projects = projects;
-        data.records = records;
-        delete data.items;
-
-        // 保存迁移后的数据
-        await this.saveData(data);
-        console.log('数据迁移完成');
-      }
-
-      // 迁移项目的 tags 到记录（从旧结构迁移到新结构）
-      if (data.projects && data.projects.length > 0 && data.projects[0].tags !== undefined) {
-        console.log('检测到任务标签，正在迁移到记录...');
-        data.projects.forEach((project: any) => {
-          if (project.tags && project.tags.length > 0) {
-            // 将任务的标签移到该任务的所有记录上
-            const projectRecords = data.records.filter((r: WorkRecord) => r.projectId === project.id);
-            projectRecords.forEach((record: WorkRecord) => {
-              if (!record.tags) record.tags = [];
-              // 合并标签，避免重复
-              record.tags = [...new Set([...record.tags, ...project.tags])];
-            });
-            // 清空项目的标签
-            delete project.tags;
-          }
-        });
-        await this.saveData(data);
-        console.log('任务标签迁移完成');
-      }
-
-      return data;
+      return await nativeAPI.storage.load(STORAGE_PATH, STORAGE_FILE, { tags: [], projects: [], records: [] });
     } catch (error) {
       console.error('读取任务跟进数据失败:', error);
+      return { tags: [], projects: [], records: [] };
     }
-    return {
-      tags: [],
-      projects: [],
-      records: []
-    };
   },
 
   // 保存数据
