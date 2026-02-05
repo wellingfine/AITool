@@ -1,4 +1,4 @@
-import { Card, Typography, Divider, Space, Tag } from 'antd';
+import { Card, Typography, Space, Tag } from 'antd';
 import {
   AppstoreOutlined,
   ToolOutlined,
