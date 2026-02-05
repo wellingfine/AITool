@@ -3,9 +3,11 @@
  */
 
 import { nativeAPI } from './nativeAPI';
+import { getToolStoragePath } from './appConfig';
 
-const STORAGE_PATH = 'worktracker';
-const STORAGE_FILE = 'data';
+const storageConfig = getToolStoragePath('workTracker')!;
+const STORAGE_PATH = storageConfig.subPath;
+const STORAGE_FILE = storageConfig.fileName;
 
 // 标签类型
 export interface Tag {

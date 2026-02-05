@@ -1,54 +1,35 @@
-import { useState, lazy, Suspense, useCallback, useEffect, useRef } from 'react';
+import { useState, lazy, Suspense, useCallback, useEffect, useRef, useMemo } from 'react';
 import { Layout, Menu, theme, ConfigProvider, Spin, App as AntApp } from 'antd';
 import { nativeAPI } from './services/nativeAPI';
-import {
-  AppstoreOutlined,
-  ClockCircleOutlined,
-  FileTextOutlined,
-  LockOutlined,
-  NumberOutlined,
-  PictureOutlined,
-  TeamOutlined,
-  ThunderboltOutlined,
-  SettingOutlined,
-  SwapOutlined,
-  ToolOutlined,
-  HeartOutlined,
-  DeleteOutlined,
-  CalendarOutlined,
-  CalculatorOutlined,
-  FontColorsOutlined,
-  ExperimentOutlined,
-  PlusCircleOutlined,
-  AimOutlined,
-  CustomerServiceOutlined,
-  AccountBookOutlined,
-  HourglassOutlined,
-} from '@ant-design/icons';
+import { SettingOutlined } from '@ant-design/icons';
+import { getTools, getCategories, getToolById, type ToolConfig } from './services/appConfig';
+import { getIconByName } from './services/iconMap';
 
 // 设置页保持同步加载
 import Settings from './components/Settings';
 
-// 其他组件使用懒加载
-const TimestampConverter = lazy(() => import('./components/TimestampConverter'));
-const Base64Converter = lazy(() => import('./components/Base64Converter'));
-const HashCalculator = lazy(() => import('./components/HashCalculator'));
-const Counter = lazy(() => import('./components/Counter'));
-const ImageBase64 = lazy(() => import('./components/ImageBase64'));
-const UnicodeConverter = lazy(() => import('./components/UnicodeConverter'));
-const WorkTracker = lazy(() => import('./components/WorkTracker'));
-const TextCompare = lazy(() => import('./components/TextCompare'));
-const LineDedupe = lazy(() => import('./components/LineDedupe'));
-const BMICalculator = lazy(() => import('./components/BMICalculator'));
-const Calendar = lazy(() => import('./components/Calendar'));
-const Calculator = lazy(() => import('./components/Calculator'));
-const RegexTester = lazy(() => import('./components/RegexTester'));
-const ReactionTest = lazy(() => import('./components/ReactionTest'));
-const GuitarTuner = lazy(() => import('./components/GuitarTuner'));
-const SplitBill = lazy(() => import('./components/SplitBill'));
-const DayCountdown = lazy(() => import('./components/DayCountdown'));
-
 const { Header, Content, Sider } = Layout;
+
+// 组件映射表
+const componentMap: Record<string, React.LazyExoticComponent<React.ComponentType<any>>> = {
+  TimestampConverter: lazy(() => import('./components/TimestampConverter')),
+  Base64Converter: lazy(() => import('./components/Base64Converter')),
+  HashCalculator: lazy(() => import('./components/HashCalculator')),
+  Counter: lazy(() => import('./components/Counter')),
+  ImageBase64: lazy(() => import('./components/ImageBase64')),
+  UnicodeConverter: lazy(() => import('./components/UnicodeConverter')),
+  WorkTracker: lazy(() => import('./components/WorkTracker')),
+  TextCompare: lazy(() => import('./components/TextCompare')),
+  LineDedupe: lazy(() => import('./components/LineDedupe')),
+  BMICalculator: lazy(() => import('./components/BMICalculator')),
+  Calendar: lazy(() => import('./components/Calendar')),
+  Calculator: lazy(() => import('./components/Calculator')),
+  RegexTester: lazy(() => import('./components/RegexTester')),
+  ReactionTest: lazy(() => import('./components/ReactionTest')),
+  GuitarTuner: lazy(() => import('./components/GuitarTuner')),
+  SplitBill: lazy(() => import('./components/SplitBill')),
+  DayCountdown: lazy(() => import('./components/DayCountdown')),
+};
 
 // 菜单项类型
 type MenuItem = {
@@ -57,123 +38,6 @@ type MenuItem = {
   label: string;
   children?: MenuItem[];
 };
-
-// 主菜单项（不包括设置）
-const mainMenuItems: MenuItem[] = [
-  {
-    key: 'daily',
-    icon: <AppstoreOutlined />,
-    label: '日常',
-    children: [
-      {
-        key: 'timestamp',
-        icon: <ClockCircleOutlined />,
-        label: '时间戳转换'
-      },
-      {
-        key: 'base64',
-        icon: <FileTextOutlined />,
-        label: 'Base64 转换'
-      },
-      {
-        key: 'textCompare',
-        icon: <SwapOutlined />,
-        label: '文本对比'
-      },
-      {
-        key: 'lineDedupe',
-        icon: <DeleteOutlined />,
-        label: '行去重'
-      },
-      {
-        key: 'regex',
-        icon: <ExperimentOutlined />,
-        label: '正则表达式'
-      },
-      {
-        key: 'calendar',
-        icon: <CalendarOutlined />,
-        label: '日历'
-      },
-      {
-        key: 'calculator',
-        icon: <CalculatorOutlined />,
-        label: '计算器'
-      },
-      {
-        key: 'counter',
-        icon: <PlusCircleOutlined />,
-        label: '计数器'
-      }
-    ]
-  },
-  {
-    key: 'encrypt',
-    icon: <LockOutlined />,
-    label: '加密',
-    children: [
-      {
-        key: 'hash',
-        icon: <NumberOutlined />,
-        label: 'Hash 计算'
-      },
-      {
-        key: 'imageBase64',
-        icon: <PictureOutlined />,
-        label: '图片 Base64'
-      },
-      {
-        key: 'unicode',
-        icon: <FontColorsOutlined />,
-        label: 'Unicode 转换'
-      }
-    ]
-  },
-  {
-    key: 'work',
-    icon: <TeamOutlined />,
-    label: '工作',
-    children: [
-      {
-        key: 'workTracker',
-        icon: <ThunderboltOutlined />,
-        label: '任务跟进'
-      }
-    ]
-  },
-  {
-    key: 'other',
-    icon: <ToolOutlined />,
-    label: '其它',
-    children: [
-      {
-        key: 'bmi',
-        icon: <HeartOutlined />,
-        label: 'BMI 计算'
-      },
-      {
-        key: 'reaction',
-        icon: <AimOutlined />,
-        label: '反应测试'
-      },
-      {
-        key: 'guitarTuner',
-        icon: <CustomerServiceOutlined />,
-        label: '吉他调音'
-      },
-      {
-        key: 'splitBill',
-        icon: <AccountBookOutlined />,
-        label: 'AA账单'
-      },
-      {
-        key: 'dayCountdown',
-        icon: <HourglassOutlined />,
-        label: '天倒计时'
-      }
-    ]
-  }
-];
 
 // 加载中组件
 const LoadingFallback = () => (
@@ -196,6 +60,35 @@ function App() {
     token: { colorBgLayout, colorBgElevated, colorBorder, colorText, colorTextSecondary },
   } = theme.useToken();
 
+  // 获取当前选中的工具配置
+  const currentTool = useMemo(() => {
+    const key = selectedKey[0];
+    if (!key || key === 'settings') return null;
+    return getToolById(key);
+  }, [selectedKey]);
+
+  // 生成菜单项
+  const mainMenuItems = useMemo((): MenuItem[] => {
+    const categories = getCategories();
+    return categories.map(category => {
+      const CategoryIcon = getIconByName(category.icon);
+      const tools = getTools().filter(tool => tool.category === category.id);
+      return {
+        key: category.id,
+        icon: CategoryIcon ? <CategoryIcon /> : null,
+        label: category.name,
+        children: tools.map(tool => {
+          const ToolIcon = getIconByName(tool.icon);
+          return {
+            key: tool.id,
+            icon: ToolIcon ? <ToolIcon /> : null,
+            label: tool.name,
+          };
+        }),
+      };
+    });
+  }, []);
+
   // 检测屏幕尺寸，判断是否移动端
   useEffect(() => {
     const checkMobile = () => {
@@ -214,7 +107,6 @@ function App() {
 
     const handleBackButton = (_e: PopStateEvent) => {
       if (!collapsed) {
-        // 菜单打开时，关闭菜单
         setCollapsed(true);
       }
     };
@@ -228,7 +120,6 @@ function App() {
     if (!isMobile) return;
 
     if (!collapsed) {
-      // 菜单打开时添加历史记录点
       window.history.pushState({ menu: 'open' }, '');
     }
   }, [isMobile, collapsed]);
@@ -242,13 +133,16 @@ function App() {
         if (remember) {
           const lastTool = await nativeAPI.config.getLastTool();
           if (lastTool && lastTool !== 'settings') {
-            setSelectedKey([lastTool]);
-            setLoadedKeys(prev => {
-              if (prev.has(lastTool)) return prev;
-              const newSet = new Set(prev);
-              newSet.add(lastTool);
-              return newSet;
-            });
+            const tool = getToolById(lastTool);
+            if (tool) {
+              setSelectedKey([lastTool]);
+              setLoadedKeys(prev => {
+                if (prev.has(lastTool)) return prev;
+                const newSet = new Set(prev);
+                newSet.add(lastTool);
+                return newSet;
+              });
+            }
           }
         }
       } catch (error) {
@@ -286,6 +180,27 @@ function App() {
   const shouldRender = useCallback((key: string) => {
     return loadedKeys.has(key);
   }, [loadedKeys]);
+
+  // 渲染工具组件
+  const renderToolComponent = (tool: ToolConfig) => {
+    const Component = componentMap[tool.component];
+    if (!Component) return null;
+
+    return (
+      <div style={{ display: currentKey === tool.id ? 'block' : 'none' }}>
+        <Suspense fallback={<LoadingFallback />}>
+          <Component />
+        </Suspense>
+      </div>
+    );
+  };
+
+  // 获取页面标题
+  const getPageTitle = () => {
+    if (currentKey === 'settings') return '设置';
+    if (currentTool) return currentTool.name;
+    return 'AI工具箱';
+  };
 
   return (
     <ConfigProvider
@@ -417,7 +332,7 @@ function App() {
               </span>
             )}
             <span style={{ fontSize: '16px', fontWeight: 500, color: colorText }}>
-              {selectedKey[0] === 'timestamp' ? '时间戳转换' : selectedKey[0] === 'base64' ? 'Base64 转换' : selectedKey[0] === 'textCompare' ? '文本对比' : selectedKey[0] === 'lineDedupe' ? '行去重' : selectedKey[0] === 'regex' ? '正则表达式' : selectedKey[0] === 'calendar' ? '日历' : selectedKey[0] === 'calculator' ? '计算器' : selectedKey[0] === 'counter' ? '计数器' : selectedKey[0] === 'hash' ? 'Hash 计算' : selectedKey[0] === 'imageBase64' ? '图片 Base64' : selectedKey[0] === 'unicode' ? 'Unicode 转换' : selectedKey[0] === 'workTracker' ? '任务跟进' : selectedKey[0] === 'bmi' ? 'BMI 计算' : selectedKey[0] === 'reaction' ? '反应测试' : selectedKey[0] === 'guitarTuner' ? '吉他调音' : selectedKey[0] === 'splitBill' ? 'AA账单' : selectedKey[0] === 'dayCountdown' ? '天倒计时' : selectedKey[0] === 'settings' ? '设置' : 'AI工具箱'}
+              {getPageTitle()}
             </span>
           </Header>
           <Content style={{
@@ -438,152 +353,22 @@ function App() {
             }}>
               欢迎使用
             </div>
-            {/* 时间戳转换 - 懒加载 */}
-            {shouldRender('timestamp') && (
-              <div style={{ display: currentKey === 'timestamp' ? 'block' : 'none' }}>
-                <Suspense fallback={<LoadingFallback />}>
-                  <TimestampConverter />
-                </Suspense>
-              </div>
-            )}
-            {/* Base64 转换 - 懒加载 */}
-            {shouldRender('base64') && (
-              <div style={{ display: currentKey === 'base64' ? 'block' : 'none' }}>
-                <Suspense fallback={<LoadingFallback />}>
-                  <Base64Converter />
-                </Suspense>
-              </div>
-            )}
-            {/* 文本对比 - 懒加载 */}
-            {shouldRender('textCompare') && (
-              <div style={{ display: currentKey === 'textCompare' ? 'block' : 'none' }}>
-                <Suspense fallback={<LoadingFallback />}>
-                  <TextCompare />
-                </Suspense>
-              </div>
-            )}
-            {/* 行去重 - 懒加载 */}
-            {shouldRender('lineDedupe') && (
-              <div style={{ display: currentKey === 'lineDedupe' ? 'block' : 'none' }}>
-                <Suspense fallback={<LoadingFallback />}>
-                  <LineDedupe />
-                </Suspense>
-              </div>
-            )}
-            {/* 正则表达式 - 懒加载 */}
-            {shouldRender('regex') && (
-              <div style={{ display: currentKey === 'regex' ? 'block' : 'none' }}>
-                <Suspense fallback={<LoadingFallback />}>
-                  <RegexTester />
-                </Suspense>
-              </div>
-            )}
-            {/* 日历 - 懒加载 */}
-            {shouldRender('calendar') && (
-              <div style={{ display: currentKey === 'calendar' ? 'block' : 'none' }}>
-                <Suspense fallback={<LoadingFallback />}>
-                  <Calendar />
-                </Suspense>
-              </div>
-            )}
-            {/* Hash 计算 - 懒加载 */}
-            {shouldRender('hash') && (
-              <div style={{ display: currentKey === 'hash' ? 'block' : 'none' }}>
-                <Suspense fallback={<LoadingFallback />}>
-                  <HashCalculator />
-                </Suspense>
-              </div>
-            )}
-            {/* 图片 Base64 - 懒加载 */}
-            {shouldRender('imageBase64') && (
-              <div style={{ display: currentKey === 'imageBase64' ? 'block' : 'none' }}>
-                <Suspense fallback={<LoadingFallback />}>
-                  <ImageBase64 />
-                </Suspense>
-              </div>
-            )}
-            {/* Unicode 转换 - 懒加载 */}
-            {shouldRender('unicode') && (
-              <div style={{ display: currentKey === 'unicode' ? 'block' : 'none' }}>
-                <Suspense fallback={<LoadingFallback />}>
-                  <UnicodeConverter />
-                </Suspense>
-              </div>
-            )}
-            {/* 任务跟进 - 懒加载 */}
-            {shouldRender('workTracker') && (
-              <div style={{ display: currentKey === 'workTracker' ? 'block' : 'none' }}>
-                <Suspense fallback={<LoadingFallback />}>
-                  <WorkTracker />
-                </Suspense>
-              </div>
-            )}
+
             {/* 设置 - 保持同步加载 */}
             <div style={{ display: currentKey === 'settings' ? 'block' : 'none' }}>
               <Settings />
             </div>
-            {/* BMI 计算 - 懒加载 */}
-            {shouldRender('bmi') && (
-              <div style={{ display: currentKey === 'bmi' ? 'block' : 'none' }}>
-                <Suspense fallback={<LoadingFallback />}>
-                  <BMICalculator />
-                </Suspense>
-              </div>
-            )}
-            {/* 反应测试 - 懒加载 */}
-            {shouldRender('reaction') && (
-              <div style={{ display: currentKey === 'reaction' ? 'block' : 'none' }}>
-                <Suspense fallback={<LoadingFallback />}>
-                  <ReactionTest />
-                </Suspense>
-              </div>
-            )}
-            {/* 计算器 - 懒加载 */}
-            {shouldRender('calculator') && (
-              <div style={{ display: currentKey === 'calculator' ? 'block' : 'none' }}>
-                <Suspense fallback={<LoadingFallback />}>
-                  <Calculator isActive={currentKey === 'calculator'} />
-                </Suspense>
-              </div>
-            )}
-            {/* 计数器 - 懒加载 */}
-            {shouldRender('counter') && (
-              <div style={{ display: currentKey === 'counter' ? 'block' : 'none' }}>
-                <Suspense fallback={<LoadingFallback />}>
-                  <Counter />
-                </Suspense>
-              </div>
-            )}
-            {/* 吉他调音 - 懒加载 */}
-            {shouldRender('guitarTuner') && (
-              <div style={{ display: currentKey === 'guitarTuner' ? 'block' : 'none' }}>
-                <Suspense fallback={<LoadingFallback />}>
-                  <GuitarTuner />
-                </Suspense>
-              </div>
-            )}
-            {/* AA账单 - 懒加载 */}
-            {shouldRender('splitBill') && (
-              <div style={{ display: currentKey === 'splitBill' ? 'block' : 'none' }}>
-                <Suspense fallback={<LoadingFallback />}>
-                  <SplitBill />
-                </Suspense>
-              </div>
-            )}
-            {/* 天倒计时 - 懒加载 */}
-            {shouldRender('dayCountdown') && (
-              <div style={{ display: currentKey === 'dayCountdown' ? 'block' : 'none' }}>
-                <Suspense fallback={<LoadingFallback />}>
-                  <DayCountdown />
-                </Suspense>
-              </div>
-            )}
+
+            {/* 动态渲染工具组件 */}
+            {getTools().map(tool => (
+              shouldRender(tool.id) && renderToolComponent(tool)
+            ))}
           </Content>
         </Layout>
         </Layout>
       </AntApp>
     </ConfigProvider>
   );
-};
+}
 
 export default App;

@@ -3,9 +3,11 @@
  */
 
 import { nativeAPI } from './nativeAPI';
+import { getToolStoragePath } from './appConfig';
 
-const STORAGE_PATH = 'daycountdown';
-const STORAGE_FILE = 'data';
+const storageConfig = getToolStoragePath('dayCountdown')!;
+const STORAGE_PATH = storageConfig.subPath;
+const STORAGE_FILE = storageConfig.fileName;
 
 // 倒计时事件类型
 export interface CountdownEvent {

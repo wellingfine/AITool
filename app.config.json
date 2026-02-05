@@ -1,0 +1,200 @@
+{
+  "tools": [
+    {
+      "id": "timestamp",
+      "name": "时间戳转换",
+      "description": "Unix时间戳与日期时间相互转换",
+      "icon": "ClockCircleOutlined",
+      "category": "daily",
+      "categoryName": "日常",
+      "categoryIcon": "AppstoreOutlined",
+      "storage": null,
+      "component": "TimestampConverter"
+    },
+    {
+      "id": "base64",
+      "name": "Base64 转换",
+      "description": "文本与Base64编码相互转换",
+      "icon": "FileTextOutlined",
+      "category": "daily",
+      "categoryName": "日常",
+      "categoryIcon": "AppstoreOutlined",
+      "storage": null,
+      "component": "Base64Converter"
+    },
+    {
+      "id": "textCompare",
+      "name": "文本对比",
+      "description": "对比两段文本的差异",
+      "icon": "SwapOutlined",
+      "category": "daily",
+      "categoryName": "日常",
+      "categoryIcon": "AppstoreOutlined",
+      "storage": null,
+      "component": "TextCompare"
+    },
+    {
+      "id": "lineDedupe",
+      "name": "行去重",
+      "description": "去除文本中的重复行",
+      "icon": "DeleteOutlined",
+      "category": "daily",
+      "categoryName": "日常",
+      "categoryIcon": "AppstoreOutlined",
+      "storage": null,
+      "component": "LineDedupe"
+    },
+    {
+      "id": "regex",
+      "name": "正则表达式",
+      "description": "正则表达式测试和匹配",
+      "icon": "ExperimentOutlined",
+      "category": "daily",
+      "categoryName": "日常",
+      "categoryIcon": "AppstoreOutlined",
+      "storage": null,
+      "component": "RegexTester"
+    },
+    {
+      "id": "calendar",
+      "name": "日历",
+      "description": "查看日历和节假日",
+      "icon": "CalendarOutlined",
+      "category": "daily",
+      "categoryName": "日常",
+      "categoryIcon": "AppstoreOutlined",
+      "storage": null,
+      "component": "Calendar"
+    },
+    {
+      "id": "calculator",
+      "name": "计算器",
+      "description": "科学计算器",
+      "icon": "CalculatorOutlined",
+      "category": "daily",
+      "categoryName": "日常",
+      "categoryIcon": "AppstoreOutlined",
+      "storage": null,
+      "component": "Calculator"
+    },
+    {
+      "id": "counter",
+      "name": "计数器",
+      "description": "简单计数工具",
+      "icon": "PlusCircleOutlined",
+      "category": "daily",
+      "categoryName": "日常",
+      "categoryIcon": "AppstoreOutlined",
+      "storage": null,
+      "component": "Counter"
+    },
+    {
+      "id": "hash",
+      "name": "Hash 计算",
+      "description": "计算文本的MD5、SHA等哈希值",
+      "icon": "NumberOutlined",
+      "category": "encrypt",
+      "categoryName": "加密",
+      "categoryIcon": "LockOutlined",
+      "storage": null,
+      "component": "HashCalculator"
+    },
+    {
+      "id": "imageBase64",
+      "name": "图片 Base64",
+      "description": "图片与Base64编码相互转换",
+      "icon": "PictureOutlined",
+      "category": "encrypt",
+      "categoryName": "加密",
+      "categoryIcon": "LockOutlined",
+      "storage": null,
+      "component": "ImageBase64"
+    },
+    {
+      "id": "unicode",
+      "name": "Unicode 转换",
+      "description": "Unicode编码与中文相互转换",
+      "icon": "FontColorsOutlined",
+      "category": "encrypt",
+      "categoryName": "加密",
+      "categoryIcon": "LockOutlined",
+      "storage": null,
+      "component": "UnicodeConverter"
+    },
+    {
+      "id": "workTracker",
+      "name": "任务跟进",
+      "description": "记录和跟进工作任务",
+      "icon": "ThunderboltOutlined",
+      "category": "work",
+      "categoryName": "工作",
+      "categoryIcon": "TeamOutlined",
+      "storage": {
+        "path": "worktracker",
+        "file": "data"
+      },
+      "component": "WorkTracker"
+    },
+    {
+      "id": "bmi",
+      "name": "BMI 计算",
+      "description": "计算身体质量指数",
+      "icon": "HeartOutlined",
+      "category": "other",
+      "categoryName": "其它",
+      "categoryIcon": "ToolOutlined",
+      "storage": null,
+      "component": "BMICalculator"
+    },
+    {
+      "id": "reaction",
+      "name": "反应测试",
+      "description": "测试反应速度",
+      "icon": "AimOutlined",
+      "category": "other",
+      "categoryName": "其它",
+      "categoryIcon": "ToolOutlined",
+      "storage": null,
+      "component": "ReactionTest"
+    },
+    {
+      "id": "guitarTuner",
+      "name": "吉他调音",
+      "description": "吉他调音器",
+      "icon": "CustomerServiceOutlined",
+      "category": "other",
+      "categoryName": "其它",
+      "categoryIcon": "ToolOutlined",
+      "storage": null,
+      "component": "GuitarTuner"
+    },
+    {
+      "id": "splitBill",
+      "name": "AA账单",
+      "description": "多人账单分摊计算",
+      "icon": "AccountBookOutlined",
+      "category": "other",
+      "categoryName": "其它",
+      "categoryIcon": "ToolOutlined",
+      "storage": {
+        "path": "splitbill",
+        "file": "data"
+      },
+      "component": "SplitBill"
+    },
+    {
+      "id": "dayCountdown",
+      "name": "天倒计时",
+      "description": "重要日子倒计时",
+      "icon": "HourglassOutlined",
+      "category": "other",
+      "categoryName": "其它",
+      "categoryIcon": "ToolOutlined",
+      "storage": {
+        "path": "daycountdown",
+        "file": "data"
+      },
+      "component": "DayCountdown"
+    }
+  ]
+}

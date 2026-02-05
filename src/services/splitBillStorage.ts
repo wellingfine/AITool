@@ -3,9 +3,11 @@
  */
 
 import { nativeAPI } from './nativeAPI';
+import { getToolStoragePath } from './appConfig';
 
-const STORAGE_PATH = 'splitbill';
-const STORAGE_FILE = 'data';
+const storageConfig = getToolStoragePath('splitBill')!;
+const STORAGE_PATH = storageConfig.subPath;
+const STORAGE_FILE = storageConfig.fileName;
 
 // 参与者
 export interface Participant {
