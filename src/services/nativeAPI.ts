@@ -241,6 +241,38 @@ export const daycountdownAPI = {
   }
 };
 
+// splitbill 数据存储
+export const splitbillAPI = {
+  readData: async (): Promise<any> => {
+    try {
+      return await invoke('read_splitbill_data');
+    } catch (error) {
+      // 降级到 localStorage
+      try {
+        const data = localStorage.getItem('splitBillData');
+        if (data) return JSON.parse(data);
+      } catch (e) {
+        console.error('读取 localStorage 失败:', e);
+      }
+      return { ledgers: [], currentLedgerId: '' };
+    }
+  },
+
+  saveData: async (data: any): Promise<void> => {
+    try {
+      await invoke('save_splitbill_data', { data });
+    } catch (error) {
+      // 降级到 localStorage
+      try {
+        localStorage.setItem('splitBillData', JSON.stringify(data));
+      } catch (e) {
+        console.error('保存到 localStorage 失败:', e);
+        throw e;
+      }
+    }
+  }
+};
+
 // 导出所有 API
 export const nativeAPI = {
   clipboard: clipboardAPI,
@@ -250,7 +282,8 @@ export const nativeAPI = {
   config: configAPI,
   dialog: dialogAPI,
   worktracker: worktrackerAPI,
-  daycountdown: daycountdownAPI
+  daycountdown: daycountdownAPI,
+  splitbill: splitbillAPI
 };
 
 export default nativeAPI;

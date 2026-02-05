@@ -6,6 +6,7 @@
 //! - config_controller: 应用配置（数据路径）
 //! - worktracker_controller: 任务跟进数据存储
 //! - daycountdown_controller: 天倒计时数据存储
+//! - splitbill_controller: AA账单数据存储
 
 use tauri::Manager;
 
@@ -55,6 +56,10 @@ pub fn run() {
             // 天倒计时数据 (daycountdown_controller)
             controller::daycountdown_controller::read_daycountdown_data,
             controller::daycountdown_controller::save_daycountdown_data,
+
+            // AA账单数据 (splitbill_controller)
+            controller::splitbill_controller::read_splitbill_data,
+            controller::splitbill_controller::save_splitbill_data,
         ])
         .run(tauri::generate_context!())
         .expect("error while running tauri application");

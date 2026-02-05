@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useMemo } from 'react';
+import React, { useState, useEffect, useMemo, useCallback } from 'react';
 import {
   Input,
   InputNumber,
@@ -16,6 +16,7 @@ import {
   message,
   Modal,
   Dropdown,
+  Spin,
 } from 'antd';
 import {
   PlusOutlined,
@@ -28,33 +29,9 @@ import {
   EditOutlined,
 } from '@ant-design/icons';
 import Block from '../lib/Block';
+import { splitBillStorage, type Ledger, type Participant, type Expense } from '../services/splitBillStorage';
 
 const { Text } = Typography;
-
-// 参与者
-interface Participant {
-  id: string;
-  name: string;
-}
-
-// 账单记录
-interface Expense {
-  id: string;
-  description: string;
-  amount: number;
-  paidBy: string; // participant id
-  splitAmong: string[]; // participant ids
-  createdAt: number;
-}
-
-// 账本
-interface Ledger {
-  id: string;
-  name: string;
-  participants: Participant[];
-  expenses: Expense[];
-  createdAt: number;
-}
 
 // 结算记录
 interface Settlement {
@@ -63,15 +40,13 @@ interface Settlement {
   amount: number;
 }
 
-// 本地存储key
-const STORAGE_KEY = 'splitBill_ledgers';
-const CURRENT_LEDGER_KEY = 'splitBill_currentLedger';
-
 const SplitBill: React.FC = () => {
   // 账本列表
   const [ledgers, setLedgers] = useState<Ledger[]>([]);
   // 当前账本ID
   const [currentLedgerId, setCurrentLedgerId] = useState<string>('');
+  // 加载状态
+  const [loading, setLoading] = useState(true);
   // 新账本弹窗
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [newLedgerName, setNewLedgerName] = useState('');
@@ -95,43 +70,64 @@ const SplitBill: React.FC = () => {
 
   const { token } = theme.useToken();
 
-  // 从本地存储加载数据
-  useEffect(() => {
+  // 加载数据
+  const loadData = useCallback(async () => {
+    setLoading(true);
     try {
-      const savedLedgers = localStorage.getItem(STORAGE_KEY);
-      const savedCurrentId = localStorage.getItem(CURRENT_LEDGER_KEY);
+      const data = await splitBillStorage.getData();
+      setLedgers(data.ledgers || []);
 
-      if (savedLedgers) {
-        const parsedLedgers = JSON.parse(savedLedgers);
-        setLedgers(parsedLedgers);
-
-        // 恢复上次选择的账本
-        if (savedCurrentId && parsedLedgers.some((l: Ledger) => l.id === savedCurrentId)) {
-          setCurrentLedgerId(savedCurrentId);
-        } else if (parsedLedgers.length > 0) {
-          setCurrentLedgerId(parsedLedgers[0].id);
-        }
+      // 恢复上次选择的账本
+      if (data.currentLedgerId && data.ledgers.some((l: Ledger) => l.id === data.currentLedgerId)) {
+        setCurrentLedgerId(data.currentLedgerId);
+      } else if (data.ledgers.length > 0) {
+        setCurrentLedgerId(data.ledgers[0].id);
       }
     } catch (error) {
       console.error('Failed to load saved data:', error);
+      message.error('加载数据失败');
+    } finally {
+      setLoading(false);
     }
   }, []);
 
-  // 保存账本列表到本地存储
+  // 从存储加载数据
   useEffect(() => {
+    loadData();
+  }, [loadData]);
+
+  // 保存账本列表到存储
+  const saveLedgers = useCallback(async (newLedgers: Ledger[]) => {
     try {
-      localStorage.setItem(STORAGE_KEY, JSON.stringify(ledgers));
+      await splitBillStorage.saveLedgers(newLedgers);
     } catch (error) {
       console.error('Failed to save ledgers:', error);
     }
-  }, [ledgers]);
+  }, []);
 
-  // 保存当前账本ID到本地存储
-  useEffect(() => {
-    if (currentLedgerId) {
-      localStorage.setItem(CURRENT_LEDGER_KEY, currentLedgerId);
+  // 保存当前账本ID到存储
+  const saveCurrentLedgerId = useCallback(async (id: string) => {
+    try {
+      await splitBillStorage.saveCurrentLedgerId(id);
+    } catch (error) {
+      console.error('Failed to save current ledger id:', error);
     }
-  }, [currentLedgerId]);
+  }, []);
+
+  // 更新账本列表并保存
+  const updateLedgers = useCallback((updater: (prev: Ledger[]) => Ledger[]) => {
+    setLedgers(prev => {
+      const newLedgers = updater(prev);
+      saveLedgers(newLedgers);
+      return newLedgers;
+    });
+  }, [saveLedgers]);
+
+  // 设置当前账本ID并保存
+  const setCurrentLedgerIdAndSave = useCallback((id: string) => {
+    setCurrentLedgerId(id);
+    saveCurrentLedgerId(id);
+  }, [saveCurrentLedgerId]);
 
   // 计算结算方案
   useEffect(() => {
@@ -204,14 +200,20 @@ const SplitBill: React.FC = () => {
   }, [participants, expenses]);
 
   // 更新当前账本
-  const updateCurrentLedger = (updates: Partial<Ledger>) => {
-    setLedgers((prev) =>
-      prev.map((l) => (l.id === currentLedgerId ? { ...l, ...updates } : l))
+  const updateCurrentLedger = async (updates: Partial<Ledger>) => {
+    const newLedgers = ledgers.map((l) =>
+      l.id === currentLedgerId ? { ...l, ...updates } : l
     );
+    setLedgers(newLedgers);
+    try {
+      await splitBillStorage.saveLedgers(newLedgers);
+    } catch (error) {
+      console.error('保存账本失败:', error);
+    }
   };
 
   // 创建新账本
-  const handleCreateLedger = () => {
+  const handleCreateLedger = async () => {
     if (!newLedgerName.trim()) {
       message.warning('请输入账本名称');
       return;
@@ -219,7 +221,7 @@ const SplitBill: React.FC = () => {
 
     if (editingLedger) {
       // 编辑模式
-      setLedgers((prev) =>
+      updateLedgers((prev) =>
         prev.map((l) =>
           l.id === editingLedger.id ? { ...l, name: newLedgerName.trim() } : l
         )
@@ -235,8 +237,8 @@ const SplitBill: React.FC = () => {
         createdAt: Date.now(),
       };
 
-      setLedgers((prev) => [...prev, newLedger]);
-      setCurrentLedgerId(newLedger.id);
+      updateLedgers((prev) => [...prev, newLedger]);
+      setCurrentLedgerIdAndSave(newLedger.id);
       message.success('账本创建成功');
     }
 
@@ -246,15 +248,23 @@ const SplitBill: React.FC = () => {
   };
 
   // 删除账本
-  const handleDeleteLedger = (ledgerId: string) => {
-    const newLedgers = ledgers.filter((l) => l.id !== ledgerId);
-    setLedgers(newLedgers);
+  const handleDeleteLedger = async (ledgerId: string) => {
+    try {
+      await splitBillStorage.deleteLedger(ledgerId);
+      const newLedgers = ledgers.filter((l) => l.id !== ledgerId);
+      setLedgers(newLedgers);
 
-    if (currentLedgerId === ledgerId) {
-      setCurrentLedgerId(newLedgers.length > 0 ? newLedgers[0].id : '');
+      if (currentLedgerId === ledgerId) {
+        const newId = newLedgers.length > 0 ? newLedgers[0].id : '';
+        setCurrentLedgerId(newId);
+        await splitBillStorage.saveCurrentLedgerId(newId);
+      }
+
+      message.success('账本已删除');
+    } catch (error) {
+      console.error('删除账本失败:', error);
+      message.error('删除失败');
     }
-
-    message.success('账本已删除');
   };
 
   // 编辑账本
@@ -433,7 +443,7 @@ const SplitBill: React.FC = () => {
           </Space>
         </div>
       ),
-      onClick: () => setCurrentLedgerId(l.id),
+      onClick: () => setCurrentLedgerIdAndSave(l.id),
     })),
     { type: 'divider' as const },
     {
@@ -451,6 +461,14 @@ const SplitBill: React.FC = () => {
       },
     },
   ];
+
+  if (loading) {
+    return (
+      <div style={{ padding: '8px 0', maxWidth: 800, margin: '0 auto', textAlign: 'center', paddingTop: 100 }}>
+        <Spin size="large" tip="加载中..." />
+      </div>
+    );
+  }
 
   return (
     <div style={{ padding: '8px 0', maxWidth: 800, margin: '0 auto' }}>
