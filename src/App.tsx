@@ -30,6 +30,7 @@ const lazyComponentMap: Record<string, React.LazyExoticComponent<React.Component
   GuitarTuner: lazy(() => import('./components/GuitarTuner')),
   SplitBill: lazy(() => import('./components/SplitBill')),
   DayCountdown: lazy(() => import('./components/DayCountdown')),
+  Metronome: lazy(() => import('./components/Metronome')),
 };
 
 // 同步加载组件映射表

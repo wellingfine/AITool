@@ -197,6 +197,20 @@
       "component": "DayCountdown"
     },
     {
+      "id": "metronome",
+      "name": "节拍器",
+      "description": "可调节速度的节拍器",
+      "icon": "SoundOutlined",
+      "category": "other",
+      "categoryName": "其它",
+      "categoryIcon": "ToolOutlined",
+      "storage": {
+        "path": "metronome",
+        "file": "rhythms"
+      },
+      "component": "Metronome"
+    },
+    {
       "id": "about",
       "name": "关于",
       "description": "关于AITool",
