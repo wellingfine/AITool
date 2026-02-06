@@ -1,6 +1,6 @@
-import { useState } from 'react';
-import { Input, Button, Space, Typography, message, Statistic, Row, Col, Switch, Tag } from 'antd';
-import { CopyOutlined, ClearOutlined, DeleteOutlined } from '@ant-design/icons';
+import { useState, useMemo } from 'react';
+import { Input, Button, Space, Typography, message, Statistic, Row, Col, Switch, Tag, Radio } from 'antd';
+import { CopyOutlined, ClearOutlined, DeleteOutlined, SortAscendingOutlined, SortDescendingOutlined } from '@ant-design/icons';
 import Block from '../lib/Block';
 
 const { TextArea } = Input;
@@ -9,13 +9,37 @@ const { Text } = Typography;
 interface LineItem {
   text: string;
   count: number;
+  originalIndex: number;
 }
+
+type SortType = 'original' | 'countDesc' | 'countAsc';
 
 const LineDedupe: React.FC = () => {
   const [input, setInput] = useState('');
   const [results, setResults] = useState<LineItem[]>([]);
   const [showCount, setShowCount] = useState(true);
+  const [sortType, setSortType] = useState<SortType>('original');
   const [stats, setStats] = useState({ original: 0, deduped: 0, removed: 0 });
+
+  // 根据排序类型对结果进行排序
+  const sortedResults = useMemo(() => {
+    if (results.length === 0) return [];
+    
+    const sorted = [...results];
+    switch (sortType) {
+      case 'countDesc':
+        sorted.sort((a, b) => b.count - a.count || a.originalIndex - b.originalIndex);
+        break;
+      case 'countAsc':
+        sorted.sort((a, b) => a.count - b.count || a.originalIndex - b.originalIndex);
+        break;
+      case 'original':
+      default:
+        sorted.sort((a, b) => a.originalIndex - b.originalIndex);
+        break;
+    }
+    return sorted;
+  }, [results, sortType]);
 
   const handleDedupe = () => {
     if (!input.trim()) {
@@ -33,10 +57,11 @@ const LineDedupe: React.FC = () => {
 
     const uniqueLines: LineItem[] = [];
     const seen = new Set<string>();
+    let index = 0;
     for (const line of trimmedLines) {
       if (!seen.has(line)) {
         seen.add(line);
-        uniqueLines.push({ text: line, count: countMap.get(line) || 1 });
+        uniqueLines.push({ text: line, count: countMap.get(line) || 1, originalIndex: index++ });
       }
     }
 
@@ -49,14 +74,14 @@ const LineDedupe: React.FC = () => {
   };
 
   const handleCopy = async () => {
-    if (results.length === 0) {
+    if (sortedResults.length === 0) {
       message.warning('没有可复制的内容');
       return;
     }
     try {
       const text = showCount 
-        ? results.map(item => `${item.text} (${item.count})`).join('\n')
-        : results.map(item => item.text).join('\n');
+        ? sortedResults.map(item => `${item.text} (${item.count})`).join('\n')
+        : sortedResults.map(item => item.text).join('\n');
       await navigator.clipboard.writeText(text);
       message.success('已复制到剪贴板');
     } catch {
@@ -68,6 +93,7 @@ const LineDedupe: React.FC = () => {
     setInput('');
     setResults([]);
     setStats({ original: 0, deduped: 0, removed: 0 });
+    setSortType('original');
   };
 
   return (
@@ -114,7 +140,7 @@ const LineDedupe: React.FC = () => {
 
       {results.length > 0 && (
         <Block>
-          <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 8 }}>
+          <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 12, flexWrap: 'wrap', gap: 8 }}>
             <Space>
               <Text strong>去重结果</Text>
               <Button size="small" icon={<CopyOutlined />} onClick={handleCopy}>
@@ -126,18 +152,44 @@ const LineDedupe: React.FC = () => {
               <Switch checked={showCount} onChange={setShowCount} size="small" />
             </Space>
           </div>
+          <div style={{ marginBottom: 12 }}>
+            <Space size="small">
+              <Text type="secondary" style={{ fontSize: 13 }}>排序方式：</Text>
+              <Radio.Group 
+                value={sortType} 
+                onChange={(e) => setSortType(e.target.value)} 
+                size="small"
+                optionType="button"
+                buttonStyle="solid"
+              >
+                <Radio.Button value="original">原始顺序</Radio.Button>
+                <Radio.Button value="countDesc">
+                  <Space size={2}>
+                    <SortDescendingOutlined />
+                    次数降序
+                  </Space>
+                </Radio.Button>
+                <Radio.Button value="countAsc">
+                  <Space size={2}>
+                    <SortAscendingOutlined />
+                    次数升序
+                  </Space>
+                </Radio.Button>
+              </Radio.Group>
+            </Space>
+          </div>
           <div style={{
             border: '1px solid #d9d9d9',
             borderRadius: 6,
             padding: 12,
             background: '#fafafa'
           }}>
-            {results.map((item, index) => (
+            {sortedResults.map((item, index) => (
               <div
-                key={index}
+                key={item.originalIndex}
                 style={{
                   padding: '6px 0',
-                  borderBottom: index < results.length - 1 ? '1px solid #f0f0f0' : 'none',
+                  borderBottom: index < sortedResults.length - 1 ? '1px solid #f0f0f0' : 'none',
                   fontFamily: 'monospace',
                   display: 'flex',
                   alignItems: 'center',
