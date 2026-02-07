@@ -184,22 +184,22 @@ const MortgageCalculator: React.FC = () => {
     {
       title: '月供',
       dataIndex: 'payment',
-      render: (v: number) => `¥${v.toFixed(2)}`,
+      render: (v: number) => (v / 10000).toFixed(2),
     },
     {
       title: '本金',
       dataIndex: 'principal',
-      render: (v: number) => `¥${v.toFixed(2)}`,
+      render: (v: number) => (v / 10000).toFixed(2),
     },
     {
       title: '利息',
       dataIndex: 'interest',
-      render: (v: number) => `¥${v.toFixed(2)}`,
+      render: (v: number) => (v / 10000).toFixed(2),
     },
     {
       title: '剩余本金',
       dataIndex: 'remaining',
-      render: (v: number) => `¥${v.toFixed(2)}`,
+      render: (v: number) => (v / 10000).toFixed(2),
     },
   ];
 
@@ -358,9 +358,9 @@ const MortgageCalculator: React.FC = () => {
           <Block>
             <div style={{ display: 'flex', alignItems: 'center', gap: 8, marginBottom: 16 }}>
               <BankOutlined style={{ color: '#722ed1' }} />
-              <Text strong>还款计划表</Text>
+              <Text strong>还款计划表（万）</Text>
               <Text type="secondary" style={{ fontSize: 12 }}>
-                （共 {years * 12} 期）
+                共 {years * 12} 期
               </Text>
             </div>
 
@@ -368,12 +368,8 @@ const MortgageCalculator: React.FC = () => {
               dataSource={result.details}
               columns={columns}
               size="small"
-              pagination={{
-                pageSize: 12,
-                showSizeChanger: false,
-                showTotal: (total) => `共 ${total} 期`,
-              }}
-              scroll={{ y: 400 }}
+              pagination={false}
+            //   scroll={{ y: 400 }}
               rowKey="month"
             />
           </Block>
