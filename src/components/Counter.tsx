@@ -2,6 +2,7 @@ import { useState, useRef, useCallback } from 'react';
 import { Button, Typography, Statistic, Row, Col } from 'antd';
 import { ReloadOutlined, PlayCircleOutlined, PauseCircleOutlined } from '@ant-design/icons';
 import Block from '../lib/Block';
+import Page from '../lib/Page';
 
 const { Text } = Typography;
 
@@ -71,9 +72,8 @@ const Counter: React.FC = () => {
   };
 
   return (
-    <div style={{ padding: '8px 0', maxWidth: 500, margin: '0 auto' }}>
-      <div style={{ display: 'flex', flexDirection: 'column', width: '100%' }}>
-        <Block>
+    <Page maxWidth={500}>
+      <Block>
           <div style={{ display: 'flex', flexDirection: 'column', gap: 16, alignItems: 'center' }}>
             {/* 时间显示 */}
             <Statistic
@@ -140,9 +140,8 @@ const Counter: React.FC = () => {
               <li>可以暂停/继续计时，或点击重置清零所有数据</li>
             </ul>
           </div>
-        </Block>
-      </div>
-    </div>
+      </Block>
+    </Page>
   );
 };
 

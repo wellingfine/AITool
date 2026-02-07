@@ -7,6 +7,7 @@ import {
   CodeOutlined,
 } from '@ant-design/icons';
 import Block from '../lib/Block';
+import Page from '../lib/Page';
 import packageJson from '../../package.json';
 
 const { Title, Text, Paragraph } = Typography;
@@ -15,7 +16,7 @@ const About: React.FC = () => {
   const version = packageJson.version;
 
   return (
-    <div style={{ padding: '8px 0', maxWidth: 800, margin: '0 auto' }}>
+    <Page maxWidth={800}>
       {/* 标题区域 */}
       <Block>
         <div style={{ textAlign: 'center', padding: '20px 0' }}>
@@ -145,7 +146,7 @@ const About: React.FC = () => {
           使用 React + Tauri 构建
         </Text>
       </div>
-    </div>
+    </Page>
   );
 };
 

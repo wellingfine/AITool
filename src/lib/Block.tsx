@@ -29,7 +29,7 @@ const Block: React.FC<BlockProps> = ({ children, style, className }) => {
           border: `1px solid ${token.colorBorder}`,
           padding: 16,
           marginTop: 8,
-          marginBottom: 8,
+          marginBottom: 0,
           ...style
         }}
       >

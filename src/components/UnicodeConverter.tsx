@@ -14,6 +14,7 @@ import {
 } from "@ant-design/icons";
 import { nativeAPI } from "../services/nativeAPI";
 import Block from '../lib/Block';
+import Page from '../lib/Page';
 
 const { Text } = Typography;
 const { TextArea } = Input;
@@ -146,8 +147,7 @@ const UnicodeConverter: React.FC = () => {
   };
 
   return (
-    <div style={{ padding: '8px 0', maxWidth: 900, margin: '0 auto' }}>
-      <div style={{ display: 'flex', flexDirection: 'column', width: '100%' }}>
+    <Page maxWidth={900}>
         <Block>
           <div style={{ display: 'flex', flexDirection: 'column', gap: 16 }}>
             <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
@@ -262,8 +262,7 @@ const UnicodeConverter: React.FC = () => {
             </ul>
           </div>
         </Block>
-      </div>
-    </div>
+    </Page>
   );
 };
 

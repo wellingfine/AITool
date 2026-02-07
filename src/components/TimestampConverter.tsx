@@ -18,6 +18,7 @@ import {
 } from "@ant-design/icons";
 import { nativeAPI } from "../services/nativeAPI";
 import Block from '../lib/Block';
+import Page from '../lib/Page';
 
 const { Text } = Typography;
 
@@ -113,8 +114,7 @@ const TimestampConverter: React.FC = () => {
   });
 
   return (
-    <div style={{ padding: '8px 0', maxWidth: 700, margin: '0 auto' }}>
-      <div style={{ display: 'flex', flexDirection: 'column', width: '100%' }}>
+    <Page maxWidth={700}>
         {/* 当前时间卡片 */}
         <Block>
           <div style={{ display: 'flex', flexDirection: 'column', gap: 12 }}>
@@ -303,8 +303,7 @@ const TimestampConverter: React.FC = () => {
             )}
           </div>
         </Block>
-      </div>
-    </div>
+    </Page>
   );
 };
 

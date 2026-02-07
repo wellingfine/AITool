@@ -2,6 +2,7 @@ import React, { useState, useRef, useCallback, useEffect } from 'react';
 import { Select, Button, Typography, theme, Modal } from 'antd';
 import { InfoCircleOutlined, AudioOutlined, AudioMutedOutlined, ExclamationCircleOutlined } from '@ant-design/icons';
 import Block from '../lib/Block';
+import Page from '../lib/Page';
 import { isAndroid } from '../lib/utils';
 
 const { Text } = Typography;
@@ -432,9 +433,8 @@ const GuitarTuner: React.FC = () => {
   };
 
   return (
-    <div style={{ padding: '8px 0', maxWidth: 800, margin: '0 auto' }}>
-      <div style={{ display: 'flex', flexDirection: 'column', width: '100%' }}>
-        <Block>
+    <Page maxWidth={800}>
+      <Block>
           <div style={{ display: 'flex', flexDirection: 'column', gap: 24, width: '100%' }}>
 
             {/* 调弦选择 */}
@@ -839,9 +839,8 @@ const GuitarTuner: React.FC = () => {
               <li>绿色进度条表示音准准确度</li>
             </ul>
           </div>
-        </Block>
-      </div>
-    </div>
+      </Block>
+    </Page>
   );
 };
 

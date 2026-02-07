@@ -3,6 +3,7 @@ import { Form, Input, Typography, Switch, Tag, App } from 'antd';
 import { FolderOutlined, HistoryOutlined, CheckCircleOutlined } from '@ant-design/icons';
 import { nativeAPI } from '../services/nativeAPI';
 import Block from '../lib/Block';
+import Page from '../lib/Page';
 
 const { Text, Paragraph } = Typography;
 
@@ -69,7 +70,7 @@ const Settings: React.FC = () => {
   };
 
   return (
-    <div style={{ padding: '8px 0', maxWidth: 600, margin: '0 auto', display: 'flex', flexDirection: 'column', gap: 8 }}>
+    <Page maxWidth={600}>
       {/* 数据存储 */}
       <Block>
         <div style={{ display: 'flex', alignItems: 'center', gap: 8, marginBottom: 16 }}>
@@ -121,7 +122,7 @@ const Settings: React.FC = () => {
           />
         </div>
       </Block>
-    </div>
+    </Page>
   );
 };
 

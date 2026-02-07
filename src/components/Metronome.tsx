@@ -2,6 +2,7 @@ import { useState, useRef, useCallback, useEffect } from 'react';
 import { Slider, Button, Space, Typography, theme, Modal, Input, Dropdown } from 'antd';
 import { PlayCircleOutlined, PauseCircleOutlined, PlusOutlined, MinusOutlined, DeleteOutlined, DownOutlined, SoundOutlined } from '@ant-design/icons';
 import Block from '../lib/Block';
+import Page from '../lib/Page';
 import { nativeAPI } from '../services/nativeAPI';
 
 const { Text } = Typography;
@@ -428,8 +429,7 @@ export default function Metronome() {
   const displayBpm = pendingBpmRef.current !== null ? pendingBpmRef.current : bpm;
 
   return (
-    <div style={{ padding: '8px 0', maxWidth: 600, margin: '0 auto' }}>
-      <div style={{ display: 'flex', flexDirection: 'column', width: '100%' }}>
+    <Page maxWidth={600}>
         {/* 顶部栏：节奏选择(左) + 常用速度(右) */}
         <Block>
           <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
@@ -566,7 +566,6 @@ export default function Metronome() {
             </Button>
           </div>
         </Block>
-      </div>
 
       {/* 新增节奏弹窗 */}
       <Modal
@@ -631,6 +630,6 @@ export default function Metronome() {
           </div>
         </div>
       </Modal>
-    </div>
+    </Page>
   );
 }

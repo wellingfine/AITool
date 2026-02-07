@@ -2,6 +2,7 @@ import { useState, useMemo } from 'react';
 import { Input, Button, Space, Typography, message, Statistic, Row, Col, Switch, Tag, Radio } from 'antd';
 import { CopyOutlined, ClearOutlined, DeleteOutlined, SortAscendingOutlined, SortDescendingOutlined } from '@ant-design/icons';
 import Block from '../lib/Block';
+import Page from '../lib/Page';
 
 const { TextArea } = Input;
 const { Text } = Typography;
@@ -97,7 +98,7 @@ const LineDedupe: React.FC = () => {
   };
 
   return (
-    <div style={{ padding: '8px 0', maxWidth: 800, margin: '0 auto' }}>
+    <Page maxWidth={800}>
       <Block>
         <Space direction="vertical" style={{ width: '100%' }} size="middle">
           <div>
@@ -207,7 +208,7 @@ const LineDedupe: React.FC = () => {
           </div>
         </Block>
       )}
-    </div>
+    </Page>
   );
 };
 

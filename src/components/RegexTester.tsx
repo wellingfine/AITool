@@ -2,6 +2,7 @@ import { useState, useEffect, useCallback } from 'react';
 import { Input, Button, Typography, Tag, Row, Col, Badge, theme } from 'antd';
 import { EyeOutlined, BranchesOutlined, CheckCircleOutlined, CloseCircleOutlined } from '@ant-design/icons';
 import Block from '../lib/Block';
+import Page from '../lib/Page';
 
 const { TextArea } = Input;
 const { Text } = Typography;
@@ -589,8 +590,7 @@ const RegexTester: React.FC = () => {
   const tokens = pattern ? parseRegex(pattern) : [];
 
   return (
-    <div style={{ padding: '8px 0', maxWidth: 900, margin: '0 auto' }}>
-      <div style={{ display: 'flex', flexDirection: 'column', width: '100%' }}>
+    <Page maxWidth={900}>
         {/* 正则表达式输入 */}
         <Block>
           <div style={{ display: 'flex', flexDirection: 'column', gap: 12 }}>
@@ -762,9 +762,8 @@ const RegexTester: React.FC = () => {
               </div>
             </Col>
           </Row>
-        </Block>
-      </div>
-    </div>
+      </Block>
+    </Page>
   );
 };
 

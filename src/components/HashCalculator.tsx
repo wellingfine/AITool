@@ -17,6 +17,7 @@ import {
 import CryptoJS from "crypto-js";
 import { nativeAPI } from "../services/nativeAPI";
 import Block from '../lib/Block';
+import Page from '../lib/Page';
 
 const { Text } = Typography;
 const { TextArea } = Input;
@@ -214,8 +215,7 @@ const HashCalculator: React.FC = () => {
   };
 
   return (
-    <div style={{ padding: '8px 0', maxWidth: 800, margin: '0 auto' }}>
-      <div style={{ display: 'flex', flexDirection: 'column', width: '100%' }}>
+    <Page maxWidth={800}>
         {/* 算法选择 */}
         <Block>
           <Space>
@@ -318,8 +318,7 @@ const HashCalculator: React.FC = () => {
             )}
           </div>
         </Block>
-      </div>
-    </div>
+    </Page>
   );
 };
 

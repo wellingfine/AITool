@@ -2,6 +2,7 @@ import React, { useState, useRef, useCallback, useEffect } from "react";
 import { theme, Statistic } from "antd";
 import { ReloadOutlined } from "@ant-design/icons";
 import Block from '../lib/Block';
+import Page from '../lib/Page';
 
 type GameState = 'idle' | 'waiting' | 'ready' | 'finished' | 'falseStart';
 
@@ -195,8 +196,7 @@ const ReactionTest: React.FC = () => {
   const best = history.length > 0 ? Math.min(...history) : null;
 
   return (
-    <div style={{ padding: '8px 0', maxWidth: 600, margin: '0 auto' }}>
-      <div style={{ display: 'flex', flexDirection: 'column', width: '100%' }}>
+    <Page maxWidth={600}>
         <Block>
           {/* 主按钮区域 */}
           <div style={{ textAlign: 'center', padding: '24px 0' }}>
@@ -325,9 +325,8 @@ const ReactionTest: React.FC = () => {
               <li>普通人平均反应时间约为 200-250 毫秒</li>
             </ul>
           </div>
-        </Block>
-      </div>
-    </div>
+      </Block>
+    </Page>
   );
 };
 

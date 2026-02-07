@@ -15,6 +15,7 @@ import {
 } from "@ant-design/icons";
 import { nativeAPI } from "../services/nativeAPI";
 import Block from '../lib/Block';
+import Page from '../lib/Page';
 
 const { Text } = Typography;
 const { TextArea } = Input;
@@ -89,8 +90,7 @@ const Base64Converter: React.FC = () => {
   };
 
   return (
-    <div style={{ padding: '8px 0', maxWidth: 900, margin: '0 auto' }}>
-      <div style={{ display: 'flex', flexDirection: 'column', width: '100%' }}>
+    <Page maxWidth={900}>
         {/* 编码区域 */}
         <Block>
           <div style={{ display: 'flex', flexDirection: 'column', gap: 16 }}>
@@ -194,8 +194,7 @@ const Base64Converter: React.FC = () => {
             </Button>
           </div>
         </Block>
-      </div>
-    </div>
+    </Page>
   );
 };
 

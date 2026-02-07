@@ -29,6 +29,7 @@ import {
   EditOutlined,
 } from '@ant-design/icons';
 import Block from '../lib/Block';
+import Page from '../lib/Page';
 import { splitBillStorage, type Ledger, type Participant, type Expense } from '../services/splitBillStorage';
 
 const { Text } = Typography;
@@ -471,8 +472,7 @@ const SplitBill: React.FC = () => {
   }
 
   return (
-    <div style={{ padding: '8px 0', maxWidth: 800, margin: '0 auto' }}>
-      <div style={{ display: 'flex', flexDirection: 'column', width: '100%' }}>
+    <Page maxWidth={800}>
         {/* 账本选择器 */}
         <Block>
           <div
@@ -947,7 +947,6 @@ const SplitBill: React.FC = () => {
             </div>
           </div>
         </Block>
-      </div>
 
       {/* 新建/编辑账本弹窗 */}
       <Modal
@@ -973,7 +972,7 @@ const SplitBill: React.FC = () => {
           />
         </div>
       </Modal>
-    </div>
+    </Page>
   );
 };
 

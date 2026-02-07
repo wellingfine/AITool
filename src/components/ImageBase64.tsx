@@ -16,6 +16,7 @@ import {
 } from "@ant-design/icons";
 import { nativeAPI } from "../services/nativeAPI";
 import Block from '../lib/Block';
+import Page from '../lib/Page';
 
 const { Text } = Typography;
 const { TextArea } = Input;
@@ -179,7 +180,7 @@ const ImageBase64: React.FC = () => {
   };
 
   return (
-    <div style={{ padding: '8px 0', maxWidth: 800, margin: '0 auto' }}>
+    <Page maxWidth={800}>
       {/* Base64 输入区域 */}
       <Block>
         <Text type="secondary" style={{ display: "block", marginBottom: 8 }}>
@@ -357,7 +358,7 @@ const ImageBase64: React.FC = () => {
           src={previewImage}
         />
       </Modal>
-    </div>
+    </Page>
   );
 };
 

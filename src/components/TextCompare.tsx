@@ -9,6 +9,7 @@ import {
   Tag,
 } from "antd";
 import Block from '../lib/Block';
+import Page from '../lib/Page';
 
 const { Text } = Typography;
 const { TextArea } = Input;
@@ -92,8 +93,7 @@ const TextCompare: React.FC = () => {
   };
 
   return (
-    <div style={{ padding: '8px 0', maxWidth: 900, margin: '0 auto' }}>
-      <div style={{ display: 'flex', flexDirection: 'column', width: '100%' }}>
+    <Page maxWidth={900}>
         {/* 输入区域 */}
         <Block>
           <div style={{ display: 'flex', flexDirection: 'column', gap: 16 }}>
@@ -202,8 +202,7 @@ const TextCompare: React.FC = () => {
             </Row>
           </Block>
         )}
-      </div>
-    </div>
+    </Page>
   );
 };
 

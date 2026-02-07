@@ -72,7 +72,7 @@ pub async fn save_file(
 /// 成功返回选中的文件夹路径，取消返回 None，失败返回错误信息
 #[tauri::command]
 pub async fn select_folder(
-    app_handle: tauri::AppHandle
+    _app_handle: tauri::AppHandle
 ) -> Result<Option<String>, String> {
     // 移动端处理：Android 不支持 pick_folder
     #[cfg(mobile)]
@@ -86,7 +86,7 @@ pub async fn select_folder(
         use tauri_plugin_dialog::{DialogExt, FilePath};
 
         let (tx, rx) = channel();
-        app_handle.dialog()
+        _app_handle.dialog()
             .file()
             .set_title("选择文件夹")
             .pick_folder(move |path: Option<FilePath>| {

@@ -12,6 +12,7 @@ import {
   DeleteOutlined,
 } from "@ant-design/icons";
 import Block from '../lib/Block';
+import Page from '../lib/Page';
 
 const { Text } = Typography;
 
@@ -908,9 +909,8 @@ const Calculator: React.FC<CalculatorProps> = ({ isActive = true }) => {
   };
 
   return (
-    <div style={{ padding: '8px 0', maxWidth: 900, margin: "0 auto" }}>
-      <div style={{ display: 'flex', flexDirection: 'column', width: '100%' }}>
-        <Block>
+    <Page maxWidth={900}>
+      <Block>
           {/* 模式切换 */}
           <div style={{ marginBottom: 12 }}>
             <Segmented
@@ -975,9 +975,8 @@ const Calculator: React.FC<CalculatorProps> = ({ isActive = true }) => {
           >
             快捷键: 数字键 | Enter=计算 | Esc=清空 | Backspace=退格
           </div>
-        </Block>
-      </div>
-    </div>
+      </Block>
+    </Page>
   );
 };
 

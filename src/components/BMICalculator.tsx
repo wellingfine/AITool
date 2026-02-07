@@ -10,6 +10,7 @@ import {
   UserOutlined,
 } from "@ant-design/icons";
 import Block from '../lib/Block';
+import Page from '../lib/Page';
 
 interface BMIResult {
   bmi: number;
@@ -87,9 +88,8 @@ const BMICalculator: React.FC = () => {
   };
 
   return (
-    <div style={{ padding: '8px 0', maxWidth: 600, margin: '0 auto' }}>
-      <div style={{ display: 'flex', flexDirection: 'column', width: '100%' }}>
-        <Block>
+    <Page maxWidth={600}>
+      <Block>
           {/* 身高体重输入 */}
           <Row gutter={32} justify="center">
             <Col>
@@ -229,9 +229,8 @@ const BMICalculator: React.FC = () => {
               计算公式：BMI = 体重(kg) ÷ 身高²(m²)
             </div>
           </div>
-        </Block>
-      </div>
-    </div>
+      </Block>
+    </Page>
   );
 };
 

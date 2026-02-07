@@ -20,6 +20,7 @@ import {
 } from '@ant-design/icons';
 import dayjs from 'dayjs';
 import Block from '../lib/Block';
+import Page from '../lib/Page';
 import { dayCountdownStorage, type CountdownEvent } from '../services/dayCountdownStorage';
 
 const { Title, Text } = Typography;
@@ -139,7 +140,7 @@ const DayCountdown: React.FC = () => {
   const colorOptions = dayCountdownStorage.getColors();
 
   return (
-    <div style={{ padding: '8px 0', maxWidth: 800, margin: '0 auto' }}>
+    <Page maxWidth={800}>
       {/* 标题和操作按钮 */}
       <Block>
         <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
@@ -354,7 +355,7 @@ const DayCountdown: React.FC = () => {
           </ul>
         </div>
       </Block>
-    </div>
+    </Page>
   );
 };
 
