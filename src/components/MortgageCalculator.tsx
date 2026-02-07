@@ -147,8 +147,8 @@ const MortgageCalculator: React.FC = () => {
       .scale('y', { nice: true })
       .axis('x', { title: '年份' })
       .axis('y', { 
-        title: '金额（元）',
-        labelFormatter: (v: number) => `¥${(v / 10000).toFixed(0)}万`,
+        title: null,
+        labelFormatter: (v: number) => `${(v / 10000).toFixed(0)}万`,
       })
       .legend('color', {
         position: 'top',
