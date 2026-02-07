@@ -1,7 +1,7 @@
 {
   "name": "aitool",
   "private": true,
-  "version": "1.0.4",
+  "version": "1.0.5",
   "type": "module",
   "scripts": {
     "web:dev": "vite",
@@ -29,6 +29,7 @@
     }
   ],
   "dependencies": {
+    "@antv/g2": "^5.3.0",
     "@tauri-apps/api": "^2",
     "@tauri-apps/plugin-dialog": "^2",
     "@tauri-apps/plugin-fs": "^2",

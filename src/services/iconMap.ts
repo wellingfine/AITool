@@ -38,6 +38,7 @@ import {
   GithubOutlined,
   CodeOutlined,
   SoundOutlined,
+  BankOutlined,
 } from '@ant-design/icons';
 
 // 图标映射表
@@ -76,6 +77,7 @@ const iconMap: Record<string, React.ComponentType<any>> = {
   GithubOutlined,
   CodeOutlined,
   SoundOutlined,
+  BankOutlined,
 };
 
 // 根据名称获取图标组件

@@ -155,7 +155,7 @@ const BMICalculator: React.FC = () => {
                     '65%': '#fa8c16',
                     '100%': '#f5222d',
                   }}
-                  trailColor={token.colorFillSecondary}
+                  railColor={token.colorFillSecondary}
                   size={['100%', 12]}
                 />
                 <div style={{ 

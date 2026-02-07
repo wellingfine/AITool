@@ -211,6 +211,17 @@
       "component": "Metronome"
     },
     {
+      "id": "mortgage",
+      "name": "房贷计算器",
+      "description": "计算房贷月供和还款计划",
+      "icon": "BankOutlined",
+      "category": "other",
+      "categoryName": "其它",
+      "categoryIcon": "ToolOutlined",
+      "storage": null,
+      "component": "MortgageCalculator"
+    },
+    {
       "id": "about",
       "name": "关于",
       "description": "关于AITool",

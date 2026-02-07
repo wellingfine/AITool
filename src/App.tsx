@@ -31,6 +31,7 @@ const lazyComponentMap: Record<string, React.LazyExoticComponent<React.Component
   SplitBill: lazy(() => import('./components/SplitBill')),
   DayCountdown: lazy(() => import('./components/DayCountdown')),
   Metronome: lazy(() => import('./components/Metronome')),
+  MortgageCalculator: lazy(() => import('./components/MortgageCalculator')),
 };
 
 // 同步加载组件映射表
@@ -195,7 +196,7 @@ function App() {
     const SyncComponent = syncComponentMap[tool.component];
     if (SyncComponent) {
       return (
-        <div style={{ display: currentKey === tool.id ? 'block' : 'none' }}>
+        <div key={tool.id} style={{ display: currentKey === tool.id ? 'block' : 'none' }}>
           <SyncComponent />
         </div>
       );
@@ -206,7 +207,7 @@ function App() {
     if (!LazyComponent) return null;
 
     return (
-      <div style={{ display: currentKey === tool.id ? 'block' : 'none' }}>
+      <div key={tool.id} style={{ display: currentKey === tool.id ? 'block' : 'none' }}>
         <Suspense fallback={<LoadingFallback />}>
           <LazyComponent />
         </Suspense>
