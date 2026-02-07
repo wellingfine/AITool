@@ -66,6 +66,25 @@ export const fileAPI = {
         return false;
       }
     }
+  },
+
+  saveBase64Image: async (base64Data: string, defaultName: string = 'qrcode.png'): Promise<boolean> => {
+    try {
+      return await invoke<boolean>('save_base64_image', { base64Data, defaultName });
+    } catch (error) {
+      console.error('保存图片失败:', error);
+      // 浏览器环境降级
+      try {
+        const link = document.createElement('a');
+        link.download = defaultName;
+        link.href = base64Data;
+        link.click();
+        return true;
+      } catch (e) {
+        console.warn('浏览器图片保存失败:', e);
+        return false;
+      }
+    }
   }
 };
 

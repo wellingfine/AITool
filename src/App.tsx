@@ -32,6 +32,8 @@ const lazyComponentMap: Record<string, React.LazyExoticComponent<React.Component
   DayCountdown: lazy(() => import('./components/DayCountdown')),
   Metronome: lazy(() => import('./components/Metronome')),
   MortgageCalculator: lazy(() => import('./components/MortgageCalculator')),
+  QRCodeScanner: lazy(() => import('./components/QRCodeScanner')),
+  QRCodeGenerator: lazy(() => import('./components/QRCodeGenerator')),
 };
 
 // 同步加载组件映射表

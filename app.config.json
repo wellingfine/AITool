@@ -222,6 +222,28 @@
       "component": "MortgageCalculator"
     },
     {
+      "id": "qrcode",
+      "name": "二维码扫描",
+      "description": "扫描二维码并保存历史记录",
+      "icon": "ScanOutlined",
+      "category": "other",
+      "categoryName": "其它",
+      "categoryIcon": "ToolOutlined",
+      "storage": null,
+      "component": "QRCodeScanner"
+    },
+    {
+      "id": "qrcodegen",
+      "name": "二维码生成",
+      "description": "将文本生成二维码图片",
+      "icon": "QrcodeOutlined",
+      "category": "other",
+      "categoryName": "其它",
+      "categoryIcon": "ToolOutlined",
+      "storage": null,
+      "component": "QRCodeGenerator"
+    },
+    {
       "id": "about",
       "name": "关于",
       "description": "关于AITool",

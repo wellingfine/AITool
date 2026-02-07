@@ -39,6 +39,8 @@ import {
   CodeOutlined,
   SoundOutlined,
   BankOutlined,
+  ScanOutlined,
+  QrcodeOutlined,
 } from '@ant-design/icons';
 
 // 图标映射表
@@ -78,6 +80,8 @@ const iconMap: Record<string, React.ComponentType<any>> = {
   CodeOutlined,
   SoundOutlined,
   BankOutlined,
+  ScanOutlined,
+  QrcodeOutlined,
 };
 
 // 根据名称获取图标组件

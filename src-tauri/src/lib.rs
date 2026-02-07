@@ -42,6 +42,7 @@ pub fn run() {
             controller::file_controller::select_file,
             controller::file_controller::save_file,
             controller::file_controller::select_folder,
+            controller::file_controller::save_base64_image,
             
             // 应用配置 (config_controller)
             controller::config_controller::get_data_path,

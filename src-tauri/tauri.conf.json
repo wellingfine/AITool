@@ -19,7 +19,17 @@
     ],
     "security": {
       "csp": null
-    }
+    },
+    "withGlobalTauri": true
+  },
+  "plugins": {
+    "permissions": [
+      "core:default",
+      "fs:default",
+      "dialog:default",
+      "shell:default",
+      "notification:default"
+    ]
   },
   "bundle": {
     "active": true,

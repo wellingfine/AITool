@@ -4,6 +4,7 @@
 
 use std::fs;
 use std::sync::mpsc::channel;
+use base64::{Engine as _, engine::general_purpose::STANDARD as BASE64};
 
 /// 选择单个文件
 /// 
@@ -94,5 +95,53 @@ pub async fn select_folder(
             });
 
         return Ok(rx.recv().map_err(|e| e.to_string())?);
+    }
+}
+
+/// 保存 Base64 图片
+/// 
+/// 打开系统保存文件对话框，将 Base64 编码的图片保存到用户选择的位置
+/// 
+/// # Arguments
+/// * `app_handle` - Tauri 应用句柄
+/// * `base64_data` - Base64 编码的图片数据（支持 data:image/png;base64, 前缀）
+/// * `default_name` - 默认文件名
+/// 
+/// # Returns
+/// 成功保存返回 true，取消返回 false，失败返回错误信息
+#[tauri::command]
+pub async fn save_base64_image(
+    app_handle: tauri::AppHandle,
+    base64_data: String,
+    default_name: String
+) -> Result<bool, String> {
+    use tauri_plugin_dialog::DialogExt;
+
+    // 去除 data:image/png;base64, 前缀
+    let base64_content = if base64_data.contains(',') {
+        base64_data.split(',').last().unwrap_or(&base64_data).to_string()
+    } else {
+        base64_data
+    };
+
+    // 解码 base64
+    let image_data = BASE64.decode(&base64_content)
+        .map_err(|e| format!("Base64 解码失败: {}", e))?;
+
+    let (tx, rx) = channel();
+    app_handle.dialog()
+        .file()
+        .add_filter("PNG 图片", &["png"])
+        .add_filter("所有文件", &["*"])
+        .set_file_name(&default_name)
+        .save_file(move |path| {
+            let _ = tx.send(path.map(|p| p.to_string()));
+        });
+
+    if let Some(path_str) = rx.recv().map_err(|e| e.to_string())? {
+        fs::write(&path_str, image_data).map_err(|e| e.to_string())?;
+        Ok(true)
+    } else {
+        Ok(false)
     }
 }
