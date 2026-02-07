@@ -1,20 +1,18 @@
 {
   "name": "aitool",
   "private": true,
-  "version": "1.0.1",
+  "version": "1.0.3",
   "type": "module",
   "scripts": {
     "web:dev": "vite",
     "web:build": "tsc -b && vite build",
-    "lint": "eslint .",
-    "preview": "vite preview",
     "tauri": "tauri",
     "dev": "tauri dev",
     "build": "tauri build",
-    "android:init": "npx tauri android init && node scripts/setup-android-permissions.js",
-    "android:init-release": "npx tauri android init && node scripts/setup-android-signing.js && node scripts/setup-android-permissions.js",
-    "android:debug": "node scripts/setup-android-permissions.js && npx tauri android build --debug",
-    "android:release": "node scripts/setup-android-permissions.js && npx tauri android build"
+    "version:sync": "node scripts/sync-version.js",
+    "android:init": "tauri android init && node scripts/setup-android-signing.js",
+    "android:debug": "npm run version:sync && node scripts/setup-android-permissions.js && tauri android build --debug",
+    "android:release": "npm run version:sync && node scripts/setup-android-permissions.js && tauri android build"
   },
   "androidPermissions": [
     {
