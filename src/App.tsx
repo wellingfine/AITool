@@ -71,7 +71,7 @@ function App() {
   // 获取当前选中的工具配置
   const currentTool = useMemo(() => {
     const key = selectedKey[0];
-    if (!key || key === 'settings') return null;
+    if (!key) return null;
     return getToolById(key);
   }, [selectedKey]);
 
@@ -217,7 +217,7 @@ function App() {
   // 获取页面标题
   const getPageTitle = () => {
     if (currentTool) return currentTool.name;
-    return 'AI工具箱';
+    return 'AI工具箱1';
   };
 
   return (
