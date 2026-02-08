@@ -34,6 +34,7 @@ const lazyComponentMap: Record<string, React.LazyExoticComponent<React.Component
   MortgageCalculator: lazy(() => import('./components/MortgageCalculator')),
   QRCodeScanner: lazy(() => import('./components/QRCodeScanner')),
   QRCodeGenerator: lazy(() => import('./components/QRCodeGenerator')),
+  MindMap: lazy(() => import('./components/MindMap')),
 };
 
 // 同步加载组件映射表
@@ -198,7 +199,7 @@ function App() {
     const SyncComponent = syncComponentMap[tool.component];
     if (SyncComponent) {
       return (
-        <div key={tool.id} style={{ display: currentKey === tool.id ? 'block' : 'none' }}>
+        <div key={tool.id} style={{ display: currentKey === tool.id ? 'block' : 'none', height: '100%' }}>
           <SyncComponent />
         </div>
       );
@@ -209,7 +210,7 @@ function App() {
     if (!LazyComponent) return null;
 
     return (
-      <div key={tool.id} style={{ display: currentKey === tool.id ? 'block' : 'none' }}>
+      <div key={tool.id} style={{ display: currentKey === tool.id ? 'block' : 'none', height: '100%' }}>
         <Suspense fallback={<LoadingFallback />}>
           <LazyComponent />
         </Suspense>
@@ -341,7 +342,7 @@ function App() {
             padding: isMobile ? '0 0 16px 0' : '0',
             paddingBottom: isMobile ? 'env(safe-area-inset-bottom)' : 0,
             marginTop: isMobile ? 'calc(64px + env(safe-area-inset-top))' : 64,
-            minHeight: isMobile ? 'calc(100vh - 64px - env(safe-area-inset-top))' : 'calc(100vh - 64px)',
+            height: isMobile ? 'calc(100vh - 64px - env(safe-area-inset-top))' : 'calc(100vh - 64px)',
             background: colorBgLayout
           }}>
             {/* 欢迎页面 - 无选中时显示 */}
