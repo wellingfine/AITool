@@ -34,6 +34,18 @@
     {
       "name": "android.permission.READ_MEDIA_IMAGES",
       "comment": "读取图片权限 - 二维码图片上传需要 (Android 13+)"
+    },
+    {
+      "name": "android.permission.READ_EXTERNAL_STORAGE",
+      "comment": "读取存储权限 - 二维码图片上传需要 (Android 12-)",
+      "maxSdkVersion": "32"
+    }
+  ],
+  "androidFeatures": [
+    {
+      "name": "android.hardware.camera",
+      "required": false,
+      "comment": "摄像头硬件 - 二维码扫描需要"
     }
   ],
   "dependencies": {

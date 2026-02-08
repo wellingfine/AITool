@@ -22,6 +22,7 @@ console.log('🎸 配置 Android 权限...\n');
 
 // 从 package.json 读取权限配置
 let REQUIRED_PERMISSIONS = [];
+let REQUIRED_FEATURES = [];
 try {
   const packageJson = JSON.parse(fs.readFileSync(PACKAGE_JSON_PATH, 'utf-8'));
   if (packageJson.androidPermissions && Array.isArray(packageJson.androidPermissions)) {
@@ -35,13 +36,19 @@ try {
       { name: 'android.permission.MODIFY_AUDIO_SETTINGS', comment: '音频设置修改' }
     ];
   }
+  
+  // 读取硬件特性配置
+  if (packageJson.androidFeatures && Array.isArray(packageJson.androidFeatures)) {
+    REQUIRED_FEATURES = packageJson.androidFeatures;
+    console.log(`📋 从 package.json 读取到 ${REQUIRED_FEATURES.length} 个硬件特性配置\n`);
+  }
 } catch (err) {
   console.error(`❌ 读取 package.json 失败: ${err.message}`);
   process.exit(1);
 }
 
-if (REQUIRED_PERMISSIONS.length === 0) {
-  console.log('ℹ️ 没有需要配置的权限\n');
+if (REQUIRED_PERMISSIONS.length === 0 && REQUIRED_FEATURES.length === 0) {
+  console.log('ℹ️ 没有需要配置的权限或特性\n');
   process.exit(0);
 }
 
@@ -64,16 +71,22 @@ console.log(`📄 读取: ${MANIFEST_PATH}`);
 let manifestContent = fs.readFileSync(MANIFEST_PATH, 'utf-8');
 let modified = false;
 
-  // 检查并添加每个权限
+// 检查并添加每个权限
 for (const perm of REQUIRED_PERMISSIONS) {
   if (manifestContent.includes(perm.name)) {
     console.log(`   ✅ ${perm.name} 已存在 (${perm.comment})`);
   } else {
     console.log(`   ➕ 添加: ${perm.name} (${perm.comment})`);
     
+    // 构建权限标签，支持额外属性如 maxSdkVersion
+    let attrs = `android:name="${perm.name}"`;
+    if (perm.maxSdkVersion) {
+      attrs += ` android:maxSdkVersion="${perm.maxSdkVersion}"`;
+    }
+    
     // 在 manifest 标签内添加权限（在 application 标签之前）
     const comment = perm.comment ? `    <!-- ${perm.comment} -->\n    ` : '    ';
-    const newPermissionLine = `${comment}<uses-permission android:name="${perm.name}" />\n`;
+    const newPermissionLine = `${comment}<uses-permission ${attrs} />\n`;
     
     // 找到 <application 标签，在其之前插入权限
     if (manifestContent.includes('<application')) {
@@ -86,6 +99,39 @@ for (const perm of REQUIRED_PERMISSIONS) {
       manifestContent = manifestContent.replace(
         '</manifest>',
         `${newPermissionLine}</manifest>`
+      );
+    }
+    modified = true;
+  }
+}
+
+// 检查并添加每个硬件特性
+for (const feature of REQUIRED_FEATURES) {
+  const featureTag = `android:name="${feature.name}"`;
+  if (manifestContent.includes(featureTag)) {
+    console.log(`   ✅ ${feature.name} 已存在 (${feature.comment})`);
+  } else {
+    console.log(`   ➕ 添加特性: ${feature.name} (${feature.comment})`);
+    
+    // 构建特性标签
+    let attrs = `android:name="${feature.name}"`;
+    if (feature.required !== undefined) {
+      attrs += ` android:required="${feature.required}"`;
+    }
+    
+    const comment = feature.comment ? `    <!-- ${feature.comment} -->\n    ` : '    ';
+    const newFeatureLine = `${comment}<uses-feature ${attrs} />\n`;
+    
+    // 找到 <application 标签，在其之前插入
+    if (manifestContent.includes('<application')) {
+      manifestContent = manifestContent.replace(
+        '    <application',
+        `${newFeatureLine}    <application`
+      );
+    } else {
+      manifestContent = manifestContent.replace(
+        '</manifest>',
+        `${newFeatureLine}</manifest>`
       );
     }
     modified = true;
@@ -106,6 +152,15 @@ const finalContent = fs.readFileSync(MANIFEST_PATH, 'utf-8');
 for (const perm of REQUIRED_PERMISSIONS) {
   const exists = finalContent.includes(perm.name);
   console.log(`   ${exists ? '✅' : '❌'} ${perm.name}`);
+}
+
+// 验证特性
+if (REQUIRED_FEATURES.length > 0) {
+  console.log('\n📋 硬件特性验证:');
+  for (const feature of REQUIRED_FEATURES) {
+    const exists = finalContent.includes(feature.name);
+    console.log(`   ${exists ? '✅' : '❌'} ${feature.name}`);
+  }
 }
 
 console.log('\n✨ Android 权限配置完成！');

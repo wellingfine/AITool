@@ -43,15 +43,25 @@ const QRCodeScanner: React.FC = () => {
     return 'text';
   };
 
-  // 请求摄像头权限
-  const requestCameraPermission = async (): Promise<boolean> => {
+  // 检查并请求摄像头权限
+  const checkCameraPermission = async (): Promise<boolean> => {
     try {
-      const stream = await navigator.mediaDevices.getUserMedia({ video: true });
+      // 检查权限状态
+      if (navigator.permissions && navigator.permissions.query) {
+        const result = await navigator.permissions.query({ name: 'camera' as PermissionName });
+        if (result.state === 'granted') {
+          return true;
+        }
+      }
+      
+      // 尝试获取媒体流来触发权限请求
+      const stream = await navigator.mediaDevices.getUserMedia({ 
+        video: { facingMode: 'environment' } 
+      });
       stream.getTracks().forEach(track => track.stop());
       return true;
     } catch (error) {
-      console.error('摄像头权限请求失败:', error);
-      message.error('需要摄像头权限才能扫码，请在系统设置中允许访问摄像头');
+      console.error('摄像头权限检查失败:', error);
       return false;
     }
   };
@@ -60,9 +70,10 @@ const QRCodeScanner: React.FC = () => {
   const startScan = useCallback(async () => {
     if (!videoRef.current) return;
 
-    // 先请求权限
-    const hasPermission = await requestCameraPermission();
+    // 先检查权限
+    const hasPermission = await checkCameraPermission();
     if (!hasPermission) {
+      message.error('需要摄像头权限才能扫码，请在系统设置中允许访问摄像头');
       return;
     }
 
@@ -73,8 +84,9 @@ const QRCodeScanner: React.FC = () => {
       const codeReader = new BrowserQRCodeReader();
       codeReaderRef.current = codeReader;
 
+      // 使用 decodeFromVideoDevice，在所有平台上都使用 Web API
       const result = await codeReader.decodeFromVideoDevice(
-        undefined,
+        undefined, // 让系统自动选择摄像头
         videoRef.current,
         (result, error) => {
           if (error) return;
@@ -100,6 +112,7 @@ const QRCodeScanner: React.FC = () => {
 
       stopRef.current = result as unknown as ScannerControls;
     } catch (error) {
+      console.error('摄像头启动失败:', error);
       message.error('无法访问摄像头，请检查权限设置');
       setIsScanning(false);
     }
@@ -107,6 +120,13 @@ const QRCodeScanner: React.FC = () => {
 
   // 停止扫描
   const stopScan = useCallback(() => {
+    // 停止视频流
+    if (videoRef.current && videoRef.current.srcObject) {
+      const stream = videoRef.current.srcObject as MediaStream;
+      stream.getTracks().forEach(track => track.stop());
+      videoRef.current.srcObject = null;
+    }
+    
     if (stopRef.current) {
       stopRef.current.stop();
       stopRef.current = null;
@@ -266,7 +286,7 @@ const QRCodeScanner: React.FC = () => {
             <>
               <br />
               <Text type="warning" style={{ fontSize: 12 }}>
-                Android 用户需要授予摄像头和存储权限
+                Android 用户需要授予摄像头权限。如果无法启动，请使用"上传图片"功能
               </Text>
             </>
           )}
@@ -291,6 +311,8 @@ const QRCodeScanner: React.FC = () => {
                 autoPlay
                 playsInline
                 muted
+                disablePictureInPicture
+                webkit-playsinline="true"
               />
               {/* 扫描框 */}
               <div style={{
