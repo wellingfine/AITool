@@ -5,7 +5,6 @@ import { BrowserQRCodeReader } from '@zxing/browser';
 import { QRCodeReader, DecodeHintType, BinaryBitmap, HybridBinarizer, RGBLuminanceSource, BarcodeFormat } from '@zxing/library';
 import Block from '../lib/Block';
 import Page from '../lib/Page';
-import { isAndroid } from '../lib/utils';
 
 const { Text, Paragraph } = Typography;
 
@@ -293,14 +292,10 @@ const QRCodeScanner: React.FC = () => {
 
         <Paragraph type="secondary" style={{ marginBottom: 16 }}>
           点击开始扫描，将摄像头对准二维码即可自动识别
-          {isAndroid() && (
-            <>
-              <br />
-              <Text type="warning" style={{ fontSize: 12 }}>
-                Android 用户需要授予摄像头权限。如果无法启动，请使用"上传图片"功能
-              </Text>
-            </>
-          )}
+          <br />
+          <Text type="warning" style={{ fontSize: 12 }}>
+            需要授予摄像头权限。如果无法启动，请使用"上传图片"功能
+          </Text>
         </Paragraph>
 
         {/* 扫描区域 */}
@@ -357,15 +352,19 @@ const QRCodeScanner: React.FC = () => {
               `}</style>
             </>
           ) : (
-            <div style={{ 
-              width: '100%', 
-              height: '100%', 
-              display: 'flex', 
-              flexDirection: 'column',
-              alignItems: 'center', 
-              justifyContent: 'center',
-              gap: 16,
-            }}>
+            <div
+              onClick={startScan}
+              style={{
+                width: '100%',
+                height: '100%',
+                display: 'flex',
+                flexDirection: 'column',
+                alignItems: 'center',
+                justifyContent: 'center',
+                gap: 16,
+                cursor: 'pointer',
+              }}
+            >
               <CameraOutlined style={{ fontSize: 64, color: '#bfbfbf' }} />
               <Text type="secondary">点击开始扫描</Text>
             </div>
@@ -373,14 +372,26 @@ const QRCodeScanner: React.FC = () => {
         </div>
 
         {/* 操作按钮 */}
-        <div style={{ display: 'flex', justifyContent: 'center', gap: 16, marginBottom: 24, flexWrap: 'wrap' }}>
+        <div style={{
+          display: 'flex',
+          justifyContent: 'center',
+          gap: 12,
+          marginBottom: 24,
+          flexWrap: 'wrap',
+        }}>
           {isScanning ? (
-            <Button danger size="large" onClick={stopScan}>
+            <Button danger size="large" onClick={stopScan} block>
               停止扫描
             </Button>
           ) : (
             <>
-              <Button type="primary" size="large" icon={<ScanOutlined />} onClick={startScan}>
+              <Button
+                type="primary"
+                size="large"
+                icon={<ScanOutlined />}
+                onClick={startScan}
+                style={{ flex: 1, minWidth: 120, maxWidth: 160 }}
+              >
                 开始扫描
               </Button>
               <Upload
@@ -391,7 +402,11 @@ const QRCodeScanner: React.FC = () => {
                   return false;
                 }}
               >
-                <Button size="large" icon={<UploadOutlined />}>
+                <Button
+                  size="large"
+                  icon={<UploadOutlined />}
+                  style={{ flex: 1, minWidth: 120, maxWidth: 160 }}
+                >
                   选择图片
                 </Button>
               </Upload>
@@ -421,10 +436,9 @@ const QRCodeScanner: React.FC = () => {
                 </Text>
               </div>
               {lastScanned.type === 'url' && (
-                <Button 
-                  type="link" 
-                  href={lastScanned.content} 
-                  target="_blank"
+                <Button
+                  type="link"
+                  onClick={() => window.open(lastScanned.content, '_blank')}
                   style={{ paddingLeft: 0, marginTop: 8 }}
                 >
                   打开链接 →
@@ -461,39 +475,19 @@ const QRCodeScanner: React.FC = () => {
             dataSource={history}
             renderItem={(item) => (
               <List.Item
-                actions={[
-                  <Button 
-                    key="copy" 
-                    type="text" 
-                    icon={<CopyOutlined />} 
-                    onClick={() => copyRecord(item.content)}
-                  >
-                    复制
-                  </Button>,
-                  <Button 
-                    key="delete" 
-                    type="text" 
-                    danger 
-                    icon={<DeleteOutlined />} 
-                    onClick={() => deleteRecord(item.id)}
-                  >
-                    删除
-                  </Button>,
-                ]}
+                onClick={() => copyRecord(item.content)}
+                style={{ cursor: 'pointer', padding: '12px 0' }}
               >
                 <List.Item.Meta
                   title={
                     <Space>
-                      <Tag color={getTypeColor(item.type)}>
-                        {item.type.toUpperCase()}
-                      </Tag>
                       <Text type="secondary" style={{ fontSize: 12 }}>
                         {formatTime(item.timestamp)}
                       </Text>
                     </Space>
                   }
                   description={
-                    <Text ellipsis style={{ maxWidth: '100%' }}>
+                    <Text style={{ maxWidth: '100%' }}>
                       {item.content}
                     </Text>
                   }
