@@ -100,7 +100,7 @@ const LineDedupe: React.FC = () => {
   return (
     <Page maxWidth={800}>
       <Block>
-        <Space direction="vertical" style={{ width: '100%' }} size="middle">
+        <Space orientation="vertical" style={{ width: '100%' }} size="middle">
           <div>
             <Text strong>输入文本（每行一条数据）</Text>
             <TextArea

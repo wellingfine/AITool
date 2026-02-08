@@ -3,7 +3,6 @@ import {
   Input,
   InputNumber,
   Button,
-  List,
   Select,
   Row,
   Col,
@@ -13,10 +12,11 @@ import {
   Tag,
   Typography,
   Space,
-  message,
   Modal,
   Dropdown,
   Spin,
+  App,
+  Table,
 } from 'antd';
 import {
   PlusOutlined,
@@ -70,6 +70,7 @@ const SplitBill: React.FC = () => {
   });
 
   const { token } = theme.useToken();
+  const { message } = App.useApp();
 
   // 加载数据
   const loadData = useCallback(async () => {
@@ -466,7 +467,7 @@ const SplitBill: React.FC = () => {
   if (loading) {
     return (
       <div style={{ padding: '8px 0', maxWidth: 800, margin: '0 auto', textAlign: 'center', paddingTop: 100 }}>
-        <Spin size="large" tip="加载中..." />
+        <Spin size="large" />
       </div>
     );
   }
@@ -759,81 +760,65 @@ const SplitBill: React.FC = () => {
               </div>
 
               {expenses.length > 0 ? (
-                <List
+                <Table
                   size="small"
+                  pagination={false}
                   dataSource={[...expenses].reverse()}
-                  renderItem={(expense) => (
-                    <List.Item
-                      actions={[
+                  rowKey="id"
+                  columns={[
+                    { title: '描述', dataIndex: 'description', key: 'description' },
+                    {
+                      title: '金额',
+                      dataIndex: 'amount',
+                      key: 'amount',
+                      render: (amount: number) => (
+                        <Text type="success" strong>¥{amount.toFixed(2)}</Text>
+                      ),
+                    },
+                    {
+                      title: '付款人',
+                      dataIndex: 'paidBy',
+                      key: 'paidBy',
+                      render: (paidBy: string) => (
+                        <Text style={{ color: token.colorPrimary }}>{getParticipantName(paidBy)}</Text>
+                      ),
+                    },
+                    {
+                      title: '分摊',
+                      key: 'split',
+                      render: (_: unknown, expense: Expense) => (
+                        <span>
+                          {expense.splitAmong.length === participants.length
+                            ? '所有人'
+                            : expense.splitAmong.map((id) => getParticipantName(id)).join('、')}
+                          {expense.splitAmong.length > 0 && (
+                            <Text type="secondary" style={{ fontSize: 12, marginLeft: 4 }}>
+                              (¥{(expense.amount / expense.splitAmong.length).toFixed(2)}/人)
+                            </Text>
+                          )}
+                        </span>
+                      ),
+                    },
+                    {
+                      title: '操作',
+                      key: 'action',
+                      width: 60,
+                      render: (_: unknown, expense: Expense) => (
                         <Popconfirm
-                          key="delete"
                           title="确认删除"
                           description="确定要删除这笔账单吗？"
                           onConfirm={() => handleDeleteExpense(expense.id)}
                           okText="确定"
                           cancelText="取消"
                         >
-                          <Button
-                            type="text"
-                            danger
-                            size="small"
-                            icon={<DeleteOutlined />}
-                          />
-                        </Popconfirm>,
-                      ]}
-                    >
-                      <List.Item.Meta
-                        title={
-                          <div
-                            style={{
-                              display: 'flex',
-                              alignItems: 'center',
-                              gap: 8,
-                            }}
-                          >
-                            <span>{expense.description}</span>
-                            <Text type="success" strong>
-                              ¥{expense.amount.toFixed(2)}
-                            </Text>
-                          </div>
-                        }
-                        description={
-                          <div
-                            style={{
-                              fontSize: 12,
-                              color: token.colorTextSecondary,
-                            }}
-                          >
-                            <span style={{ color: token.colorPrimary }}>
-                              {getParticipantName(expense.paidBy)}
-                            </span>
-                            {' 付款，'}
-                            {expense.splitAmong.length === participants.length
-                              ? '所有人'
-                              : expense.splitAmong
-                                  .map((id) => getParticipantName(id))
-                                  .join('、')}
-                            分摊
-                            {expense.splitAmong.length > 0 && (
-                              <span>
-                                （每人 ¥
-                                {(
-                                  expense.amount / expense.splitAmong.length
-                                ).toFixed(2)}
-                                ）
-                              </span>
-                            )}
-                          </div>
-                        }
-                      />
-                    </List.Item>
-                  )}
+                          <Button type="text" danger size="small" icon={<DeleteOutlined />} />
+                        </Popconfirm>
+                      ),
+                    },
+                  ]}
                 />
               ) : (
-                <Empty
-                  description="暂无账单记录"
-                  image={Empty.PRESENTED_IMAGE_SIMPLE}
-                />
+                <Empty description="暂无账单记录" image={Empty.PRESENTED_IMAGE_SIMPLE} />
               )}
             </Block>
 
@@ -852,65 +837,51 @@ const SplitBill: React.FC = () => {
                   <Text strong>账单明细</Text>
                 </div>
 
-                <List
+                <Table
                   size="small"
+                  pagination={false}
                   dataSource={participants}
-                  renderItem={(participant) => {
-                    const stats = getPersonExpense(participant.id);
-                    return (
-                      <List.Item>
-                        <div
-                          style={{
-                            display: 'flex',
-                            alignItems: 'center',
-                            width: '100%',
-                            gap: 16,
-                          }}
-                        >
-                          <Text strong style={{ minWidth: 60 }}>
-                            {participant.name}
-                          </Text>
-                          <div
-                            style={{
-                              display: 'flex',
-                              gap: 16,
-                              flex: 1,
-                              fontSize: 12,
-                            }}
-                          >
-                            <span>
-                              已付:{' '}
-                              <Text type="success">
-                                ¥{stats.paid.toFixed(2)}
-                              </Text>
-                            </span>
-                            <span>
-                              应付: <Text>¥{stats.shouldPay.toFixed(2)}</Text>
-                            </span>
-                          </div>
+                  rowKey="id"
+                  columns={[
+                    { title: '姓名', dataIndex: 'name', key: 'name', render: (name: string) => <Text strong>{name}</Text> },
+                    {
+                      title: '已付',
+                      key: 'paid',
+                      render: (_: unknown, participant: Participant) => {
+                        const stats = getPersonExpense(participant.id);
+                        return <Text type="success">¥{stats.paid.toFixed(2)}</Text>;
+                      },
+                    },
+                    {
+                      title: '应付',
+                      key: 'shouldPay',
+                      render: (_: unknown, participant: Participant) => {
+                        const stats = getPersonExpense(participant.id);
+                        return <Text>¥{stats.shouldPay.toFixed(2)}</Text>;
+                      },
+                    },
+                    {
+                      title: '结算',
+                      key: 'balance',
+                      align: 'right' as const,
+                      render: (_: unknown, participant: Participant) => {
+                        const stats = getPersonExpense(participant.id);
+                        const isPositive = stats.balance > 0.01;
+                        const isNegative = stats.balance < -0.01;
+                        return (
                           <Text
                             strong
                             style={{
-                              color:
-                                stats.balance > 0.01
-                                  ? token.colorSuccess
-                                  : stats.balance < -0.01
-                                  ? token.colorError
-                                  : token.colorTextSecondary,
+                              color: isPositive ? token.colorSuccess : isNegative ? token.colorError : token.colorTextSecondary,
                             }}
                           >
-                            {stats.balance > 0
-                              ? '应收'
-                              : stats.balance < 0
-                              ? '应付'
-                              : '已结清'}
-                            {Math.abs(stats.balance) > 0.01 &&
-                              ` ¥${Math.abs(stats.balance).toFixed(2)}`}
+                            {isPositive ? '应收' : isNegative ? '应付' : '已结清'}
+                            {(isPositive || isNegative) && ` ¥${Math.abs(stats.balance).toFixed(2)}`}
                           </Text>
-                        </div>
-                      </List.Item>
-                    );
-                  }}
+                        );
+                      },
+                    },
+                  ]}
                 />
               </Block>
             )}
