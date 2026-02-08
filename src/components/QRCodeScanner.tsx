@@ -1,6 +1,6 @@
 import { useState, useRef, useCallback, useEffect } from 'react';
 import { Button, List, Typography, Tag, Space, message, Empty, Divider, Upload } from 'antd';
-import { ScanOutlined, CameraOutlined, CopyOutlined, DeleteOutlined, CheckCircleOutlined, UploadOutlined } from '@ant-design/icons';
+import { ScanOutlined, CameraOutlined, DeleteOutlined, CheckCircleOutlined, UploadOutlined } from '@ant-design/icons';
 import { BrowserQRCodeReader } from '@zxing/browser';
 import { QRCodeReader, DecodeHintType, BinaryBitmap, HybridBinarizer, RGBLuminanceSource, BarcodeFormat } from '@zxing/library';
 import Block from '../lib/Block';
@@ -149,12 +149,6 @@ const QRCodeScanner: React.FC = () => {
   const copyRecord = (content: string) => {
     navigator.clipboard.writeText(content);
     message.success('已复制到剪贴板');
-  };
-
-  // 删除记录
-  const deleteRecord = (id: string) => {
-    setHistory(prev => prev.filter(h => h.id !== id));
-    message.success('已删除');
   };
 
   // 清空历史

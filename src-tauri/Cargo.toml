@@ -1,6 +1,6 @@
 [package]
 name = "aitool"
-version = "1.0.5"
+version = "1.0.7"
 description = "AITool - A desktop application built with Tauri"
 authors = ["v0tx"]
 edition = "2021"
