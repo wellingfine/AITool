@@ -62,14 +62,28 @@ type G6Graph = {
   addEdgeData: (edges: unknown[]) => void;
   updateNodeData: (nodes: unknown[]) => void;
   removeNodeData: (ids: string[]) => void;
-  getNodeData: (id: string) => { id: string; label: string } | undefined;
+  getNodeData: (id: string) => { id: string; label: string; style?: { x?: number; y?: number } } | undefined;
   getChildrenData: (id: string) => Array<{ id: string }>;
-  setElementState: (id: string, state: string) => void;
-  on: (event: string, handler: (evt: { target: { id: string }; originalEvent?: MouseEvent }) => void) => void;
+  setElementState: (id: string, state: string | string[], value?: boolean) => void;
+  on: (event: string, handler: (evt: G6Event) => void) => void;
   off: () => void;
-  layout: () => Promise<void>;
+  layout: (options?: { animation?: boolean }) => Promise<void>;
   getElementState: (id: string, state: string) => boolean;
+  getViewportCenter: () => { x: number; y: number };
+  getCanvasByViewport: (point: { x: number; y: number }) => { x: number; y: number };
+  getViewportByCanvas: (point: { x: number; y: number }) => { x: number; y: number };
+  translateTo: (x: number, y: number, animation?: boolean) => void;
+  getZoom: () => number;
 };
+
+// G6 事件类型
+interface G6Event {
+  target: { id: string };
+  client: { x: number; y: number };
+  canvas: { x: number; y: number };
+  viewport: { x: number; y: number };
+  originalEvent?: MouseEvent;
+}
 
 // 格式化文件大小
 const formatFileSize = (bytes: number): string => {
@@ -161,6 +175,7 @@ const MindMap: React.FC = () => {
         width: containerRef.current!.clientWidth,
         height: containerRef.current!.clientHeight,
         data: { nodes: [], edges: [] },
+        // 不要设置 autoFit，避免自动居中
         layout: {
           type: 'mindmap',
           direction: 'H',
@@ -189,6 +204,14 @@ const MindMap: React.FC = () => {
             labelTextBaseline: 'middle',
             labelY: 0,
           },
+          state: {
+            selected: {
+              stroke: '#1890ff',
+              lineWidth: 3,
+              shadowColor: 'rgba(24, 144, 255, 0.3)',
+              shadowBlur: 10,
+            },
+          },
         },
         edge: {
           type: 'cubic-horizontal',
@@ -200,133 +223,137 @@ const MindMap: React.FC = () => {
         behaviors: [
           'drag-canvas',
           'zoom-canvas',
-          'drag-node',
+          'drag-element',
         ],
         animation: false,
       }) as unknown as G6Graph;
 
-      // 单击选中节点
-      graph.on('node:click', (evt: { target: { id: string }; originalEvent?: MouseEvent }) => {
-        console.log('[DEBUG] node:click event:', evt);
-        const nodeId = evt.target.id;
-        console.log('[DEBUG] click nodeId:', nodeId);
-        
-        // 阻止默认行为防止画布居中
-        if (evt.originalEvent) {
-          evt.originalEvent.preventDefault();
-          evt.originalEvent.stopPropagation();
+      // 用于跟踪点击时间，区分单击和双击
+      let lastClickTime = 0;
+      let lastClickNodeId: string | null = null;
+      let clickTimer: ReturnType<typeof setTimeout> | null = null;
+      
+      // 当前选中的节点ID（用于样式管理）
+      let currentSelectedId: string | null = null;
+
+      // 清除选中样式的辅助函数
+      const clearSelectedStyle = () => {
+        if (currentSelectedId) {
+          try {
+            // 使用 G6 的状态系统
+            graph.setElementState(currentSelectedId, 'selected', false);
+          } catch (e) {
+            console.log('clearSelectedStyle error:', e);
+          }
+          currentSelectedId = null;
         }
-        
-        selectedNodeRef.current = nodeId;
-
-        // 高亮选中节点 - 批量更新
-        const allData = graph.getData() as { nodes?: Array<{ id: string }> };
-        const updates = allData.nodes?.map((node) => ({
-          id: node.id,
-          style: {
-            stroke: node.id === nodeId ? '#1890ff' : (node.id === 'root' ? '#096dd9' : '#d9d9d9'),
-            lineWidth: node.id === nodeId ? 2 : 1,
-          },
-        })) || [];
-
-        if (updates.length > 0) {
-          graph.updateNodeData(updates);
-          graph.render();
-        }
-      });
-
-      // 双击原地编辑节点 - 尝试多种事件名
-      const handleDblClick = (evt: unknown) => {
-        console.log('[DEBUG] ===== node:dblclick triggered =====');
-        console.log('[DEBUG] raw evt:', evt);
-        
-        // 尝试多种方式获取节点ID
-        const anyEvt = evt as { target?: { id?: string }; originalEvent?: MouseEvent; [key: string]: unknown };
-        console.log('[DEBUG] evt.target:', anyEvt.target);
-        console.log('[DEBUG] evt.target?.id:', anyEvt.target?.id);
-        console.log('[DEBUG] evt keys:', Object.keys(evt || {}));
-        
-        const nodeId = anyEvt.target?.id;
-        if (!nodeId) {
-          console.log('[DEBUG] ERROR: no nodeId found!');
-          return;
-        }
-        console.log('[DEBUG] nodeId:', nodeId);
-        
-        const nodeData = graph.getNodeData(nodeId);
-        console.log('[DEBUG] nodeData:', nodeData);
-        if (!nodeData) {
-          console.log('[DEBUG] ERROR: no nodeData found!');
-          return;
-        }
-
-        // 阻止事件冒泡和默认行为
-        if (anyEvt.originalEvent) {
-          console.log('[DEBUG] originalEvent:', anyEvt.originalEvent);
-          anyEvt.originalEvent.stopPropagation();
-          anyEvt.originalEvent.preventDefault();
-        }
-
-        // 使用鼠标事件的客户端坐标
-        const clientX = anyEvt.originalEvent?.clientX;
-        const clientY = anyEvt.originalEvent?.clientY;
-        console.log('[DEBUG] clientX:', clientX, 'clientY:', clientY);
-
-        // 获取容器信息
-        const canvas = containerRef.current;
-        if (!canvas) {
-          console.log('[DEBUG] ERROR: no canvas found!');
-          return;
-        }
-
-        const canvasRect = canvas.getBoundingClientRect();
-        console.log('[DEBUG] canvasRect:', canvasRect);
-
-        // 输入框位置：鼠标位置或节点中心
-        const inputX = clientX ? clientX - 60 : canvasRect.width / 2 - 60;
-        const inputY = clientY ? clientY - 18 : canvasRect.height / 2 - 18;
-        console.log('[DEBUG] final inputX:', inputX, 'inputY:', inputY);
-
-        setEditingNode({
-          id: nodeId,
-          label: nodeData.label,
-          x: inputX,
-          y: inputY,
-        });
-        console.log('[DEBUG] setEditingNode called');
       };
-      
-      // 尝试多种双击事件名
-      graph.on('node:dblclick', handleDblClick);
-      graph.on('dblclick', handleDblClick);
-      (graph as unknown as { on: (e: string, h: unknown) => void }).on('element:dblclick', handleDblClick);
 
-      // 测试其他事件是否正常
-      graph.on('canvas:click', () => {
-        console.log('[DEBUG] canvas:click triggered');
+      // 设置选中样式的辅助函数
+      const setSelectedStyle = (nodeId: string) => {
+        // 先清除之前的选中样式
+        if (currentSelectedId && currentSelectedId !== nodeId) {
+          try {
+            graph.setElementState(currentSelectedId, 'selected', false);
+          } catch (e) {
+            console.log('clear prev selected error:', e);
+          }
+        }
+        
+        // 设置新选中的样式
+        try {
+          graph.setElementState(nodeId, 'selected', true);
+          currentSelectedId = nodeId;
+        } catch (e) {
+          console.log('setSelectedStyle error:', e);
+        }
+      };
+
+      // 单击选中节点
+      graph.on('node:click', (evt: G6Event) => {
+        const nodeId = evt.target.id;
+        const now = Date.now();
+        
+        // 检测是否为双击（300ms内对同一节点的两次点击）
+        if (lastClickNodeId === nodeId && now - lastClickTime < 300) {
+          // 这是双击，清除单击定时器，触发双击逻辑
+          if (clickTimer) {
+            clearTimeout(clickTimer);
+            clickTimer = null;
+          }
+          lastClickTime = 0;
+          lastClickNodeId = null;
+          
+          // 双击编辑逻辑
+          const nodeData = graph.getNodeData(nodeId);
+          if (!nodeData) return;
+
+          // 获取容器信息
+          const container = containerRef.current;
+          if (!container) return;
+
+          // 使用事件中的 viewport 坐标（相对于画布容器的坐标）
+          // G6 事件中 viewport 就是相对于容器的坐标
+          let inputX: number;
+          let inputY: number;
+          
+          if (evt.viewport) {
+            // viewport 坐标就是相对于容器的坐标
+            inputX = evt.viewport.x - 60;
+            inputY = evt.viewport.y - 18;
+          } else if (evt.client) {
+            // 使用 client 坐标减去容器偏移
+            const rect = container.getBoundingClientRect();
+            inputX = evt.client.x - rect.left - 60;
+            inputY = evt.client.y - rect.top - 18;
+          } else {
+            // 回退到容器中心
+            inputX = container.clientWidth / 2 - 60;
+            inputY = container.clientHeight / 2 - 18;
+          }
+
+          setEditingNode({
+            id: nodeId,
+            label: nodeData.label,
+            x: inputX,
+            y: inputY,
+          });
+          return;
+        }
+        
+        // 记录这次点击
+        lastClickTime = now;
+        lastClickNodeId = nodeId;
+        
+        // 延迟执行单击逻辑，等待可能的双击
+        if (clickTimer) {
+          clearTimeout(clickTimer);
+        }
+        
+        clickTimer = setTimeout(() => {
+          clickTimer = null;
+          
+          // 设置新选中的节点
+          selectedNodeRef.current = nodeId;
+          setSelectedStyle(nodeId);
+        }, 300);
       });
-      
-      // 使用原生 DOM 事件监听双击
-      const canvas = containerRef.current;
-      if (canvas) {
-        canvas.addEventListener('dblclick', (e: MouseEvent) => {
-          console.log('[DEBUG] Native dblclick on canvas:', e);
-          
-          // 获取点击位置的元素
-          const target = e.target as HTMLElement;
-          console.log('[DEBUG] Native click target:', target);
-          console.log('[DEBUG] Native click target tagName:', target.tagName);
-          
-          // 尝试从 data-id 或其他属性获取节点ID
-          const nodeId = target.getAttribute('data-id') || 
-                        target.parentElement?.getAttribute('data-id');
-          console.log('[DEBUG] Extracted nodeId from DOM:', nodeId);
-        });
-      }
+
+      // 点击画布空白处取消选中
+      graph.on('canvas:click', () => {
+        if (clickTimer) {
+          clearTimeout(clickTimer);
+          clickTimer = null;
+        }
+        
+        // 清除选中样式
+        clearSelectedStyle();
+        // 重置为 root（但不选中显示）
+        selectedNodeRef.current = 'root';
+      });
       
       graphRef.current = graph;
       setGraphReady(true);
-      console.log('[DEBUG] Graph initialized, events bound');
     };
 
     initGraph();
@@ -427,18 +454,6 @@ const MindMap: React.FC = () => {
 
     // 重置选中状态
     selectedNodeRef.current = data.id || 'root';
-    // 重置所有节点为默认样式
-    const updates = g6Data.nodes?.map((node: { id: string }) => ({
-      id: node.id,
-      style: {
-        stroke: node.id === data.id ? '#096dd9' : '#d9d9d9',
-        lineWidth: 1,
-      },
-    })) || [];
-    if (updates.length > 0) {
-      graph.updateNodeData(updates);
-      graph.render();
-    }
 
     updateStatusBar();
   }, [updateStatusBar]);
@@ -581,7 +596,7 @@ const MindMap: React.FC = () => {
   }, [selectedMapId, renameValue, mindMaps, saveIndex, currentMap]);
 
   // 添加子节点
-  const handleAddChild = useCallback(() => {
+  const handleAddChild = useCallback(async () => {
     if (!graphRef.current) return;
 
     const graph = graphRef.current;
@@ -616,8 +631,10 @@ const MindMap: React.FC = () => {
       },
     ]);
 
-    graph.render();
-    graph.layout();
+    // 重新渲染以应用布局变化
+    // G6 v5 在增量更新时会自动重新计算布局
+    await graph.render();
+    
     updateStatusBar();
   }, [updateStatusBar]);
 
