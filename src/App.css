@@ -40,3 +40,12 @@
 .read-the-docs {
   color: #888;
 }
+
+.sider{
+  background: #001529;
+  color: #fff;
+  position: fixed;
+  left: 0;
+  top: 0;
+  bottom: 0;
+}

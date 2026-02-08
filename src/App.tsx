@@ -166,6 +166,31 @@ function App() {
 
   const currentKey = selectedKey[0];
 
+  // 提取样式配置，提高可读性
+  const layoutStyles = useMemo(() => {
+    if (isMobile) {
+      return {
+        sider: { width: '100%', collapsedWidth: 0 },
+        siderMenu: { width: '100%' },
+        siderHeader: { justifyContent: 'space-between', padding: '0 16px' },
+        mainLayout: { marginLeft: 0 },
+        header: { left: 0 },
+        content: { left: 0 },
+      };
+    }
+
+    const sideOffset = collapsed ? 0 : 200;
+
+    return {
+      sider: { width: 200, collapsedWidth: 0 },
+      siderMenu: { width: sideOffset },
+      siderHeader: { justifyContent: 'center', padding: '0' },
+      mainLayout: { marginLeft: sideOffset },
+      header: { left: sideOffset },
+      content: { left: sideOffset },
+    };
+  }, [isMobile, collapsed]);
+
   // 处理菜单选择，记录已加载的组件
   const handleSelect = useCallback((e: { selectedKeys: string[] }) => {
     const key = e.selectedKeys[0];
@@ -199,7 +224,7 @@ function App() {
     const SyncComponent = syncComponentMap[tool.component];
     if (SyncComponent) {
       return (
-        <div key={tool.id} style={{ display: currentKey === tool.id ? 'block' : 'none', height: '100%' }}>
+        <div key={tool.id} style={{ overflow: 'auto', display: currentKey === tool.id ? 'block' : 'none', height: '100%' }}>
           <SyncComponent />
         </div>
       );
@@ -210,7 +235,7 @@ function App() {
     if (!LazyComponent) return null;
 
     return (
-      <div key={tool.id} style={{ display: currentKey === tool.id ? 'block' : 'none', height: '100%' }}>
+      <div key={tool.id} style={{ overflow: 'auto', display: currentKey === tool.id ? 'block' : 'none', height: '100%' }}>
         <Suspense fallback={<LoadingFallback />}>
           <LazyComponent />
         </Suspense>
@@ -232,135 +257,138 @@ function App() {
     >
       <AntApp>
         <Layout style={{ minHeight: '100vh', background: colorBgLayout }}>
-        <Sider
-          width={isMobile ? '100%' : 200}
-          collapsed={!isMobile && collapsed}
-          collapsedWidth={isMobile ? 0 : 80}
-          trigger={null}
+          <Sider
+            className='sider'
+            width={layoutStyles.sider.width}
+            collapsed={!isMobile && collapsed}
+            collapsedWidth={layoutStyles.sider.collapsedWidth}
+            trigger={null}
           style={{
-            background: '#001529',
-            color: '#fff',
-            position: 'fixed',
-            height: isMobile ? 'calc(100vh - env(safe-area-inset-top))' : '100vh',
-            paddingTop: isMobile ? 'env(safe-area-inset-top)' : 0,
+            paddingTop: 'env(safe-area-inset-top)',
             zIndex: 100,
             display: isMobile && collapsed ? 'none' : 'block'
           }}
-        >
-          <div style={{
-            height: 64,
-            display: 'flex',
-            alignItems: 'center',
-            justifyContent: isMobile ? 'space-between' : 'center',
-            fontSize: '20px',
-            fontWeight: 'bold',
-            borderBottom: '1px solid #1f394c',
-            color: '#fff',
-            padding: isMobile ? '0 16px' : '0'
-          }}>
-            {isMobile && <span style={{ width: 24 }} />}
-            <span>AITool</span>
-            {isMobile && (
-              <span
-                style={{
-                  fontSize: '20px',
-                  cursor: 'pointer',
-                  width: 24,
-                  textAlign: 'center'
-                }}
-                onClick={() => setCollapsed(true)}
-              >
-                ✕
-              </span>
-            )}
-          </div>
-          <div style={{
-            height: isMobile ? 'calc(100vh - 64px - env(safe-area-inset-top))' : 'calc(100vh - 64px)',
-            overflowY: 'auto'
-          }}>
-            <Menu
-              mode="inline"
-              theme="dark"
-              style={{ borderRight: 0 }}
-              selectedKeys={selectedKey}
-              onSelect={handleSelect}
-              items={mainMenuItems}
-            />
-          </div>
-
-        </Sider>
-        {/* 移动端遮罩层 */}
-        {isMobile && !collapsed && (
-          <div
-            style={{
+          >
+            <div style={{
+              height: 64,
+              display: 'flex',
+              alignItems: 'center',
+              justifyContent: layoutStyles.siderHeader.justifyContent,
+              fontSize: '20px',
+              fontWeight: 'bold',
+              borderBottom: '1px solid #1f394c',
+              color: '#fff',
+              padding: layoutStyles.siderHeader.padding
+            }}>
+              {isMobile && <span style={{ width: 24 }} />}
+              <span>AITool</span>
+              {isMobile && (
+                <span
+                  style={{
+                    fontSize: '20px',
+                    cursor: 'pointer',
+                    width: 24,
+                    textAlign: 'center'
+                  }}
+                  onClick={() => setCollapsed(true)}
+                >
+                  ✕
+                </span>
+              )}
+            </div>
+            <div style={{
               position: 'fixed',
-              top: 0,
-              left: 0,
-              right: 0,
+              top: 64,
               bottom: 0,
-              background: 'rgba(0, 0, 0, 0.5)',
-              zIndex: 99
-            }}
-            onClick={() => setCollapsed(true)}
-          />
-        )}
-        <Layout style={{ marginLeft: isMobile ? 0 : (collapsed ? 80 : 200) }}>
+              left: 0,
+              width: layoutStyles.siderMenu.width,
+              overflowY: 'auto'
+            }}>
+              <Menu
+                mode="inline"
+                theme="dark"
+                style={{ borderRight: 0 }}
+                selectedKeys={selectedKey}
+                onSelect={handleSelect}
+                items={mainMenuItems}
+              />
+            </div>
+
+          </Sider>
+          {/* 移动端遮罩层 */}
+          {isMobile && !collapsed && (
+            <div
+              style={{
+                position: 'fixed',
+                top: 0,
+                left: 0,
+                right: 0,
+                bottom: 0,
+                background: 'rgba(0, 0, 0, 0.5)',
+                zIndex: 99
+              }}
+              onClick={() => setCollapsed(true)}
+            />
+          )}
+          <Layout>
           <Header
             style={{
-              padding: isMobile ? 'env(safe-area-inset-top) 16px 0 16px' : '0 24px',
-              paddingLeft: isMobile ? 16 : 24,
+              padding: 'env(safe-area-inset-top) 24px 0 24px',
               background: colorBgElevated,
               borderBottom: `1px solid ${colorBorder}`,
               display: 'flex',
               alignItems: 'center',
               position: 'fixed',
               top: 0,
-              left: isMobile ? 0 : (collapsed ? 80 : 200),
+              left: layoutStyles.header.left,
               right: 0,
               zIndex: 9,
-              height: isMobile ? 'calc(64px + env(safe-area-inset-top))' : 64
+              height: 'calc(64px + env(safe-area-inset-top))'
             }}
           >
-            {/* 移动端菜单按钮 */}
-            {isMobile && (
-              <span
-                style={{
-                  fontSize: '18px',
-                  marginRight: '12px',
-                  cursor: 'pointer'
-                }}
-                onClick={() => setCollapsed(!collapsed)}
-              >
-                ☰
+              {/* 移动端菜单按钮 */}
+              {isMobile && (
+                <span
+                  style={{
+                    fontSize: '18px',
+                    marginRight: '12px',
+                    cursor: 'pointer'
+                  }}
+                  onClick={() => setCollapsed(!collapsed)}
+                >
+                  ☰
+                </span>
+              )}
+              <span style={{ fontSize: '16px', fontWeight: 500, color: colorText }}>
+                {getPageTitle()}
               </span>
-            )}
-            <span style={{ fontSize: '16px', fontWeight: 500, color: colorText }}>
-              {getPageTitle()}
-            </span>
-          </Header>
-          <Content style={{
-            padding: isMobile ? '0 0 16px 0' : '0',
-            paddingBottom: isMobile ? 'env(safe-area-inset-bottom)' : 0,
-            marginTop: isMobile ? 'calc(64px + env(safe-area-inset-top))' : 64,
-            height: isMobile ? 'calc(100vh - 64px - env(safe-area-inset-top))' : 'calc(100vh - 64px)',
-            background: colorBgLayout
-          }}>
-            {/* 欢迎页面 - 无选中时显示 */}
-            <div style={{
-              display: !currentKey ? 'flex' : 'none',
-              alignItems: 'center',
-              justifyContent: 'center',
-              height: '100%',
-              fontSize: '24px',
-              color: colorTextSecondary
+            </Header>
+            <Content style={{
+              padding: isMobile ? '0 0 16px 0' : '0',
+              paddingBottom: 'env(safe-area-inset-bottom)',
+              position: 'fixed',
+              top: 'calc(64px + env(safe-area-inset-top))',
+              bottom: 0,
+              left: layoutStyles.content.left,
+              right: 0,
+              background: colorBgLayout
             }}>
-              欢迎使用
-            </div>
+              {/* 欢迎页面 - 无选中时显示 */}
+              <div style={{
+                display: !currentKey ? 'flex' : 'none',
+                alignItems: 'center',
+                justifyContent: 'center',
+                height: '100%',
+                fontSize: '24px',
+                color: colorTextSecondary
+              }}>
+                欢迎使用
+              </div>
 
-            {/* 动态渲染工具组件 */}
-            {getTools().map(tool => shouldRender(tool.id) && renderToolComponent(tool))}
-          </Content>
-        </Layout>
+              {/* 动态渲染工具组件 */}
+              {getTools().map(tool => shouldRender(tool.id) && renderToolComponent(tool))}
+            </Content>
+          </Layout>
         </Layout>
       </AntApp>
     </ConfigProvider>
