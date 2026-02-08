@@ -1,4 +1,4 @@
-import { useState, useRef, useCallback } from 'react';
+import { useState, useRef, useCallback, useEffect } from 'react';
 import { Button, List, Typography, Tag, Space, message, Empty, Divider, Upload } from 'antd';
 import { ScanOutlined, CameraOutlined, CopyOutlined, DeleteOutlined, CheckCircleOutlined, UploadOutlined } from '@ant-design/icons';
 import { BrowserQRCodeReader } from '@zxing/browser';
@@ -68,8 +68,6 @@ const QRCodeScanner: React.FC = () => {
 
   // 开始扫描
   const startScan = useCallback(async () => {
-    if (!videoRef.current) return;
-
     // 先检查权限
     const hasPermission = await checkCameraPermission();
     if (!hasPermission) {
@@ -79,14 +77,37 @@ const QRCodeScanner: React.FC = () => {
 
     setIsScanning(true);
     setLastScanned(null);
+    // 摄像头初始化将在 useEffect 中完成
+  }, []);
+
+  // 停止扫描
+  const stopScan = useCallback(() => {
+    // 停止视频流
+    if (videoRef.current && videoRef.current.srcObject) {
+      const stream = videoRef.current.srcObject as MediaStream;
+      stream.getTracks().forEach(track => track.stop());
+      videoRef.current.srcObject = null;
+    }
+    
+    if (stopRef.current) {
+      stopRef.current.stop();
+      stopRef.current = null;
+    }
+    codeReaderRef.current = null;
+    setIsScanning(false);
+  }, []);
+
+  // 初始化扫描 - 在 video 元素渲染后调用
+  const initScan = useCallback(async () => {
+    if (!videoRef.current) return;
 
     try {
       const codeReader = new BrowserQRCodeReader();
       codeReaderRef.current = codeReader;
 
-      // 使用 decodeFromVideoDevice，在所有平台上都使用 Web API
+      // 使用 decodeFromVideoDevice
       const result = await codeReader.decodeFromVideoDevice(
-        undefined, // 让系统自动选择摄像头
+        undefined,
         videoRef.current,
         (result, error) => {
           if (error) return;
@@ -116,24 +137,14 @@ const QRCodeScanner: React.FC = () => {
       message.error('无法访问摄像头，请检查权限设置');
       setIsScanning(false);
     }
-  }, []);
+  }, [stopScan]);
 
-  // 停止扫描
-  const stopScan = useCallback(() => {
-    // 停止视频流
-    if (videoRef.current && videoRef.current.srcObject) {
-      const stream = videoRef.current.srcObject as MediaStream;
-      stream.getTracks().forEach(track => track.stop());
-      videoRef.current.srcObject = null;
+  // 当开始扫描且 video 元素准备好后，初始化摄像头
+  useEffect(() => {
+    if (isScanning && videoRef.current) {
+      initScan();
     }
-    
-    if (stopRef.current) {
-      stopRef.current.stop();
-      stopRef.current = null;
-    }
-    codeReaderRef.current = null;
-    setIsScanning(false);
-  }, []);
+  }, [isScanning, initScan]);
 
   // 复制单个记录
   const copyRecord = (content: string) => {
