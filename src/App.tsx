@@ -1,6 +1,7 @@
 import { useState, lazy, Suspense, useCallback, useEffect, useRef, useMemo } from 'react';
 import { Layout, Menu, theme, ConfigProvider, Spin, App as AntApp } from 'antd';
 import { nativeAPI } from './services/nativeAPI';
+import './App.css';
 
 import { getTools, getCategories, getToolById, type ToolConfig } from './services/appConfig';
 import { getIconByName } from './services/iconMap';
@@ -53,7 +54,7 @@ type MenuItem = {
 
 // 加载中组件
 const LoadingFallback = () => (
-  <div style={{ display: 'flex', justifyContent: 'center', alignItems: 'center', height: '200px' }}>
+  <div className="loading-fallback">
     <Spin size="large" />
   </div>
 );
@@ -224,7 +225,7 @@ function App() {
     const SyncComponent = syncComponentMap[tool.component];
     if (SyncComponent) {
       return (
-        <div key={tool.id} style={{ overflow: 'auto', display: currentKey === tool.id ? 'block' : 'none', height: '100%' }}>
+        <div key={tool.id} className="tool-component" style={{ display: currentKey === tool.id ? 'block' : 'none' }}>
           <SyncComponent />
         </div>
       );
@@ -235,7 +236,7 @@ function App() {
     if (!LazyComponent) return null;
 
     return (
-      <div key={tool.id} style={{ overflow: 'auto', display: currentKey === tool.id ? 'block' : 'none', height: '100%' }}>
+      <div key={tool.id} className="tool-component" style={{ display: currentKey === tool.id ? 'block' : 'none' }}>
         <Suspense fallback={<LoadingFallback />}>
           <LazyComponent />
         </Suspense>
@@ -256,7 +257,7 @@ function App() {
       }}
     >
       <AntApp>
-        <Layout style={{ minHeight: '100vh', background: colorBgLayout }}>
+        <Layout style={{ background: colorBgLayout }}>
           <Sider
             className='sider'
             width={layoutStyles.sider.width}
@@ -264,46 +265,28 @@ function App() {
             collapsedWidth={layoutStyles.sider.collapsedWidth}
             trigger={null}
           style={{
-            paddingTop: 'env(safe-area-inset-top)',
-            zIndex: 100,
             display: isMobile && collapsed ? 'none' : 'block'
           }}
           >
-            <div style={{
-              height: 64,
-              display: 'flex',
-              alignItems: 'center',
-              justifyContent: layoutStyles.siderHeader.justifyContent,
-              fontSize: '20px',
-              fontWeight: 'bold',
-              borderBottom: '1px solid #1f394c',
-              color: '#fff',
-              padding: layoutStyles.siderHeader.padding
-            }}>
+            <div
+              className="sider-header"
+              style={{
+                justifyContent: layoutStyles.siderHeader.justifyContent,
+                padding: layoutStyles.siderHeader.padding
+              }}
+            >
               {isMobile && <span style={{ width: 24 }} />}
               <span>AITool</span>
               {isMobile && (
-                <span
-                  style={{
-                    fontSize: '20px',
-                    cursor: 'pointer',
-                    width: 24,
-                    textAlign: 'center'
-                  }}
-                  onClick={() => setCollapsed(true)}
-                >
+                <span className="mobile-close-btn" onClick={() => setCollapsed(true)}>
                   ✕
                 </span>
               )}
             </div>
-            <div style={{
-              position: 'fixed',
-              top: 64,
-              bottom: 0,
-              left: 0,
-              width: layoutStyles.siderMenu.width,
-              overflowY: 'auto'
-            }}>
+            <div
+              className="sider-menu-container"
+              style={{ width: layoutStyles.siderMenu.width }}
+            >
               <Menu
                 mode="inline"
                 theme="dark"
@@ -317,71 +300,43 @@ function App() {
           </Sider>
           {/* 移动端遮罩层 */}
           {isMobile && !collapsed && (
-            <div
-              style={{
-                position: 'fixed',
-                top: 0,
-                left: 0,
-                right: 0,
-                bottom: 0,
-                background: 'rgba(0, 0, 0, 0.5)',
-                zIndex: 99
-              }}
-              onClick={() => setCollapsed(true)}
-            />
+            <div className="mobile-overlay" onClick={() => setCollapsed(true)} />
           )}
           <Layout>
           <Header
+            className="app-header"
             style={{
-              padding: 'env(safe-area-inset-top) 24px 0 24px',
               background: colorBgElevated,
               borderBottom: `1px solid ${colorBorder}`,
-              display: 'flex',
-              alignItems: 'center',
-              position: 'fixed',
-              top: 0,
-              left: layoutStyles.header.left,
-              right: 0,
-              zIndex: 9,
-              height: 'calc(64px + env(safe-area-inset-top))'
+              left: layoutStyles.header.left
             }}
           >
               {/* 移动端菜单按钮 */}
               {isMobile && (
-                <span
-                  style={{
-                    fontSize: '18px',
-                    marginRight: '12px',
-                    cursor: 'pointer'
-                  }}
-                  onClick={() => setCollapsed(!collapsed)}
-                >
+                <span className="mobile-menu-btn" onClick={() => setCollapsed(!collapsed)}>
                   ☰
                 </span>
               )}
-              <span style={{ fontSize: '16px', fontWeight: 500, color: colorText }}>
+              <span className="page-title" style={{ color: colorText }}>
                 {getPageTitle()}
               </span>
             </Header>
-            <Content style={{
-              padding: isMobile ? '0 0 16px 0' : '0',
-              paddingBottom: 'env(safe-area-inset-bottom)',
-              position: 'fixed',
-              top: 'calc(64px + env(safe-area-inset-top))',
-              bottom: 0,
-              left: layoutStyles.content.left,
-              right: 0,
-              background: colorBgLayout
-            }}>
+            <Content
+              className="app-content"
+              style={{
+                padding: isMobile ? '0 0 16px 0' : '0',
+                left: layoutStyles.content.left,
+                background: colorBgLayout
+              }}
+            >
               {/* 欢迎页面 - 无选中时显示 */}
-              <div style={{
-                display: !currentKey ? 'flex' : 'none',
-                alignItems: 'center',
-                justifyContent: 'center',
-                height: '100%',
-                fontSize: '24px',
-                color: colorTextSecondary
-              }}>
+              <div
+                className="welcome-page"
+                style={{
+                  display: !currentKey ? 'flex' : 'none',
+                  color: colorTextSecondary
+                }}
+              >
                 欢迎使用
               </div>
 

@@ -1,8 +1,6 @@
 #root {
-  max-width: 1280px;
   margin: 0 auto;
   padding: 2rem;
-  text-align: center;
 }
 
 .logo {
@@ -41,11 +39,101 @@
   color: #888;
 }
 
-.sider{
+.sider {
   background: #001529;
   color: #fff;
   position: fixed;
   left: 0;
   top: 0;
   bottom: 0;
+  padding-top: env(safe-area-inset-top);
+  z-index: 100;
+}
+
+.sider-header {
+  height: 64px;
+  display: flex;
+  align-items: center;
+  font-size: 20px;
+  font-weight: bold;
+  border-bottom: 1px solid #1f394c;
+  color: #fff;
+}
+
+.sider-menu-container {
+  position: fixed;
+  top: 64px;
+  bottom: 0;
+  left: 0;
+  overflow-y: auto;
+}
+
+.mobile-overlay {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background: rgba(0, 0, 0, 0.5);
+  z-index: 99;
+}
+
+.app-header {
+  padding: env(safe-area-inset-top) 24px 0 24px;
+  display: flex;
+  align-items: center;
+  position: fixed;
+  top: 0;
+  right: 0;
+  z-index: 9;
+  height: calc(64px + env(safe-area-inset-top));
+}
+
+.app-content {
+  padding-bottom: env(safe-area-inset-bottom);
+  position: fixed;
+  top: calc(64px + env(safe-area-inset-top));
+  bottom: 0;
+  right: 0;
+}
+
+.welcome-page {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  height: 100%;
+  font-size: 24px;
+}
+
+.tool-component {
+  overflow: auto;
+  height: 100%;
+}
+
+.loading-fallback {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  height: 200px;
+}
+
+.mobile-menu-btn {
+  font-size: 18px;
+  margin-right: 12px;
+  cursor: pointer;
+}
+
+.mobile-close-btn {
+  font-size: 20px;
+  cursor: pointer;
+  width: 24px;
+  text-align: center;
+}
+
+.page-title {
+  font-size: 16px;
+  font-weight: 500;
+}
+.ant-menu-title-content{
+  text-align: left;
 }
