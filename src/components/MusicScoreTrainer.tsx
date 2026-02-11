@@ -34,6 +34,26 @@ const NOTE_POSITIONS: Record<string, number> = {
 // 谱表类型
 type StaffType = 'treble' | 'bass';
 
+// 五线谱布局常量
+const STAFF_CONFIG = {
+  lineSpacing: 12,      // 线间距
+  centerY: 100,         // 五线谱中心Y坐标
+  viewBoxWidth: 800,    // SVG视图宽度
+  viewBoxHeight: 240,   // SVG视图高度
+  staffStartX: 100,     // 五线起始X
+  staffEndX: 750,       // 五线结束X
+  clefX: 20,            // 谱号X坐标
+  clefYOffset: 20,      // 谱号Y偏移
+  clefFontSize: 60,     // 谱号字体大小
+} as const;
+
+// 三个音符的位置
+const NOTE_POSITIONS_X = {
+  prev: 200,    // 已测试（左边）
+  current: 400, // 正在测试（中间）
+  next: 600,    // 将要测试（右边）
+} as const;
+
 // 高音谱表：以第一线E4为基准 (position 0 = E4)
 // 低音谱表：以第一线G2为基准 (position 0 = G2)
 const getNotePosition = (name: string, octave: number, staffType: StaffType): number => {
@@ -260,42 +280,64 @@ export default function MusicScoreTrainer() {
   
   // 渲染五线谱 - 主入口
   const renderStaff = () => {
-    const lineSpacing = 12;
-    const centerY = 100;
-    
-    
+    const { lineSpacing, centerY, viewBoxWidth, viewBoxHeight } = STAFF_CONFIG;
+
+    // 构建音符音名字符串
+    const getNoteNameString = (note: Note | null): string => {
+      if (!note) return '';
+      const accidental = note.accidental || '';
+      return `${accidental}${note.name}${note.octave}`;
+    };
+
     return (
-      <svg width="100%" height="240" viewBox="0 0 400 240">
-        {renderClef(centerY)}
-        {renderKeySignature(centerY)}
-        {renderStaffLines(lineSpacing, centerY)}
-        {/* {renderNote(100,'F3','bass')}
-        {renderNote(150,'C4','bass')}
-        {renderNote(180,'F4','bass')}
-        {renderNote(220,'C2','bass')} */}
+      <svg width="100%" height={viewBoxHeight} viewBox={`0 0 ${viewBoxWidth} ${viewBoxHeight}`} preserveAspectRatio="xMidYMid meet">
+        {renderClef()}
+        {renderKeySignature()}
+        {renderStaffLines()}
+
+        {/* 已测试的音符（左边，淡色显示） */}
+        {prevNote && (
+          <g opacity={0.4}>
+            {renderNote(NOTE_POSITIONS_X.prev, getNoteNameString(prevNote), staffType)}
+          </g>
+        )}
+
+        {/* 正在测试的音符（中间，高亮显示） */}
+        {currentNote && renderNote(NOTE_POSITIONS_X.current, getNoteNameString(currentNote), staffType)}
+
+        {/* 将要测试的音符（右边，虚影显示） */}
+        {nextNote && (
+          <g opacity={0.25}>
+            {renderNote(NOTE_POSITIONS_X.next, getNoteNameString(nextNote), staffType)}
+          </g>
+        )}
       </svg>
     );
   };
 
   // 渲染谱号
-  const renderClef = (centerY: number) => (
-    <text x="20" y={centerY + 20} fontSize="60" fill="#333">
-      {staffType === 'treble' ? '𝄞' : '𝄢'}
-    </text>
-  );
+  const renderClef = () => {
+    const { centerY, clefX, clefYOffset, clefFontSize } = STAFF_CONFIG;
+    return (
+      <text x={clefX} y={centerY + clefYOffset} fontSize={clefFontSize} fill="#333">
+        {staffType === 'treble' ? '𝄞' : '𝄢'}
+      </text>
+    );
+  };
 
   // 渲染调号
-  const renderKeySignature = (centerY: number) => {
+  const renderKeySignature = () => {
+    const { centerY } = STAFF_CONFIG;
     const keySig = selectedKeys[Math.floor(Math.random() * selectedKeys.length)];
     if (keySig === 0) return null;
     return (
       <g>
         {Array.from({ length: Math.abs(keySig) }).map((_, i) => (
-          <text 
-            key={i} 
-            x={70 + i * 12} 
-            y={centerY - 10 + (keySig > 0 ? -5 : 5)} 
-            fontSize="20" 
+          <text
+            key={i}
+            x={70 + i * 12}
+            y={centerY - 10 + (keySig > 0 ? -5 : 5)}
+            fontSize="20"
             fill="#333"
           >
             {keySig > 0 ? '♯' : '♭'}
@@ -306,21 +348,24 @@ export default function MusicScoreTrainer() {
   };
 
   // 渲染五线
-  const renderStaffLines = (lineSpacing: number, centerY: number) => (
-    <>
-      {[0, 1, 2, 3, 4].map(i => (
-        <line
-          key={i}
-          x1="100"
-          y1={centerY - 2 * lineSpacing + i * lineSpacing}
-          x2="380"
-          y2={centerY - 2 * lineSpacing + i * lineSpacing}
-          stroke="#333"
-          strokeWidth="1"
-        />
-      ))}
-    </>
-  );
+  const renderStaffLines = () => {
+    const { lineSpacing, centerY, staffStartX, staffEndX } = STAFF_CONFIG;
+    return (
+      <>
+        {[0, 1, 2, 3, 4].map(i => (
+          <line
+            key={i}
+            x1={staffStartX}
+            y1={centerY - 2 * lineSpacing + i * lineSpacing}
+            x2={staffEndX}
+            y2={centerY - 2 * lineSpacing + i * lineSpacing}
+            stroke="#333"
+            strokeWidth="1"
+          />
+        ))}
+      </>
+    );
+  };
 
   // 将音名字符串解析为 Note 对象
   // 支持格式: "C4", "#F5", "bB3" 等
@@ -343,8 +388,7 @@ export default function MusicScoreTrainer() {
   // 渲染音符
   // x: x坐标, noteName: 音名(如 "C4", "#F5", "bB3"), staffType: 谱表类型 'treble' | 'bass'
   const renderNote = (x: number, noteName: string, staffType: StaffType) => {
-    const lineSpacing = 12;
-    const centerY = 100;
+    const { lineSpacing, centerY } = STAFF_CONFIG;
     const note = parseNoteName(noteName, staffType);
 
     if (!note) return null;
@@ -611,9 +655,7 @@ export default function MusicScoreTrainer() {
           
           {/* 五线谱 */}
           <Block>
-            <div className="staff-container">
               {renderStaff()}
-            </div>
           </Block>
           
           {/* 键盘 */}
