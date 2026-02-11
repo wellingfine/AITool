@@ -162,9 +162,9 @@
       "name": "吉他调音",
       "description": "吉他调音器",
       "icon": "CustomerServiceOutlined",
-      "category": "other",
-      "categoryName": "其它",
-      "categoryIcon": "ToolOutlined",
+      "category": "music",
+      "categoryName": "音乐",
+      "categoryIcon": "SoundOutlined",
       "storage": null,
       "component": "GuitarTuner"
     },
@@ -201,14 +201,28 @@
       "name": "节拍器",
       "description": "可调节速度的节拍器",
       "icon": "SoundOutlined",
-      "category": "other",
-      "categoryName": "其它",
-      "categoryIcon": "ToolOutlined",
+      "category": "music",
+      "categoryName": "音乐",
+      "categoryIcon": "SoundOutlined",
       "storage": {
         "path": "metronome",
         "file": "rhythms"
       },
       "component": "Metronome"
+    },
+    {
+      "id": "musicScoreTrainer",
+      "name": "五线谱识谱",
+      "description": "五线谱识谱训练工具",
+      "icon": "ReadOutlined",
+      "category": "music",
+      "categoryName": "音乐",
+      "categoryIcon": "SoundOutlined",
+      "storage": {
+        "path": "musicscore",
+        "file": "records"
+      },
+      "component": "MusicScoreTrainer"
     },
     {
       "id": "mortgage",

@@ -1,0 +1,52 @@
+.staff-container {
+  background: #fafafa;
+  border-radius: 8px;
+  padding: 16px;
+  border: 1px solid #e8e8e8;
+}
+
+.keyboard-section {
+  padding: 8px 0;
+}
+
+.octave-selector {
+  margin-bottom: 16px;
+}
+
+.note-selector {
+  margin-top: 12px;
+}
+
+.note-feedback {
+  /* 动画已移除 */
+}
+
+.records-list {
+  max-height: 300px;
+  overflow-y: auto;
+}
+
+.record-item {
+  padding: 8px 0;
+  border-bottom: 1px solid #f0f0f0;
+  transition: background 0.2s;
+}
+
+.record-item:hover {
+  background: #f5f5f5;
+}
+
+.record-item:last-child {
+  border-bottom: none;
+}
+
+/* 响应式调整 */
+@media (max-width: 576px) {
+  .octave-selector .ant-space {
+    gap: 8px !important;
+  }
+  
+  .note-selector .ant-space {
+    gap: 8px !important;
+  }
+}

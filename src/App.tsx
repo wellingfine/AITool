@@ -32,6 +32,7 @@ const lazyComponentMap: Record<string, React.LazyExoticComponent<React.Component
   SplitBill: lazy(() => import('./components/SplitBill')),
   DayCountdown: lazy(() => import('./components/DayCountdown')),
   Metronome: lazy(() => import('./components/Metronome')),
+  MusicScoreTrainer: lazy(() => import('./components/MusicScoreTrainer')),
   MortgageCalculator: lazy(() => import('./components/MortgageCalculator')),
   QRCodeScanner: lazy(() => import('./components/QRCodeScanner')),
   QRCodeGenerator: lazy(() => import('./components/QRCodeGenerator')),
