@@ -36,6 +36,7 @@ const lazyComponentMap: Record<string, React.LazyExoticComponent<React.Component
   MortgageCalculator: lazy(() => import('./components/MortgageCalculator')),
   QRCodeScanner: lazy(() => import('./components/QRCodeScanner')),
   QRCodeGenerator: lazy(() => import('./components/QRCodeGenerator')),
+  MindMap: lazy(() => import('./components/MindMap')),
 };
 
 // 同步加载组件映射表

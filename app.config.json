@@ -258,6 +258,17 @@
       "component": "QRCodeGenerator"
     },
     {
+      "id": "mindmap",
+      "name": "思维导图",
+      "description": "可视化思维导图工具",
+      "icon": "ApartmentOutlined",
+      "category": "other",
+      "categoryName": "其它",
+      "categoryIcon": "ToolOutlined",
+      "storage": null,
+      "component": "MindMap"
+    },
+    {
       "id": "about",
       "name": "关于",
       "description": "关于AITool",
