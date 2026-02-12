@@ -43,6 +43,7 @@ import {
   QrcodeOutlined,
   PartitionOutlined,
   ReadOutlined,
+  ApartmentOutlined,
 } from '@ant-design/icons';
 
 // 图标映射表
@@ -86,6 +87,7 @@ const iconMap: Record<string, React.ComponentType<any>> = {
   QrcodeOutlined,
   PartitionOutlined,
   ReadOutlined,
+  ApartmentOutlined,
 };
 
 // 根据名称获取图标组件

@@ -16,9 +16,6 @@ import type { InputRef } from 'antd';
 import {
   PlusOutlined,
   DeleteOutlined,
-  ReloadOutlined,
-  FullscreenOutlined,
-  FullscreenExitOutlined,
   PlusCircleOutlined,
 } from '@ant-design/icons';
 
@@ -205,15 +202,23 @@ const MindMapNodeComponent: React.FC<NodeProps<MindMapNode>> = ({ data, id, sele
         <span style={{ userSelect: 'none' }}>{data.label}</span>
       )}
       
-      {/* 折叠/展开按钮 */}
+      {/* 折叠/展开按钮 - 根据布局方向动态调整位置 */}
       {hasChildren && (
         <div
           onClick={toggleCollapse}
           style={{
             position: 'absolute',
-            right: -10,
-            top: '50%',
-            transform: 'translateY(-50%)',
+            // 根据布局方向设置按钮位置
+            ...(layoutDirection === 'right' || layoutDirection === 'horizontal' || layoutDirection === 'radial' 
+              ? { right: -10, top: '50%', transform: 'translateY(-50%)' }
+              : layoutDirection === 'left'
+              ? { left: -10, top: '50%', transform: 'translateY(-50%)' }
+              : layoutDirection === 'down' || layoutDirection === 'vertical'
+              ? { bottom: -10, left: '50%', transform: 'translateX(-50%)' }
+              : layoutDirection === 'up'
+              ? { top: -10, left: '50%', transform: 'translateX(-50%)' }
+              : { right: -10, top: '50%', transform: 'translateY(-50%)' }
+            ),
             width: 20,
             height: 20,
             borderRadius: '50%',
@@ -226,6 +231,7 @@ const MindMapNodeComponent: React.FC<NodeProps<MindMapNode>> = ({ data, id, sele
             fontSize: 12,
             color: '#1890ff',
             boxShadow: '0 2px 4px rgba(0,0,0,0.1)',
+            zIndex: 10,
           }}
         >
           {isCollapsed ? '+' : '-'}
@@ -246,7 +252,7 @@ const calculateLayout = (
   layoutType: LayoutType,
   rootId: string
 ): MindMapNode[] => {
-  const nodeMap = new Map(nodes.map(n => [n.id, n]));
+  const nodeMap = new Map(nodes.map(n => [n.id, { ...n, data: { ...n.data } }]));
   
   // 从节点的 parentId 构建子节点映射（而不是从 edges）
   const childrenMap = new Map<string, string[]>();
@@ -260,9 +266,9 @@ const calculateLayout = (
     }
   });
   
-  // 更新节点的 children 属性
-  nodes.forEach(node => {
-    const children = childrenMap.get(node.id) || [];
+  // 更新节点的 children 属性（在克隆的 nodeMap 上）
+  nodeMap.forEach((node, nodeId) => {
+    const children = childrenMap.get(nodeId) || [];
     node.data = { ...node.data, children };
   });
   
@@ -464,6 +470,15 @@ const calculateLayout = (
       break;
   }
   
+  // 确保所有节点都被包含（包括折叠隐藏的节点）
+  const positionedIds = new Set(positionedNodes.map(n => n.id));
+  nodeMap.forEach((node, nodeId) => {
+    if (!positionedIds.has(nodeId)) {
+      // 隐藏的节点保留原位置，但添加到结果中
+      positionedNodes.push(node);
+    }
+  });
+  
   return positionedNodes;
 };
 
@@ -526,7 +541,6 @@ const MindMap: React.FC = () => {
   const [edges, setEdges, onEdgesChange] = useEdgesState<Edge>([]);
   const [layoutType, setLayoutType] = useState<LayoutType>('right');
   const [selectedNode, setSelectedNode] = useState<string | null>(null);
-  const [isFullscreen, setIsFullscreen] = useState(false);
   const containerRef = useRef<HTMLDivElement>(null);
   const nodeIdCounter = useRef(1);
   
@@ -724,15 +738,11 @@ const MindMap: React.FC = () => {
           return n;
         });
         
-        // 延迟重新布局
-        setTimeout(() => {
-          const newEdges = generateEdges(updated, layoutType);
-          const positionedNodes = calculateLayout(updated, newEdges, layoutType, 'root');
-          setNodes(positionedNodes);
-          setEdges(newEdges);
-        }, 0);
-        
-        return updated;
+        // 同步重新布局（避免闭包问题）
+        const newEdges = generateEdges(updated, layoutType);
+        const positionedNodes = calculateLayout(updated, newEdges, layoutType, 'root');
+        setEdges(newEdges);
+        return positionedNodes;
       });
     };
     
@@ -753,39 +763,6 @@ const MindMap: React.FC = () => {
   // 面板点击取消选择
   const onPaneClick = useCallback(() => {
     setSelectedNode(null);
-  }, []);
-  
-  // 重置画布
-  const resetCanvas = useCallback(() => {
-    nodeIdCounter.current = 1;
-    setNodes(initialNodesData);
-    setEdges([]);
-    setSelectedNode(null);
-    message.success('已重置画布');
-  }, [setNodes, setEdges]);
-  
-  // 全屏切换
-  const toggleFullscreen = useCallback(() => {
-    if (!containerRef.current) return;
-    
-    if (!isFullscreen) {
-      if (containerRef.current.requestFullscreen) {
-        containerRef.current.requestFullscreen();
-      }
-    } else {
-      if (document.exitFullscreen) {
-        document.exitFullscreen();
-      }
-    }
-  }, [isFullscreen]);
-  
-  useEffect(() => {
-    const handleFullscreenChange = () => {
-      setIsFullscreen(!!document.fullscreenElement);
-    };
-    
-    document.addEventListener('fullscreenchange', handleFullscreenChange);
-    return () => document.removeEventListener('fullscreenchange', handleFullscreenChange);
   }, []);
   
   // 过滤隐藏的节点和边（折叠时）
@@ -892,30 +869,6 @@ const MindMap: React.FC = () => {
           onChange={(v) => setLayoutType(v as LayoutType)}
           options={layoutOptions}
         />
-        
-        <div style={{ display: 'flex', gap: 8, alignItems: 'center' }}>
-          <Tooltip title="整理布局">
-            <Button icon={<ReloadOutlined />} onClick={applyLayout}>
-              整理
-            </Button>
-          </Tooltip>
-          <Popconfirm
-            title="确定重置画布吗？所有内容将被清除"
-            onConfirm={resetCanvas}
-            okText="确定"
-            cancelText="取消"
-          >
-            <Button danger type="text">
-              重置
-            </Button>
-          </Popconfirm>
-          <Tooltip title={isFullscreen ? '退出全屏' : '全屏'}>
-            <Button
-              icon={isFullscreen ? <FullscreenExitOutlined /> : <FullscreenOutlined />}
-              onClick={toggleFullscreen}
-            />
-          </Tooltip>
-        </div>
       </div>
       
       {/* 选中提示 */}
@@ -964,9 +917,12 @@ const MindMap: React.FC = () => {
         </ReactFlow>
       </div>
       
-      {/* 底部使用说明 */}
+      {/* 底部状态栏 */}
       <div
         style={{
+          display: 'flex',
+          justifyContent: 'space-between',
+          alignItems: 'center',
           padding: '8px 16px',
           background: token.colorFillAlter,
           fontSize: 12,
@@ -974,8 +930,13 @@ const MindMap: React.FC = () => {
           borderTop: `1px solid ${token.colorBorder}`,
         }}
       >
-        <strong>使用说明：</strong>
-        点击节点选中 | 双击编辑文字 | 点击 +/- 折叠/展开 | 滚轮缩放 | 拖动画布平移
+        <span>
+          <strong>使用说明：</strong>
+          点击节点选中 | 双击编辑文字 | 点击 +/- 折叠/展开 | 滚轮缩放 | 拖动画布平移
+        </span>
+        <span style={{ fontWeight: 500, color: token.colorText }}>
+          节点数量: {nodes.length}
+        </span>
       </div>
     </div>
   );

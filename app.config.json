@@ -262,9 +262,9 @@
       "name": "思维导图",
       "description": "可视化思维导图工具",
       "icon": "ApartmentOutlined",
-      "category": "other",
-      "categoryName": "其它",
-      "categoryIcon": "ToolOutlined",
+      "category": "work",
+      "categoryName": "工作",
+      "categoryIcon": "TeamOutlined",
       "storage": null,
       "component": "MindMap"
     },
