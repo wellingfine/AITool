@@ -146,6 +146,7 @@ export default function MusicScoreTrainer() {
   const [totalCount, setTotalCount] = useState<number>(0);
   const [elapsedTime, setElapsedTime] = useState<number>(0);
   const [selectedOctave, setSelectedOctave] = useState<number | null>(null);
+  const [currentKey, setCurrentKey] = useState<number>(0); // 当前固定的调号
   
   // 历史记录
   const [records, setRecords] = useState<TrainingRecord[]>([]);
@@ -190,14 +191,18 @@ export default function MusicScoreTrainer() {
       message.error('请至少选择一个调号');
       return;
     }
-    
+
+    // 从选中的调号中随机选择一个固定调号
+    const fixedKey = selectedKeys[Math.floor(Math.random() * selectedKeys.length)];
+    setCurrentKey(fixedKey);
+
     setShowSettings(false);
     setIsPlaying(true);
     setCorrectCount(0);
     setTotalCount(0);
     setElapsedTime(0);
     setFeedback(null);
-    
+
     const note1 = getRandomNote(availableNotes);
     const note2 = getRandomNote(availableNotes);
     setCurrentNote(note1);
@@ -273,14 +278,20 @@ export default function MusicScoreTrainer() {
     setNextNote(getRandomNote(availableNotes));
     // 自动选中第一个音组
     setSelectedOctave(octaveRange[0]);
-    
+
+    // 随机切换调号（如果勾选了多个）
+    if (selectedKeys.length > 1) {
+      const newKey = selectedKeys[Math.floor(Math.random() * selectedKeys.length)];
+      setCurrentKey(newKey);
+    }
+
     // 清除反馈
     setTimeout(() => setFeedback(null), 500);
   };
   
   // 渲染五线谱 - 主入口
   const renderStaff = () => {
-    const { lineSpacing, centerY, viewBoxWidth, viewBoxHeight } = STAFF_CONFIG;
+    const { viewBoxWidth, viewBoxHeight } = STAFF_CONFIG;
 
     // 构建音符音名字符串
     const getNoteNameString = (note: Note | null): string => {
@@ -311,6 +322,20 @@ export default function MusicScoreTrainer() {
             {renderNote(NOTE_POSITIONS_X.next, getNoteNameString(nextNote), staffType)}
           </g>
         )}
+
+        {/* 答题反馈 */}
+        {feedback && (
+          <text
+            x={NOTE_POSITIONS_X.current}
+            y={STAFF_CONFIG.centerY + 80}
+            textAnchor="middle"
+            fontSize="24"
+            fill={feedback === 'correct' ? '#52c41a' : '#ff4d4f'}
+            fontWeight="bold"
+          >
+            {feedback === 'correct' ? '✓' : '✗'}
+          </text>
+        )}
       </svg>
     );
   };
@@ -325,24 +350,50 @@ export default function MusicScoreTrainer() {
     );
   };
 
-  // 渲染调号
+  // 升降号在五线谱上的标准位置（position值）
+// 高音谱表：升号顺序 F#(3), C#(6), G#(2), D#(5), A#(1), E#(4), B#(0)
+// 高音谱表：降号顺序 Bb(0), Eb(4), Ab(1), Db(5), Gb(2), Cb(6), Fb(3)
+// 低音谱表：升号顺序 F#(3), C#(6), G#(2), D#(5), A#(1), E#(4), B#(0) - 相对位置不同
+// 低音谱表：降号顺序 Bb(0), Eb(4), Ab(1), Db(5), Gb(2), Cb(6), Fb(3)
+const KEY_SIGNATURE_POSITIONS = {
+  treble: {
+    sharp: [3, 6, 2, 5, 1, 4, 0],   // F#, C#, G#, D#, A#, E#, B#
+    flat: [0, 4, 1, 5, 2, 6, 3],    // Bb, Eb, Ab, Db, Gb, Cb, Fb
+  },
+  bass: {
+    sharp: [1, 4, 0, 3, 6, 2, 5],   // F#, C#, G#, D#, A#, E#, B# (低音谱表位置)
+    flat: [6, 2, 5, 1, 4, 0, 3],    // Bb, Eb, Ab, Db, Gb, Cb, Fb (低音谱表位置)
+  },
+};
+
+// 渲染调号
   const renderKeySignature = () => {
-    const { centerY } = STAFF_CONFIG;
-    const keySig = selectedKeys[Math.floor(Math.random() * selectedKeys.length)];
+    const { centerY, lineSpacing } = STAFF_CONFIG;
+    const keySig = currentKey;
     if (keySig === 0) return null;
+
+    const isSharp = keySig > 0;
+    const count = Math.abs(keySig);
+    const positions = KEY_SIGNATURE_POSITIONS[staffType][isSharp ? 'sharp' : 'flat'];
+
     return (
       <g>
-        {Array.from({ length: Math.abs(keySig) }).map((_, i) => (
-          <text
-            key={i}
-            x={70 + i * 12}
-            y={centerY - 10 + (keySig > 0 ? -5 : 5)}
-            fontSize="20"
-            fill="#333"
-          >
-            {keySig > 0 ? '♯' : '♭'}
-          </text>
-        ))}
+        {Array.from({ length: count }).map((_, i) => {
+          const position = positions[i];
+          // 计算Y坐标：position 0 = 第一线(E4高音/G2低音)
+          const y = centerY + 2 * lineSpacing - position * (lineSpacing / 2);
+          return (
+            <text
+              key={i}
+              x={70 + i * 12}
+              y={y + lineSpacing * 0.3}
+              fontSize={lineSpacing * 1.5}
+              fill="#333"
+            >
+              {isSharp ? '♯' : '♭'}
+            </text>
+          );
+        })}
       </g>
     );
   };
