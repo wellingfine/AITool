@@ -1,5 +1,5 @@
 import { useState, useEffect, useRef, useCallback, useMemo } from 'react';
-import { Button, Space, Typography, Row, Col, Statistic, message, Slider, Checkbox, Radio } from 'antd';
+import { Button, Space, Typography, Row, Col, Statistic, message, Slider, Checkbox, Radio, Switch } from 'antd';
 import { PlayCircleOutlined, PauseCircleOutlined, HistoryOutlined } from '@ant-design/icons';
 import { nativeAPI } from '../services/nativeAPI';
 import Block from '../lib/Block';
@@ -147,6 +147,7 @@ export default function MusicScoreTrainer() {
   const [elapsedTime, setElapsedTime] = useState<number>(0);
   const [selectedOctave, setSelectedOctave] = useState<number | null>(null);
   const [currentKey, setCurrentKey] = useState<number>(0); // 当前固定的调号
+  const [showAnswer, setShowAnswer] = useState<boolean>(false); // 是否显示答案
   
   // 历史记录
   const [records, setRecords] = useState<TrainingRecord[]>([]);
@@ -567,7 +568,7 @@ const KEY_SIGNATURE_POSITIONS = {
               ))}
             </Space>
             {/* 显示正确答案 */}
-            {currentNote && (
+            {showAnswer && currentNote && (
               <Text type="secondary" style={{ marginLeft: 'auto' }}>
                 答案: {currentNote.name}{currentNote.octave}({getOctaveLabel(currentNote.octave)})
               </Text>
@@ -722,9 +723,10 @@ const KEY_SIGNATURE_POSITIONS = {
               </Button>
             </div>
           </Block>
+
         </>
       )}
-      
+
       {/* 历史记录 */}
       <Block>
         <div style={{ display: 'flex', alignItems: 'center', gap: 8, marginBottom: 12 }}>
@@ -752,6 +754,21 @@ const KEY_SIGNATURE_POSITIONS = {
           </div>
         )}
       </Block>
+
+      {/* 答案显示开关 */}
+      {isPlaying && (
+        <Block>
+          <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 12 }}>
+            <Text type="secondary">显示答案</Text>
+            <Switch
+              checked={showAnswer}
+              onChange={setShowAnswer}
+              checkedChildren="开"
+              unCheckedChildren="关"
+            />
+          </div>
+        </Block>
+      )}
     </Page>
   );
 }
