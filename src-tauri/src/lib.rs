@@ -37,17 +37,21 @@ pub fn run() {
             controller::common_controller::read_clipboard,
             controller::common_controller::write_clipboard,
             controller::common_controller::show_notification,
-            
+
             // 文件操作 (file_controller)
             controller::file_controller::select_file,
             controller::file_controller::save_file,
             controller::file_controller::select_folder,
             controller::file_controller::save_base64_image,
-            
+            controller::file_controller::open_file_dialog,
+            controller::file_controller::save_file_dialog,
+            controller::file_controller::read_file_content,
+            controller::file_controller::write_file_content,
+
             // 应用配置 (config_controller)
             controller::config_controller::get_data_path,
             controller::config_controller::set_data_path,
-            
+
             // 通用数据存储 (storage_controller)
             controller::storage_controller::load_data,
             controller::storage_controller::save_data,

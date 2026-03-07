@@ -11,13 +11,19 @@ import {
 } from '@xyflow/react';
 import type { Node, Edge, NodeProps } from '@xyflow/react';
 import '@xyflow/react/dist/style.css';
-import { Button, Segmented, Input, Tooltip, Popconfirm, message, theme } from 'antd';
+import { Button, Segmented, Input, Tooltip, Popconfirm, message, theme, Modal, Dropdown } from 'antd';
 import type { InputRef } from 'antd';
+import type { MenuProps } from 'antd';
 import {
   PlusOutlined,
   DeleteOutlined,
   PlusCircleOutlined,
+  FolderOpenOutlined,
+  SaveOutlined,
+  FileAddOutlined,
+  DownOutlined,
 } from '@ant-design/icons';
+import { nativeAPI } from '../services/nativeAPI';
 
 // 布局类型
 type LayoutType = 'right' | 'left' | 'down' | 'up' | 'horizontal' | 'vertical' | 'radial';
@@ -535,6 +541,13 @@ const initialNodesData: MindMapNode[] = [
   },
 ];
 
+// 思维导图数据接口
+interface MindMapFileData {
+  nodes: MindMapNode[];
+  layoutType: LayoutType;
+  version: string;
+}
+
 const MindMap: React.FC = () => {
   const { token } = theme.useToken();
   const [nodes, setNodes, onNodesChange] = useNodesState<MindMapNode>(initialNodesData);
@@ -543,12 +556,171 @@ const MindMap: React.FC = () => {
   const [selectedNode, setSelectedNode] = useState<string | null>(null);
   const containerRef = useRef<HTMLDivElement>(null);
   const nodeIdCounter = useRef(1);
+
+  // 文件状态
+  const [currentFilePath, setCurrentFilePath] = useState<string | null>(null);
+  const [isModified, setIsModified] = useState(false);
+  const [dataPath, setDataPath] = useState<string>('');
+
+  // 获取数据目录
+  useEffect(() => {
+    nativeAPI.config.getDataPath().then(path => {
+      if (path) setDataPath(path);
+    });
+  }, []);
   
   // 存储布局类型到全局变量供节点组件使用
   useEffect(() => {
     (window as unknown as { __mindMapLayout?: LayoutType }).__mindMapLayout = layoutType;
   }, [layoutType]);
-  
+
+  // 标记已修改
+  const markModified = useCallback(() => {
+    setIsModified(true);
+  }, []);
+
+  // 打开文件
+  const handleOpen = useCallback(async () => {
+    try {
+      const result = await nativeAPI.dialog.openFile(dataPath);
+      if (!result) return;
+
+      let fileData: MindMapFileData;
+
+      // 如果返回的是文件路径（Tauri环境）
+      if (typeof result === 'string' && !result.startsWith('{')) {
+        // 通过Tauri读取文件内容（使用绝对路径）
+        const content = await nativeAPI.dialog.readFile(result);
+        if (!content) {
+          message.error('读取文件失败');
+          return;
+        }
+        try {
+          fileData = JSON.parse(content);
+        } catch {
+          message.error('文件格式错误');
+          return;
+        }
+        setCurrentFilePath(result);
+      } else {
+        // 浏览器环境，返回的是文件内容
+        fileData = JSON.parse(result as string);
+        setCurrentFilePath(null);
+      }
+
+      if (fileData.nodes && Array.isArray(fileData.nodes)) {
+        setNodes(fileData.nodes);
+        if (fileData.layoutType) {
+          setLayoutType(fileData.layoutType);
+        }
+        // 延迟重新生成连接线
+        setTimeout(() => {
+          const newEdges = generateEdges(fileData.nodes, fileData.layoutType || 'right');
+          setEdges(newEdges);
+        }, 0);
+        setIsModified(false);
+        message.success('文件打开成功');
+      } else {
+        message.error('无效的文件格式');
+      }
+    } catch (error) {
+      console.error('打开文件失败:', error);
+      message.error('打开文件失败');
+    }
+  }, [dataPath, setNodes, setEdges]);
+
+  // 保存到指定路径
+  const saveToPath = useCallback(async (filePath: string | null) => {
+    try {
+      const data: MindMapFileData = {
+        nodes,
+        layoutType,
+        version: '1.0',
+      };
+
+      if (filePath) {
+        // 保存到指定路径（使用绝对路径写入）
+        const content = JSON.stringify(data, null, 2);
+        const success = await nativeAPI.dialog.writeFile(filePath, content);
+        if (!success) {
+          message.error('保存失败');
+          return false;
+        }
+      } else {
+        // 浏览器环境，使用下载方式
+        const blob = new Blob([JSON.stringify(data, null, 2)], { type: 'application/json' });
+        const url = URL.createObjectURL(blob);
+        const a = document.createElement('a');
+        a.href = url;
+        a.download = `mindmap_${Date.now()}.json`;
+        a.click();
+        URL.revokeObjectURL(url);
+      }
+
+      setCurrentFilePath(filePath);
+      setIsModified(false);
+      return true;
+    } catch (error) {
+      console.error('保存失败:', error);
+      message.error('保存失败');
+      return false;
+    }
+  }, [nodes, layoutType]);
+
+  // 保存（智能判断）
+  const handleSave = useCallback(async () => {
+    if (currentFilePath) {
+      // 已有文件路径，直接保存
+      const success = await saveToPath(currentFilePath);
+      if (success) message.success('保存成功');
+    } else {
+      // 新文件，弹出保存对话框，默认打开数据目录
+      const result = await nativeAPI.dialog.saveFileDialog(dataPath, `mindmap_${Date.now()}.json`);
+      if (result) {
+        const success = await saveToPath(result);
+        if (success) message.success('保存成功');
+      }
+    }
+  }, [currentFilePath, dataPath, saveToPath]);
+
+  // 另存为
+  const handleSaveAs = useCallback(async () => {
+    const result = await nativeAPI.dialog.saveFileDialog(dataPath, `mindmap_${Date.now()}.json`);
+    if (result) {
+      const success = await saveToPath(result);
+      if (success) message.success('另存为成功');
+    }
+  }, [dataPath, saveToPath]);
+
+  // 新建
+  const handleNew = useCallback(() => {
+    if (isModified) {
+      Modal.confirm({
+        title: '当前文件未保存',
+        content: '是否保存当前文件？',
+        onOk: async () => {
+          await handleSave();
+          resetToNew();
+        },
+        onCancel: () => {
+          resetToNew();
+        },
+      });
+    } else {
+      resetToNew();
+    }
+  }, [isModified, handleSave]);
+
+  const resetToNew = () => {
+    setNodes(initialNodesData);
+    setLayoutType('right');
+    setCurrentFilePath(null);
+    setIsModified(false);
+    setSelectedNode(null);
+    nodeIdCounter.current = 1;
+    message.success('新建成功');
+  };
+
   // 自动布局
   const applyLayout = useCallback(() => {
     const rootNode = nodes.find(n => n.id === 'root');
@@ -600,7 +772,8 @@ const MindMap: React.FC = () => {
     });
     
     setNodes([...updatedNodes, newNode]);
-    
+    setIsModified(true);
+
     // 延迟应用布局
     setTimeout(() => {
       const allNodes = [...updatedNodes, newNode];
@@ -609,7 +782,7 @@ const MindMap: React.FC = () => {
       setNodes(positionedNodes);
       setEdges(newEdges);
     }, 0);
-    
+
     message.success('已添加子节点');
   }, [selectedNode, nodes, layoutType, setNodes, setEdges]);
   
@@ -652,7 +825,8 @@ const MindMap: React.FC = () => {
     });
     
     setNodes([...updatedNodes, newNode]);
-    
+    setIsModified(true);
+
     // 延迟应用布局
     setTimeout(() => {
       const allNodes = [...updatedNodes, newNode];
@@ -661,7 +835,7 @@ const MindMap: React.FC = () => {
       setNodes(positionedNodes);
       setEdges(newEdges);
     }, 0);
-    
+
     message.success('已添加同级节点');
   }, [selectedNode, nodes, layoutType, setNodes, setEdges]);
   
@@ -704,7 +878,8 @@ const MindMap: React.FC = () => {
     
     setNodes(filteredNodes);
     setSelectedNode(null);
-    
+    setIsModified(true);
+
     // 延迟应用布局
     setTimeout(() => {
       const newEdges = generateEdges(filteredNodes, layoutType);
@@ -712,7 +887,7 @@ const MindMap: React.FC = () => {
       setNodes(positionedNodes);
       setEdges(newEdges);
     }, 0);
-    
+
     message.success('已删除节点');
   }, [selectedNode, nodes, layoutType, setNodes, setEdges]);
   
@@ -726,8 +901,9 @@ const MindMap: React.FC = () => {
         }
         return n;
       }));
+      setIsModified(true);
     };
-    
+
     const handleToggleCollapse = (e: CustomEvent<{ id: string }>) => {
       const { id } = e.detail;
       setNodes(nds => {
@@ -737,7 +913,7 @@ const MindMap: React.FC = () => {
           }
           return n;
         });
-        
+
         // 同步重新布局（避免闭包问题）
         const newEdges = generateEdges(updated, layoutType);
         const positionedNodes = calculateLayout(updated, newEdges, layoutType, 'root');
@@ -745,10 +921,10 @@ const MindMap: React.FC = () => {
         return positionedNodes;
       });
     };
-    
+
     window.addEventListener('mindmap:updateNode', handleUpdateNode as EventListener);
     window.addEventListener('mindmap:toggleCollapse', handleToggleCollapse as EventListener);
-    
+
     return () => {
       window.removeEventListener('mindmap:updateNode', handleUpdateNode as EventListener);
       window.removeEventListener('mindmap:toggleCollapse', handleToggleCollapse as EventListener);
@@ -826,9 +1002,55 @@ const MindMap: React.FC = () => {
         background: token.colorBgElevated,
       }}>
         <div style={{ display: 'flex', gap: 8, flexWrap: 'wrap', alignItems: 'center' }}>
+          {/* 文件操作下拉菜单 */}
+          <Dropdown
+            menu={{
+              items: [
+                {
+                  key: 'new',
+                  label: '新建',
+                  icon: <FileAddOutlined />,
+                  onClick: handleNew,
+                },
+                {
+                  key: 'open',
+                  label: '打开',
+                  icon: <FolderOpenOutlined />,
+                  onClick: handleOpen,
+                },
+                {
+                  type: 'divider',
+                },
+                {
+                  key: 'save',
+                  label: (
+                    <span>
+                      保存
+                      {isModified && <span style={{ color: '#ff4d4f', marginLeft: 4 }}>*</span>}
+                    </span>
+                  ),
+                  icon: <SaveOutlined />,
+                  onClick: handleSave,
+                },
+                {
+                  key: 'saveAs',
+                  label: '另存为',
+                  onClick: handleSaveAs,
+                },
+              ] as MenuProps['items'],
+            }}
+          >
+            <Button>
+              文件 <DownOutlined />
+            </Button>
+          </Dropdown>
+
+          <div style={{ width: 1, height: 24, background: token.colorBorder, margin: '0 8px' }} />
+
+          {/* 节点操作 */}
           <Tooltip title="添加子节点">
-            <Button 
-              type="primary" 
+            <Button
+              type="primary"
               icon={<PlusOutlined />}
               onClick={addChildNode}
             >
@@ -836,7 +1058,7 @@ const MindMap: React.FC = () => {
             </Button>
           </Tooltip>
           <Tooltip title="添加同级节点">
-            <Button 
+            <Button
               icon={<PlusCircleOutlined />}
               onClick={addSiblingNode}
               disabled={!selectedNode || selectedNode === 'root'}
@@ -852,7 +1074,7 @@ const MindMap: React.FC = () => {
             disabled={!selectedNode || selectedNode === 'root'}
           >
             <Tooltip title="删除节点">
-              <Button 
+              <Button
                 danger
                 icon={<DeleteOutlined />}
                 disabled={!selectedNode || selectedNode === 'root'}
@@ -935,7 +1157,8 @@ const MindMap: React.FC = () => {
           点击节点选中 | 双击编辑文字 | 点击 +/- 折叠/展开 | 滚轮缩放 | 拖动画布平移
         </span>
         <span style={{ fontWeight: 500, color: token.colorText }}>
-          节点数量: {nodes.length}
+          {currentFilePath ? currentFilePath.split(/[\\/]/).pop() : '未命名'}
+          {isModified && ' *'} | 节点数量: {nodes.length}
         </span>
       </div>
     </div>

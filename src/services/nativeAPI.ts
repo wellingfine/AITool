@@ -193,6 +193,62 @@ export const dialogAPI = {
       console.error('选择文件夹失败:', error);
       return null;
     }
+  },
+
+  // 打开文件对话框（在数据目录中选择）
+  openFile: async (defaultDir?: string): Promise<string | null> => {
+    try {
+      return await invoke<string | null>('open_file_dialog', { defaultDir });
+    } catch (error) {
+      console.error('打开文件失败:', error);
+      // 浏览器环境降级
+      return new Promise((resolve) => {
+        const input = document.createElement('input');
+        input.type = 'file';
+        input.accept = '.json';
+        input.onchange = (e) => {
+          const file = (e.target as HTMLInputElement).files?.[0];
+          if (file) {
+            const reader = new FileReader();
+            reader.onload = () => resolve(reader.result as string);
+            reader.readAsText(file);
+          } else {
+            resolve(null);
+          }
+        };
+        input.click();
+      });
+    }
+  },
+
+  // 保存文件对话框
+  saveFileDialog: async (defaultDir?: string, defaultName?: string): Promise<string | null> => {
+    try {
+      return await invoke<string | null>('save_file_dialog', { defaultDir, defaultName });
+    } catch (error) {
+      console.error('保存文件对话框失败:', error);
+      return null;
+    }
+  },
+
+  // 读取文件内容（绝对路径）
+  readFile: async (filePath: string): Promise<string | null> => {
+    try {
+      return await invoke<string | null>('read_file_content', { filePath });
+    } catch (error) {
+      console.error('读取文件失败:', error);
+      return null;
+    }
+  },
+
+  // 写入文件内容（绝对路径）
+  writeFile: async (filePath: string, content: string): Promise<boolean> => {
+    try {
+      return await invoke<boolean>('write_file_content', { filePath, content });
+    } catch (error) {
+      console.error('写入文件失败:', error);
+      return false;
+    }
   }
 };
 

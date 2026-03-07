@@ -1,8 +1,6 @@
 import React, { useState, useRef, useCallback, useEffect } from "react";
-import { theme, Statistic } from "antd";
+import { Card, theme, Statistic } from "antd";
 import { ReloadOutlined } from "@ant-design/icons";
-import Block from '../lib/Block';
-import Page from '../lib/Page';
 
 type GameState = 'idle' | 'waiting' | 'ready' | 'finished' | 'falseStart';
 
@@ -196,10 +194,10 @@ const ReactionTest: React.FC = () => {
   const best = history.length > 0 ? Math.min(...history) : null;
 
   return (
-    <Page maxWidth={600}>
-        <Block>
-          {/* 主按钮区域 */}
-          <div style={{ textAlign: 'center', padding: '24px 0' }}>
+    <div style={{ padding: "16px", maxWidth: 600, margin: '0 auto' }}>
+      <Card>
+        {/* 主按钮区域 */}
+        <div style={{ textAlign: 'center', padding: '40px 0' }}>
           <div
             ref={containerRef}
             onClick={!isMobile ? handleClick : undefined}
@@ -250,83 +248,84 @@ const ReactionTest: React.FC = () => {
           )}
         </div>
 
-          {/* 重置按钮 */}
-          {(gameState !== 'idle' || history.length > 0) && (
-            <div style={{ textAlign: 'center', marginTop: 16 }}>
-              <div 
-                onClick={resetGame}
-                style={{
-                  display: 'inline-flex',
-                  alignItems: 'center',
-                  gap: 8,
-                  padding: '8px 16px',
-                  fontSize: 14,
-                  borderRadius: 6,
-                  border: `1px solid ${token.colorBorder}`,
-                  backgroundColor: token.colorBgContainer,
-                  color: token.colorText,
-                  cursor: 'pointer',
-                  userSelect: 'none',
-                  transition: 'all 0.2s ease',
-                }}
-                onMouseEnter={(e) => {
-                  e.currentTarget.style.borderColor = token.colorPrimary;
-                  e.currentTarget.style.color = token.colorPrimary;
-                }}
-                onMouseLeave={(e) => {
-                  e.currentTarget.style.borderColor = token.colorBorder;
-                  e.currentTarget.style.color = token.colorText;
-                }}
-              >
-                <ReloadOutlined />
-                重置
-              </div>
-            </div>
-          )}
-        </Block>
-
         {/* 统计信息 */}
         {history.length > 0 && (
-          <Block>
-            <div style={{ 
-              display: 'flex', 
-              justifyContent: 'center', 
-              gap: 40,
-            }}>
-              <Statistic 
-                title="平均反应时间" 
-                value={average || 0} 
-                suffix="ms" 
-                valueStyle={{ color: token.colorText }}
-              />
-              <Statistic 
-                title="最佳记录" 
-                value={best || 0} 
-                suffix="ms" 
-                valueStyle={{ color: '#52c41a' }}
-              />
-              <Statistic 
-                title="测试次数" 
-                value={history.length} 
-                valueStyle={{ color: token.colorText }}
-              />
-            </div>
-          </Block>
+          <div style={{ 
+            display: 'flex', 
+            justifyContent: 'center', 
+            gap: 40,
+            padding: '20px 0',
+            borderTop: `1px solid ${token.colorBorder}`,
+            marginTop: 20
+          }}>
+            <Statistic 
+              title="平均反应时间" 
+              value={average || 0} 
+              suffix="ms" 
+              valueStyle={{ color: token.colorText }}
+            />
+            <Statistic 
+              title="最佳记录" 
+              value={best || 0} 
+              suffix="ms" 
+              valueStyle={{ color: '#52c41a' }}
+            />
+            <Statistic 
+              title="测试次数" 
+              value={history.length} 
+              valueStyle={{ color: token.colorText }}
+            />
+          </div>
         )}
 
-        {/* 说明 */}
-        <Block>
-          <div style={{ display: 'flex', flexDirection: 'column', gap: 8, width: '100%' }}>
-            <div style={{ fontWeight: 500, color: token.colorText }}>关于反应测试</div>
-            <ul style={{ margin: 0, paddingLeft: 16, color: token.colorTextSecondary, fontSize: 13 }}>
-              <li>这是一个简单的人类反应速度测试工具</li>
-              <li>点击开始按钮，等待按钮变成绿色（随机 5-10 秒）</li>
-              <li>按钮一变绿就立即点击，系统会记录你的反应时间</li>
-              <li>普通人平均反应时间约为 200-250 毫秒</li>
-            </ul>
+        {/* 重置按钮 */}
+        {(gameState !== 'idle' || history.length > 0) && (
+          <div style={{ textAlign: 'center', marginTop: 20 }}>
+            <div 
+              onClick={resetGame}
+              style={{
+                display: 'inline-flex',
+                alignItems: 'center',
+                gap: 8,
+                padding: '8px 16px',
+                fontSize: 16,
+                borderRadius: 6,
+                border: `1px solid ${token.colorBorder}`,
+                backgroundColor: token.colorBgContainer,
+                color: token.colorText,
+                cursor: 'pointer',
+                userSelect: 'none',
+                transition: 'all 0.2s ease',
+              }}
+              onMouseEnter={(e) => {
+                e.currentTarget.style.borderColor = token.colorPrimary;
+                e.currentTarget.style.color = token.colorPrimary;
+              }}
+              onMouseLeave={(e) => {
+                e.currentTarget.style.borderColor = token.colorBorder;
+                e.currentTarget.style.color = token.colorText;
+              }}
+            >
+              <ReloadOutlined />
+              重置
+            </div>
           </div>
-      </Block>
-    </Page>
+        )}
+      </Card>
+
+      {/* 说明 */}
+      <Card style={{ marginTop: 16 }} size="small">
+        <div style={{ color: token.colorTextSecondary, fontSize: 13 }}>
+          <div style={{ fontWeight: 500, marginBottom: 8, color: token.colorText }}>关于反应测试</div>
+          <p>这是一个简单的人类反应速度测试工具。</p>
+          <p>1. 点击开始按钮</p>
+          <p>2. 等待按钮变成绿色（随机 5-10 秒）</p>
+          <p>3. 按钮一变绿就立即点击</p>
+          <p>4. 系统会记录你的反应时间</p>
+          <p style={{ margin: 0 }}>普通人平均反应时间约为 200-250 毫秒。</p>
+        </div>
+      </Card>
+    </div>
   );
 };
 
