@@ -22,6 +22,7 @@ const lazyComponentMap: Record<string, React.LazyExoticComponent<React.Component
   UnicodeConverter: lazy(() => import('./components/UnicodeConverter')),
   WorkTracker: lazy(() => import('./components/WorkTracker')),
   TextCompare: lazy(() => import('./components/TextCompare')),
+  OrderedCompare: lazy(() => import('./components/OrderedCompare')),
   LineDedupe: lazy(() => import('./components/LineDedupe')),
   BMICalculator: lazy(() => import('./components/BMICalculator')),
   Calendar: lazy(() => import('./components/Calendar')),

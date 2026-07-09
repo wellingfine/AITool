@@ -44,6 +44,7 @@ import {
   PartitionOutlined,
   ReadOutlined,
   ApartmentOutlined,
+  DiffOutlined,
 } from '@ant-design/icons';
 
 // 图标映射表
@@ -88,6 +89,7 @@ const iconMap: Record<string, React.ComponentType<any>> = {
   PartitionOutlined,
   ReadOutlined,
   ApartmentOutlined,
+  DiffOutlined,
 };
 
 // 根据名称获取图标组件

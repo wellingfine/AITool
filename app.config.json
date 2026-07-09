@@ -34,6 +34,17 @@
       "component": "TextCompare"
     },
     {
+      "id": "orderedCompare",
+      "name": "有序对比",
+      "description": "对比两个CSV文件，按关键字列找出彼此缺少的行",
+      "icon": "DiffOutlined",
+      "category": "daily",
+      "categoryName": "日常",
+      "categoryIcon": "AppstoreOutlined",
+      "storage": null,
+      "component": "OrderedCompare"
+    },
+    {
       "id": "lineDedupe",
       "name": "行去重",
       "description": "去除文本中的重复行",
