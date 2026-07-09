@@ -1,9 +1,9 @@
-import React, { useState, useRef } from "react";
+import React, { useState, useRef, useEffect, useCallback } from "react";
 import {
   Input,
   Button,
   Typography,
-  message,
+  App,
   theme,
   Modal,
   Tooltip,
@@ -13,6 +13,9 @@ import {
   CopyOutlined,
   DeleteOutlined,
   ZoomInOutlined,
+  LeftOutlined,
+  RightOutlined,
+  CloseOutlined,
 } from "@ant-design/icons";
 import { nativeAPI } from "../services/nativeAPI";
 import Block from '../lib/Block';
@@ -32,18 +35,56 @@ const ImageBase64: React.FC = () => {
   const [base64Input, setBase64Input] = useState<string>("");
   const [images, setImages] = useState<ImageItem[]>([]);
   const [previewVisible, setPreviewVisible] = useState(false);
-  const [previewImage, setPreviewImage] = useState("");
+  const [previewIndex, setPreviewIndex] = useState<number>(-1);
   const [hoveredId, setHoveredId] = useState<string | null>(null);
 
   const fileInputRef = useRef<HTMLInputElement>(null);
   const { token } = theme.useToken();
+  const { message } = App.useApp();
 
-  // 检测并解析 base64
+  // 根据 base64 解码后的魔数检测图片类型，非图片返回 null
+  const detectImageMimeType = (raw: string): string | null => {
+    try {
+      const decoded = atob(raw);
+      if (decoded.length < 4) return null;
+
+      const bytes = new Uint8Array(4);
+      for (let i = 0; i < 4; i++) {
+        bytes[i] = decoded.charCodeAt(i);
+      }
+
+      // PNG: 89 50 4E 47
+      if (bytes[0] === 0x89 && bytes[1] === 0x50 && bytes[2] === 0x4E && bytes[3] === 0x47) {
+        return "image/png";
+      }
+      // JPEG: FF D8 FF
+      if (bytes[0] === 0xFF && bytes[1] === 0xD8 && bytes[2] === 0xFF) {
+        return "image/jpeg";
+      }
+      // GIF: 47 49 46
+      if (bytes[0] === 0x47 && bytes[1] === 0x49 && bytes[2] === 0x46) {
+        return "image/gif";
+      }
+      // WebP: 52 49 46 46 (RIFF)
+      if (bytes[0] === 0x52 && bytes[1] === 0x49 && bytes[2] === 0x46 && bytes[3] === 0x46) {
+        return "image/webp";
+      }
+      // BMP: 42 4D
+      if (bytes[0] === 0x42 && bytes[1] === 0x4D) {
+        return "image/bmp";
+      }
+      return null;
+    } catch {
+      return null;
+    }
+  };
+
+  // 检测并解析单个 base64（带头或不带头）
   const parseBase64 = (input: string): { withHeader: string; raw: string; mimeType: string } | null => {
     const trimmed = input.trim();
-    
+
     // 检测是否有 data:image 头
-    const headerMatch = trimmed.match(/^data:(image\/[a-zA-Z+]+);base64,(.+)$/);
+    const headerMatch = trimmed.match(/^data:(image\/[a-zA-Z+.-]+);base64,(.+)$/);
     if (headerMatch) {
       return {
         withHeader: trimmed,
@@ -52,51 +93,104 @@ const ImageBase64: React.FC = () => {
       };
     }
 
-    // 没有头，尝试验证是否为有效 base64
-    try {
-      const decoded = atob(trimmed);
-      // 检测图片类型
-      const bytes = new Uint8Array(decoded.length);
-      for (let i = 0; i < decoded.length; i++) {
-        bytes[i] = decoded.charCodeAt(i);
-      }
-      
-      let mimeType = "image/png"; // 默认
-      // PNG: 89 50 4E 47
-      if (bytes[0] === 0x89 && bytes[1] === 0x50 && bytes[2] === 0x4E && bytes[3] === 0x47) {
-        mimeType = "image/png";
-      }
-      // JPEG: FF D8 FF
-      else if (bytes[0] === 0xFF && bytes[1] === 0xD8 && bytes[2] === 0xFF) {
-        mimeType = "image/jpeg";
-      }
-      // GIF: 47 49 46
-      else if (bytes[0] === 0x47 && bytes[1] === 0x49 && bytes[2] === 0x46) {
-        mimeType = "image/gif";
-      }
-      // WebP: 52 49 46 46 ... 57 45 42 50
-      else if (bytes[0] === 0x52 && bytes[1] === 0x49 && bytes[2] === 0x46 && bytes[3] === 0x46) {
-        mimeType = "image/webp";
-      }
-
+    // 没有头，尝试通过魔数验证是否为有效图片 base64
+    const mimeType = detectImageMimeType(trimmed);
+    if (mimeType) {
       return {
         withHeader: `data:${mimeType};base64,${trimmed}`,
         raw: trimmed,
         mimeType,
       };
-    } catch {
-      return null;
+    }
+    return null;
+  };
+
+  // 从任意 JSON 值中递归收集所有字符串
+  const collectStrings = (value: unknown, acc: string[]) => {
+    if (typeof value === "string") {
+      acc.push(value);
+    } else if (Array.isArray(value)) {
+      for (const item of value) collectStrings(item, acc);
+    } else if (value && typeof value === "object") {
+      for (const v of Object.values(value)) collectStrings(v, acc);
     }
   };
 
-  // 转换为图片
+  // 从字符串中提取可能的 base64 图片候选：
+  // 1) data:image/...;base64,xxx 形式
+  // 2) 纯 base64（长度较长且字符集合法）
+  const extractBase64Candidates = (str: string): string[] => {
+    const candidates: string[] = [];
+
+    // 匹配所有 data URI 形式（字符串中可能嵌入多个）
+    const dataUriRegex = /data:image\/[a-zA-Z+.-]+;base64,[A-Za-z0-9+/]+=*/g;
+    const dataUriMatches = str.match(dataUriRegex);
+    if (dataUriMatches) {
+      candidates.push(...dataUriMatches);
+      return candidates;
+    }
+
+    // 纯 base64：整串是合法 base64 字符集且长度足够
+    const trimmed = str.trim();
+    if (trimmed.length >= 24 && /^[A-Za-z0-9+/]+=*$/.test(trimmed)) {
+      candidates.push(trimmed);
+    }
+    return candidates;
+  };
+
+  // 从 JSON 中提取所有 base64 图片
+  const extractImagesFromJson = (parsedJson: unknown): ImageItem[] => {
+    const strings: string[] = [];
+    collectStrings(parsedJson, strings);
+
+    const result: ImageItem[] = [];
+    const seen = new Set<string>();
+
+    strings.forEach((str, idx) => {
+      const candidates = extractBase64Candidates(str);
+      candidates.forEach((candidate, cIdx) => {
+        const parsed = parseBase64(candidate);
+        if (parsed && !seen.has(parsed.raw)) {
+          seen.add(parsed.raw);
+          result.push({
+            id: `${Date.now()}-${idx}-${cIdx}`,
+            base64WithHeader: parsed.withHeader,
+            base64Raw: parsed.raw,
+            mimeType: parsed.mimeType,
+          });
+        }
+      });
+    });
+
+    return result;
+  };
+
+  // 转换为图片：自动识别是「JSON」还是「单个 Base64」
   const handleConvert = () => {
-    if (!base64Input.trim()) {
-      message.warning("请输入 Base64 字符串");
+    const input = base64Input.trim();
+    if (!input) {
+      message.warning("请输入 Base64 字符串或 JSON");
       return;
     }
 
-    const parsed = parseBase64(base64Input);
+    // 优先尝试作为 JSON 解析：搜索整个 JSON 中的所有 base64 图片
+    if (input.startsWith("{") || input.startsWith("[")) {
+      try {
+        const parsedJson = JSON.parse(input);
+        const found = extractImagesFromJson(parsedJson);
+        if (found.length > 0) {
+          setImages((prev) => [...found, ...prev]);
+          message.success(`从 JSON 中提取到 ${found.length} 张图片`);
+          return;
+        }
+        message.warning("JSON 中未找到有效的图片 Base64");
+        return;
+      } catch {
+        // 不是合法 JSON，继续按单个 Base64 处理
+      }
+    }
+
+    const parsed = parseBase64(input);
     if (!parsed) {
       message.error("无效的 Base64 字符串");
       return;
@@ -110,7 +204,6 @@ const ImageBase64: React.FC = () => {
     };
 
     setImages([newImage, ...images]);
-    setBase64Input("");
     message.success("转换成功");
   };
 
@@ -173,29 +266,61 @@ const ImageBase64: React.FC = () => {
     setImages(images.filter((img) => img.id !== id));
   };
 
-  // 预览图片
-  const handlePreview = (base64: string) => {
-    setPreviewImage(base64);
+  // 预览图片（按索引）
+  const handlePreview = (index: number) => {
+    setPreviewIndex(index);
     setPreviewVisible(true);
   };
+
+  // 上一张 / 下一张（循环切换）
+  const showPrev = useCallback(() => {
+    setPreviewIndex((i) => (images.length === 0 ? -1 : (i - 1 + images.length) % images.length));
+  }, [images.length]);
+
+  const showNext = useCallback(() => {
+    setPreviewIndex((i) => (images.length === 0 ? -1 : (i + 1) % images.length));
+  }, [images.length]);
+
+  // 预览时支持键盘左右方向键切换、Esc 关闭
+  useEffect(() => {
+    if (!previewVisible) return;
+    const onKeyDown = (e: KeyboardEvent) => {
+      if (e.key === "ArrowLeft") showPrev();
+      else if (e.key === "ArrowRight") showNext();
+    };
+    window.addEventListener("keydown", onKeyDown);
+    return () => window.removeEventListener("keydown", onKeyDown);
+  }, [previewVisible, showPrev, showNext]);
+
+  const previewItem = previewIndex >= 0 ? images[previewIndex] : undefined;
 
   return (
     <Page maxWidth={800}>
       {/* Base64 输入区域 */}
       <Block>
         <Text type="secondary" style={{ display: "block", marginBottom: 8 }}>
-          输入图片 Base64（自动检测是否带头）
+          输入图片 Base64（自动检测是否带头），或粘贴 JSON（自动搜索其中所有图片 Base64）
         </Text>
         <TextArea
           value={base64Input}
           onChange={(e) => setBase64Input(e.target.value)}
-          placeholder="粘贴图片 Base64 字符串，支持带头或不带头格式..."
+          placeholder="粘贴图片 Base64 字符串（支持带头/不带头），或粘贴整个 JSON，将自动提取其中所有图片..."
           rows={5}
           style={{ fontFamily: "monospace", resize: "none" }}
         />
-        <div style={{ textAlign: "right", marginTop: 8 }}>
+        <div
+          style={{
+            display: "flex",
+            gap: 8,
+            marginTop: 16,
+            flexWrap: "wrap",
+          }}
+        >
           <Button type="primary" onClick={handleConvert}>
             转换为图片
+          </Button>
+          <Button onClick={() => setBase64Input("")} disabled={!base64Input}>
+            清空
           </Button>
         </div>
       </Block>
@@ -247,7 +372,7 @@ const ImageBase64: React.FC = () => {
             onChange={handleFileSelect}
           />
 
-          {images.map((img) => (
+          {images.map((img, index) => (
             <div
               key={img.id}
               style={{
@@ -270,7 +395,7 @@ const ImageBase64: React.FC = () => {
                   objectFit: "contain",
                   background: token.colorFillAlter,
                 }}
-                onClick={() => handlePreview(img.base64WithHeader)}
+                onClick={() => handlePreview(index)}
               />
               {/* Hover 操作层 */}
               {hoveredId === img.id && (
@@ -294,7 +419,7 @@ const ImageBase64: React.FC = () => {
                       type="primary"
                       size="small"
                       icon={<ZoomInOutlined />}
-                      onClick={() => handlePreview(img.base64WithHeader)}
+                      onClick={() => handlePreview(index)}
                     >
                       放大
                     </Button>
@@ -343,20 +468,122 @@ const ImageBase64: React.FC = () => {
         </div>
       </Block>
 
-      {/* 图片预览 Modal */}
+      {/* 图片预览 Modal - 全屏、图片占满窗口、支持左右切换 */}
       <Modal
         open={previewVisible}
         footer={null}
+        closable={false}
         onCancel={() => setPreviewVisible(false)}
-        width="80%"
-        style={{ maxWidth: 800 }}
-        centered
+        width="100vw"
+        style={{ top: 0, maxWidth: "100vw", paddingBottom: 0 }}
+        styles={{
+          container: {
+            padding: 0,
+            height: "100vh",
+            borderRadius: 0,
+            background: "rgba(0,0,0,0.92)",
+            boxShadow: "none",
+          },
+          body: { padding: 0, height: "100vh" },
+          mask: { background: "rgba(0,0,0,0.6)" },
+        }}
       >
-        <img
-          alt="preview"
-          style={{ width: "100%", maxHeight: "80vh", objectFit: "contain" }}
-          src={previewImage}
-        />
+        <div
+          style={{
+            position: "relative",
+            width: "100%",
+            height: "100%",
+            display: "flex",
+            alignItems: "center",
+            justifyContent: "center",
+            overflow: "hidden",
+          }}
+        >
+          {previewItem && (
+            <img
+              alt="preview"
+              style={{
+                maxWidth: "100%",
+                maxHeight: "100%",
+                width: "auto",
+                height: "auto",
+                objectFit: "contain",
+              }}
+              src={previewItem.base64WithHeader}
+            />
+          )}
+
+          {/* 关闭按钮 */}
+          <Button
+            type="text"
+            icon={<CloseOutlined style={{ fontSize: 22, color: "#fff" }} />}
+            onClick={() => setPreviewVisible(false)}
+            style={{
+              position: "absolute",
+              top: 16,
+              right: 16,
+              width: 44,
+              height: 44,
+              borderRadius: "50%",
+              background: "rgba(0,0,0,0.45)",
+            }}
+          />
+
+          {/* 图片序号 */}
+          {images.length > 0 && (
+            <div
+              style={{
+                position: "absolute",
+                top: 20,
+                left: "50%",
+                transform: "translateX(-50%)",
+                color: "#fff",
+                fontSize: 14,
+                background: "rgba(0,0,0,0.45)",
+                padding: "4px 12px",
+                borderRadius: 16,
+              }}
+            >
+              {previewIndex + 1} / {images.length}
+            </div>
+          )}
+
+          {/* 左右切换按钮 - 多于一张时显示 */}
+          {images.length > 1 && (
+            <>
+              <Button
+                type="text"
+                icon={<LeftOutlined style={{ fontSize: 24, color: "#fff" }} />}
+                onClick={showPrev}
+                style={{
+                  position: "absolute",
+                  left: 16,
+                  top: "50%",
+                  transform: "translateY(-50%)",
+                  width: 52,
+                  height: 52,
+                  borderRadius: "50%",
+                  background: "rgba(0,0,0,0.45)",
+                }}
+              />
+              <Button
+                type="text"
+                icon={<RightOutlined style={{ fontSize: 24, color: "#fff" }} />}
+                onClick={showNext}
+                style={{
+                  position: "absolute",
+                  right: 16,
+                  top: "50%",
+                  transform: "translateY(-50%)",
+                  width: 52,
+                  height: 52,
+                  borderRadius: "50%",
+                  background: "rgba(0,0,0,0.45)",
+                }}
+              />
+            </>
+          )}
+        </div>
       </Modal>
     </Page>
   );
