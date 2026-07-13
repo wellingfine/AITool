@@ -280,6 +280,17 @@
       "component": "MindMap"
     },
     {
+      "id": "jsonLogExplainer",
+      "name": "JSON日志解释",
+      "description": "解析并逐字段解释 JSON 格式的日志",
+      "icon": "FileSearchOutlined",
+      "category": "work",
+      "categoryName": "工作",
+      "categoryIcon": "TeamOutlined",
+      "storage": null,
+      "component": "JsonLogExplainer"
+    },
+    {
       "id": "about",
       "name": "关于",
       "description": "关于AITool",
