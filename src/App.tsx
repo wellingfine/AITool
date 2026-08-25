@@ -39,6 +39,7 @@ const lazyComponentMap: Record<string, React.LazyExoticComponent<React.Component
   QRCodeGenerator: lazy(() => import('./components/QRCodeGenerator')),
   MindMap: lazy(() => import('./components/MindMap')),
   JsonLogExplainer: lazy(() => import('./components/JsonLogExplainer')),
+  ImageAnnotator: lazy(() => import('./components/ImageAnnotator')),
 };
 
 // 同步加载组件映射表
